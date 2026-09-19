@@ -1,0 +1,75 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+.env
+uv.lock.bak
+
+# uv
+.uv/
+.uv-cache/
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+*.egg
+*.whl
+
+# Secrets / local config
+.env
+!.env.example
+*.pem
+*.key
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Data (local prototype datasets — keep tracked only if explicitly added)
+# Uncomment to ignore large local datasets:
+# data/raw/*
+# data/processed/*
+# data/synthetic/*
+# !data/synthetic/demo/.gitkeep
+
+# Model artifacts / experiments
+models/artifacts/*
+!models/artifacts/.gitkeep
+mlruns/
+mlartifacts/
+
+# Notebooks
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Testing / coverage
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+*.cover
+
+# Caches
+.mypy_cache/
+.ruff_cache/
+.duckdb*
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Docker
+.dockerignore
+
+# Streamlit
+.streamlit/secrets.toml
