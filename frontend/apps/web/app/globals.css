@@ -1,0 +1,149 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* PARAKH FinTech Custom Surfaces & Accents */
+  --color-surface-base: var(--surface-base);
+  --color-surface-card: var(--surface-card);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-surface-highlight: var(--surface-highlight);
+  --color-surface-border: var(--surface-border);
+
+  --color-accent-lime: #C8F451;
+  --color-accent-electric: #2563EB;
+  --color-accent-royal: #1239A6;
+  --color-accent-cyan: #22D3EE;
+  --color-accent-mint: #2DD4BF;
+  --color-accent-violet: #8B5CF6;
+  --color-accent-magenta: #EC4899;
+  --color-accent-lavender: #C4B5FD;
+
+  /* Risk assessment state indicators */
+  --color-risk-lower: #34D399;
+  --color-risk-moderate: #FBBF24;
+  --color-risk-higher: #F87171;
+  --color-risk-neutral: #64748B;
+
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1rem;
+  --radius-3xl: 1.25rem;
+  --radius-pill: 9999px;
+}
+
+:root {
+  /* Default to deep navy FinTech aesthetic matching Hero */
+  --background: #060D1F;
+  --foreground: #F8FAFC;
+  
+  --surface-base: #060D1F;
+  --surface-card: #0A162E;
+  --surface-elevated: #0E1F3D;
+  --surface-highlight: #14274E;
+  --surface-border: rgba(255, 255, 255, 0.08);
+
+  --card: #0A162E;
+  --card-foreground: #F8FAFC;
+  --popover: #0A162E;
+  --popover-foreground: #F8FAFC;
+
+  --primary: #C8F451;
+  --primary-foreground: #07111F;
+
+  --secondary: #0E1F3D;
+  --secondary-foreground: #F8FAFC;
+
+  --muted: #0E1F3D;
+  --muted-foreground: #A8B7CC;
+
+  --accent: #14274E;
+  --accent-foreground: #F8FAFC;
+
+  --destructive: #F87171;
+  --destructive-foreground: #450A0A;
+
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.12);
+  --ring: #22D3EE;
+
+  --radius: 1rem;
+}
+
+.dark {
+  --background: #060D1F;
+  --foreground: #F8FAFC;
+  --surface-base: #060D1F;
+  --surface-card: #0A162E;
+  --surface-elevated: #0E1F3D;
+  --surface-highlight: #14274E;
+  --surface-border: rgba(255, 255, 255, 0.08);
+  --card: #0A162E;
+  --card-foreground: #F8FAFC;
+  --popover: #0A162E;
+  --popover-foreground: #F8FAFC;
+  --primary: #C8F451;
+  --primary-foreground: #07111F;
+  --secondary: #0E1F3D;
+  --secondary-foreground: #F8FAFC;
+  --muted: #0E1F3D;
+  --muted-foreground: #A8B7CC;
+  --accent: #14274E;
+  --accent-foreground: #F8FAFC;
+  --destructive: #F87171;
+  --destructive-foreground: #450A0A;
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.12);
+  --ring: #22D3EE;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    box-sizing: border-box;
+  }
+  body {
+    @apply bg-background text-foreground antialiased selection:bg-cyan-500/25 selection:text-cyan-200;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+/* Custom delicate scrollbar for dark surfaces */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #060D1F;
+}
+::-webkit-scrollbar-thumb {
+  background: #14274E;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2563EB;
+}
