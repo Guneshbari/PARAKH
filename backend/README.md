@@ -59,7 +59,7 @@ HTTP Response
 7. **Repositories (`app/repositories/`)**:
    Data access abstraction isolating database queries and persistence mechanisms from business logic.
 
-> **Note**: `services/` and `repositories/` represent architectural boundaries prepared for future implementation. Authentication (JWT) and ML scoring logic will be introduced in subsequent tasks.
+> **Note**: `services/` represents an architectural boundary prepared for upcoming tasks. The repository layer is fully implemented and tested. Authentication (JWT) and ML scoring logic will be introduced in subsequent tasks.
 
 ---
 
@@ -142,7 +142,47 @@ This enables seamless conversion from SQLAlchemy ORM entities via `Schema.model_
 
 ---
 
-## 7. Local Setup & Configuration
+## 7. Repository Layer (`app/repositories/`)
+
+The repository layer isolates database access from business logic and service orchestration. Built with SQLAlchemy 2.0, it provides type-safe, generic persistence methods and entity-specific query abstractions.
+
+### BaseRepository Pattern
+Located in `app/repositories/base.py`, `BaseRepository[ModelType]` provides reusable generic CRUD operations:
+- `create(obj_in, commit=False, db=None)`: Accepts entity instances or attribute dictionaries, flushes to populate primary keys and default values, and optionally commits.
+- `get_by_id(id, db=None)`: Retrieves an entity by UUID, string UUID, or integer primary key.
+- `get_all(skip=0, limit=100, db=None)`: Fetches paginated records.
+- `update(db_obj, obj_in, commit=False, db=None)`: Updates attributes from dictionaries, Pydantic schemas, or object instances.
+- `delete(id, commit=False, db=None)`: Deletes an entity by primary key.
+
+### Domain Repositories
+Domain-specific repositories inherit from `BaseRepository` to encapsulate specialized domain queries:
+- **`UserRepository`**: User lookup by normalized email (`get_by_email`).
+- **`ApplicantRepository`** (alias `ApplicantProfileRepository`): Profile lookup by user ID (`get_by_user_id`).
+- **`ApplicationRepository`**: Listing by applicant profile with descending sort, status transitions (`update_status`).
+- **`ConsentRepository`**: Application consent retrieval, active consent filtering (`get_active_consents`), and revocation stamping (`revoke`).
+- **`FinancialSignalRepository`**: Application signals retrieval, most recent signal lookup (`get_latest`).
+- **`AssessmentRepository`** (alias `CreditAssessmentRepository`): Application assessment history, latest evaluation retrieval (`get_latest`).
+- **`ModelVersionRepository`**: Active algorithmic model version retrieval (`get_active`), version listing (`list_versions`).
+- **`ReviewRepository`** (alias `ReviewOutcomeRepository`): Human adjudication queries by application and reviewer (`get_by_reviewer`).
+- **`AuditRepository`** (alias `AuditLogRepository`): Immutable audit trails queried by application and user ID.
+
+### Session Management & Dependency Injection
+Repositories support flexible session binding:
+1. **Instance-scoped session**: `repo = UserRepository(db)` initialized within a request lifecycle or dependency.
+2. **Method-scoped session**: `repo.get_by_email(email, db=db)` allowing dynamic session injection or transactional overrides.
+
+### Transaction Handling & Unit of Work
+- By default, repository operations call `session.flush()` rather than `session.commit()`.
+- This ensures generated primary keys (UUIDs) and database defaults are populated while allowing the caller (e.g. Service Layer) to compose multi-repository operations atomically within a single transaction.
+- When independent single-record operations require immediate persistence, `commit=True` may be explicitly requested.
+
+### Decoupling from Business Logic
+- Repositories perform database access only.
+- Repositories **do not** make scoring decisions, calculate financial risk, enforce consent policy, hash passwords, or generate audit events. Orchestration and domain decisions remain strictly in the upcoming Service Layer.
+
+---
+
+## 8. Local Setup & Configuration
 
 ### Prerequisites
 - Python 3.10+ (tested on Python 3.12)
@@ -196,7 +236,7 @@ This enables seamless conversion from SQLAlchemy ORM entities via `Schema.model_
 
 ---
 
-## 8. Database Migrations (Alembic)
+## 9. Database Migrations (Alembic)
 
 Schema migrations are managed with Alembic. The database connection URL is dynamically read from `app.core.config.settings.DATABASE_URL` without hardcoding credentials into source files.
 
@@ -240,7 +280,7 @@ Schema migrations are managed with Alembic. The database connection URL is dynam
 
 ---
 
-## 9. Endpoints
+## 10. Endpoints
 
 | Method | Endpoint | Description | Sample Response (Success) |
 |---|---|---|---|
@@ -253,7 +293,7 @@ Schema migrations are managed with Alembic. The database connection URL is dynam
 ```bash
 # Root greeting
 curl -s http://127.0.0.1:8000/
-
+ 
 # Service health
 curl -s http://127.0.0.1:8000/health
 
@@ -266,19 +306,19 @@ curl -s http://127.0.0.1:8000/api/v1/database/health
 
 ---
 
-## 10. Running Tests
+## 11. Running Tests
 
 Run the full unit and integration test suite:
 ```bash
 python -m unittest discover -s tests -p "test_*.py" -v
 ```
 
-- **Unit tests**: Validate configuration, SQLAlchemy engine creation, DeclarativeBase inheritance, `get_db()` lifecycle, domain model relationships, constraints, data minimization, Alembic configuration/offline migrations, and Pydantic schema validation/ORM compatibility.
-- **Integration tests**: Automatically attempt live `SELECT 1` queries against PostgreSQL if available. If PostgreSQL is offline locally, integration tests skip gracefully without failing the build.
+- **Unit tests**: Validate configuration, SQLAlchemy engine creation, DeclarativeBase inheritance, `get_db()` lifecycle, domain model relationships, constraints, data minimization, Alembic configuration/offline migrations, Pydantic schema validation/ORM compatibility, and repository CRUD/specialized query behavior.
+- **Integration tests**: Automatically attempt live `SELECT 1` and repository queries against PostgreSQL if available. If PostgreSQL is offline locally, integration tests skip gracefully without failing the build.
 
 ---
 
-## 11. Project Structure
+## 12. Project Structure
 ```
 backend/
 ├── alembic.ini               # Alembic CLI configuration (credentials omitted)
@@ -322,10 +362,20 @@ backend/
 │   │   ├── model_version.py # ModelVersion entity
 │   │   ├── review.py        # ReviewOutcome entity
 │   │   └── audit.py         # AuditLog entity
-│   ├── services/
-│   │   └── __init__.py      # Business logic orchestration (placeholder)
-│   └── repositories/
-│       └── __init__.py      # Data persistence abstraction (placeholder)
+│   ├── repositories/
+│   │   ├── __init__.py      # Exports all domain repositories and BaseRepository
+│   │   ├── base.py          # BaseRepository generic CRUD implementation
+│   │   ├── user.py          # UserRepository
+│   │   ├── applicant.py     # ApplicantRepository & ApplicantProfileRepository
+│   │   ├── application.py   # ApplicationRepository
+│   │   ├── consent.py       # ConsentRepository
+│   │   ├── financial_signal.py # FinancialSignalRepository
+│   │   ├── assessment.py    # AssessmentRepository & CreditAssessmentRepository
+│   │   ├── model_version.py # ModelVersionRepository
+│   │   ├── review.py        # ReviewRepository & ReviewOutcomeRepository
+│   │   └── audit.py         # AuditRepository & AuditLogRepository
+│   └── services/
+│       └── __init__.py      # Business logic orchestration (placeholder)
 │
 ├── tests/
 │   ├── __init__.py
@@ -333,10 +383,12 @@ backend/
 │   ├── test_database.py     # Database engine, session, and unit/integration tests
 │   ├── test_models.py       # Domain model structure, relationship, and constraint tests
 │   ├── test_migrations.py   # Alembic configuration and migration generation tests
-│   └── test_schemas.py      # Pydantic request/response schema validation & ORM tests
+│   ├── test_schemas.py      # Pydantic request/response schema validation & ORM tests
+│   └── test_repositories.py # Repository CRUD and specialized query unit/integration tests
 │
 ├── .env.example             # Example configuration template with DATABASE_URL
 ├── .gitignore               # Ignored files (.env, .venv, caches)
 ├── requirements.txt         # Current backend dependencies
 └── README.md                # Comprehensive documentation & architecture guide
 ```
+
