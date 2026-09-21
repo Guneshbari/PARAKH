@@ -13,42 +13,42 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
     case 'SUBMITTED':
       return (
         <Badge variant="outline" className={className}>
-          <Clock className="size-3 text-slate-400" />
+          <Clock className="size-3 opacity-60" />
           <span>Submitted</span>
         </Badge>
       );
     case 'DATA_VALIDATION':
       return (
         <Badge variant="secondary" className={className}>
-          <FileSearch className="size-3 text-teal-400" />
+          <FileSearch className="size-3 opacity-75" />
           <span>Validating Data</span>
         </Badge>
       );
     case 'FINANCIAL_ANALYSIS':
       return (
         <Badge variant="lavender" className={className}>
-          <Clock className="size-3 text-[#C4B5FD]" />
+          <Clock className="size-3 opacity-75" />
           <span>Analyzing Cashflow</span>
         </Badge>
       );
     case 'ASSESSMENT_COMPLETED':
       return (
         <Badge variant="mint" className={className}>
-          <CheckCircle2 className="size-3 text-emerald-400" />
+          <CheckCircle2 className="size-3" />
           <span>Assessed</span>
         </Badge>
       );
     case 'MANUAL_REVIEW_REQUIRED':
       return (
         <Badge variant="riskModerate" className={className}>
-          <AlertCircle className="size-3 text-amber-400" />
+          <AlertCircle className="size-3" />
           <span>Needs Review</span>
         </Badge>
       );
     case 'REVIEW_COMPLETED':
       return (
         <Badge variant="mint" className={className}>
-          <ShieldAlert className="size-3 text-teal-300" />
+          <ShieldAlert className="size-3" />
           <span>Review Recorded</span>
         </Badge>
       );

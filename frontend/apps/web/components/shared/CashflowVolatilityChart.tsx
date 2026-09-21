@@ -14,6 +14,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Activity, ShieldCheck } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
+import { useTheme } from '@/components/theme/ThemeProvider';
 
 export interface CashflowDataPoint {
   week: string;
@@ -51,16 +52,25 @@ export function CashflowVolatilityChart({
   recoveryRate = 94,
   className,
 }: CashflowVolatilityChartProps) {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
+  const strokeColor = isDark ? '#FFFFFF' : '#0F172A';
+  const gradientColor = isDark ? '#FFFFFF' : '#3B82F6';
+  const axisColor = isDark ? '#71717A' : '#94A3B8';
+  const dotStroke = isDark ? '#08090A' : '#FFFFFF';
+  const refLineColor = isDark ? '#71717A' : '#94A3B8';
+
   return (
     <Card className={className}>
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-2 pb-4">
         <div className="space-y-1">
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-semibold uppercase tracking-wider">
-            <Activity className="size-3.5 text-teal-400" />
+          <div className="flex items-center gap-1.5 text-xs text-foreground-muted font-medium uppercase tracking-wider">
+            <Activity className="size-3.5 opacity-70" />
             <span>Resilience Tracking</span>
           </div>
-          <h3 className="text-lg font-bold text-white tracking-tight">{title}</h3>
+          <h3 className="text-base sm:text-lg font-semibold text-foreground tracking-tight">{title}</h3>
         </div>
 
         <Badge variant="mint" className="text-xs">
@@ -75,20 +85,20 @@ export function CashflowVolatilityChart({
           <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
             <defs>
               <linearGradient id="inflowGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#2DD4BF" stopOpacity={0.35} />
-                <stop offset="95%" stopColor="#2DD4BF" stopOpacity={0.0} />
+                <stop offset="5%" stopColor={gradientColor} stopOpacity={isDark ? 0.22 : 0.18} />
+                <stop offset="95%" stopColor={gradientColor} stopOpacity={0.0} />
               </linearGradient>
             </defs>
 
             <XAxis
               dataKey="week"
-              stroke="#64748B"
+              stroke={axisColor}
               fontSize={11}
               tickLine={false}
               axisLine={false}
             />
             <YAxis
-              stroke="#64748B"
+              stroke={axisColor}
               fontSize={11}
               tickLine={false}
               axisLine={false}
@@ -101,23 +111,23 @@ export function CashflowVolatilityChart({
                 const pt = payload[0].payload as CashflowDataPoint;
 
                 return (
-                  <div className="rounded-xl bg-[#0E1F3D] border border-white/[0.12] p-3 shadow-xl space-y-1">
-                    <p className="text-[11px] font-bold text-muted-foreground uppercase">
+                  <div className="rounded-xl bg-surface border border-border p-3 shadow-xl space-y-1 text-foreground">
+                    <p className="text-[11px] font-semibold text-foreground-muted uppercase tracking-wider">
                       Week {pt.week}
                     </p>
-                    <p className="text-sm font-bold text-white font-mono">
+                    <p className="text-sm font-semibold text-foreground font-mono">
                       Inflow: {formatCurrency(pt.inflow)}
                     </p>
-                    <p className="text-xs text-muted-foreground font-mono">
+                    <p className="text-xs text-foreground-secondary font-mono">
                       Obligations: {formatCurrency(pt.obligations)}
                     </p>
                     {pt.isDip && (
-                      <span className="text-[10px] font-semibold text-amber-300 block pt-1">
+                      <span className="text-[10px] font-medium text-foreground-muted block pt-1">
                         Cyclical dip absorbed
                       </span>
                     )}
                     {pt.isRecovery && (
-                      <span className="text-[10px] font-semibold text-teal-300 block pt-1">
+                      <span className="text-[10px] font-medium text-foreground block pt-1">
                         Rapid rebound confirmed
                       </span>
                     )}
@@ -128,12 +138,12 @@ export function CashflowVolatilityChart({
 
             <ReferenceLine
               y={3500}
-              stroke="#F87171"
+              stroke={refLineColor}
               strokeDasharray="4 4"
               strokeOpacity={0.6}
               label={{
                 value: 'Fixed Obligations (₹3.5k)',
-                fill: '#94A3B8',
+                fill: axisColor,
                 fontSize: 10,
                 position: 'insideTopRight',
               }}
@@ -142,29 +152,29 @@ export function CashflowVolatilityChart({
             <Area
               type="monotone"
               dataKey="inflow"
-              stroke="#2DD4BF"
-              strokeWidth={2.5}
+              stroke={strokeColor}
+              strokeWidth={2}
               fill="url(#inflowGradient)"
-              activeDot={{ r: 6, fill: '#2DD4BF', stroke: '#060D1F', strokeWidth: 2 }}
+              activeDot={{ r: 5, fill: strokeColor, stroke: dotStroke, strokeWidth: 2 }}
             />
           </AreaChart>
         </ResponsiveContainer>
       </div>
 
       {/* Footer Legend */}
-      <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between text-xs text-muted-foreground">
+      <div className="pt-3 border-t border-border flex items-center justify-between text-xs text-foreground-muted">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1.5">
-            <span className="size-2 rounded-full bg-teal-400" />
+            <span className="size-2 rounded-full bg-foreground" />
             <span>Weekly Inflow</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="size-2 rounded-full bg-red-400/60" />
+            <span className="size-2 rounded-full bg-foreground-muted/40" />
             <span>Obligation Threshold</span>
           </div>
         </div>
 
-        <span className="text-[11px] text-teal-300">Resilient Recovery Pattern</span>
+        <span className="text-[11px] text-foreground-secondary font-medium">Resilient Recovery Pattern</span>
       </div>
     </Card>
   );

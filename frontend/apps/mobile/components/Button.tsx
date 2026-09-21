@@ -11,12 +11,12 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
 } from 'react-native-reanimated';
-import { MobileTheme } from '../lib/theme';
+import { MobileTheme, useTheme } from '../lib/theme';
 import { MOBILE_SPRING_SNAPPY } from '../lib/animations';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-export type ButtonVariant = 'default' | 'mint' | 'lavender' | 'outline';
+export type ButtonVariant = 'default' | 'secondary' | 'outline' | 'ghost' | 'mint' | 'lavender';
 export type ButtonSize = 'default' | 'sm' | 'pill';
 
 interface ButtonProps {
@@ -42,32 +42,41 @@ export function Button({
 }: ButtonProps) {
   const scale = useSharedValue(1);
 
+  let colors = MobileTheme.colors;
+  try {
+    const theme = useTheme();
+    colors = theme.colors;
+  } catch {}
+
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
   }));
 
   const getContainerStyle = (): ViewStyle => {
     switch (variant) {
+      case 'secondary':
       case 'mint':
         return {
-          backgroundColor: 'rgba(45, 212, 191, 0.15)',
-          borderColor: 'rgba(45, 212, 191, 0.3)',
+          backgroundColor: colors.secondaryButtonBg,
+          borderColor: colors.secondaryButtonBorder,
           borderWidth: 1,
-        };
-      case 'lavender':
-        return {
-          backgroundColor: MobileTheme.colors.lavender,
-          borderWidth: 0,
         };
       case 'outline':
+      case 'lavender':
         return {
-          backgroundColor: 'rgba(255, 255, 255, 0.05)',
-          borderColor: MobileTheme.colors.border,
+          backgroundColor: 'transparent',
+          borderColor: colors.borderStrong,
           borderWidth: 1,
         };
+      case 'ghost':
+        return {
+          backgroundColor: 'transparent',
+          borderWidth: 0,
+        };
+      case 'default':
       default:
         return {
-          backgroundColor: MobileTheme.colors.mint,
+          backgroundColor: colors.primaryButtonBg,
           borderWidth: 0,
         };
     }
@@ -75,25 +84,28 @@ export function Button({
 
   const getTextStyle = (): TextStyle => {
     switch (variant) {
+      case 'secondary':
       case 'mint':
-        return { color: MobileTheme.colors.mint };
-      case 'lavender':
-        return { color: '#1E1B2E', fontWeight: '700' };
+        return { color: colors.secondaryButtonText, fontWeight: '600' };
       case 'outline':
-        return { color: MobileTheme.colors.textPrimary };
+      case 'lavender':
+        return { color: colors.textPrimary, fontWeight: '600' };
+      case 'ghost':
+        return { color: colors.textSecondary, fontWeight: '500' };
+      case 'default':
       default:
-        return { color: '#042F2E', fontWeight: '700' };
+        return { color: colors.primaryButtonText, fontWeight: '700' };
     }
   };
 
   const getSizeStyle = (): ViewStyle => {
     switch (size) {
       case 'sm':
-        return { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 12 };
+        return { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 10 };
       case 'pill':
-        return { paddingVertical: 8, paddingHorizontal: 18, borderRadius: 9999 };
+        return { paddingVertical: 7, paddingHorizontal: 16, borderRadius: 9999 };
       default:
-        return { paddingVertical: 14, paddingHorizontal: 20, borderRadius: 16 };
+        return { paddingVertical: 12, paddingHorizontal: 18, borderRadius: 14 };
     }
   };
 
@@ -127,11 +139,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
+    gap: 7,
   },
   text: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 13,
   },
   disabled: {
     opacity: 0.5,

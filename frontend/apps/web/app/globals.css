@@ -6,46 +6,48 @@
 
 @theme inline {
   --color-background: var(--background);
+  --color-background-secondary: var(--background-secondary);
   --color-foreground: var(--foreground);
+  --color-foreground-secondary: var(--foreground-secondary);
+  --color-foreground-muted: var(--foreground-muted);
+
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-surface-highlight: var(--surface-highlight);
+  --color-surface-border: var(--border);
+
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
+
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
+  --color-accent-secondary: var(--accent-secondary);
+  --color-accent-foreground: var(--foreground);
+
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  /* PARAKH FinTech Custom Surfaces & Accents */
-  --color-surface-base: var(--surface-base);
-  --color-surface-card: var(--surface-card);
-  --color-surface-elevated: var(--surface-elevated);
-  --color-surface-highlight: var(--surface-highlight);
-  --color-surface-border: var(--surface-border);
+  /* Legacy semantic surface bridge */
+  --color-surface-base: var(--background);
+  --color-surface-card: var(--surface);
 
-  --color-accent-lime: #C8F451;
-  --color-accent-electric: #2563EB;
-  --color-accent-royal: #1239A6;
-  --color-accent-cyan: #22D3EE;
-  --color-accent-mint: #2DD4BF;
-  --color-accent-violet: #8B5CF6;
-  --color-accent-magenta: #EC4899;
-  --color-accent-lavender: #C4B5FD;
-
-  /* Risk assessment state indicators */
-  --color-risk-lower: #34D399;
-  --color-risk-moderate: #FBBF24;
-  --color-risk-higher: #F87171;
-  --color-risk-neutral: #64748B;
+  /* Risk States */
+  --color-risk-lower: var(--risk-lower);
+  --color-risk-moderate: var(--risk-moderate);
+  --color-risk-higher: var(--risk-higher);
+  --color-risk-neutral: var(--risk-neutral);
 
   --radius-sm: 0.5rem;
   --radius-md: 0.75rem;
@@ -56,69 +58,155 @@
   --radius-pill: 9999px;
 }
 
+/* ==========================================================
+   LIGHT MODE: "Light / Minimal / Pastel Silk"
+   Matches LEFT SIDE of reference
+   ========================================================== */
 :root {
-  /* Default to deep navy FinTech aesthetic matching Hero */
-  --background: #060D1F;
-  --foreground: #F8FAFC;
-  
-  --surface-base: #060D1F;
-  --surface-card: #0A162E;
-  --surface-elevated: #0E1F3D;
-  --surface-highlight: #14274E;
-  --surface-border: rgba(255, 255, 255, 0.08);
+  --background: #F7F8FC;
+  --background-secondary: #F2F4FA;
 
-  --card: #0A162E;
-  --card-foreground: #F8FAFC;
-  --popover: #0A162E;
-  --popover-foreground: #F8FAFC;
+  --surface: #FFFFFF;
+  --surface-elevated: #F8FAFC;
+  --surface-highlight: #EEF2F6;
 
-  --primary: #C8F451;
-  --primary-foreground: #07111F;
+  --foreground: #0F172A;
+  --foreground-secondary: #475569;
+  --foreground-muted: #94A3B8;
 
-  --secondary: #0E1F3D;
-  --secondary-foreground: #F8FAFC;
+  --border: rgba(15, 23, 42, 0.08);
+  --border-strong: rgba(15, 23, 42, 0.16);
 
-  --muted: #0E1F3D;
-  --muted-foreground: #A8B7CC;
+  --primary: #0F172A;
+  --primary-foreground: #FFFFFF;
 
-  --accent: #14274E;
-  --accent-foreground: #F8FAFC;
+  --secondary: #FFFFFF;
+  --secondary-foreground: #0F172A;
 
-  --destructive: #F87171;
-  --destructive-foreground: #450A0A;
+  --accent: rgba(15, 23, 42, 0.05);
+  --accent-secondary: rgba(15, 23, 42, 0.03);
 
-  --border: rgba(255, 255, 255, 0.08);
-  --input: rgba(255, 255, 255, 0.12);
-  --ring: #22D3EE;
+  --card: #FFFFFF;
+  --card-foreground: #0F172A;
+  --popover: #FFFFFF;
+  --popover-foreground: #0F172A;
 
+  --muted: #F2F4FA;
+  --muted-foreground: #475569;
+
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
+
+  --success: #34C759;
+  --success-foreground: #FFFFFF;
+
+  --input: rgba(15, 23, 42, 0.12);
+  --ring: rgba(15, 23, 42, 0.22);
   --radius: 1rem;
+
+  /* Wave Silk Strand Tokens (Light: Soft Pastels) */
+  --wave-strand-1: #CBD5FF;
+  --wave-strand-2: #C4B5FD;
+  --wave-strand-3: #93C5FD;
+  --wave-strand-4: #67E8F9;
+  --wave-strand-5: #D8B4FE;
+  --wave-shine: rgba(147, 197, 253, 0.85);
+  --star-color: #93C5FD;
+
+  /* Charts (Light: Minimal Slate / Navy / Soft Pastels) */
+  --chart-primary: #0F172A;
+  --chart-secondary: #60A5FA;
+  --chart-tertiary: #C4B5FD;
+  --chart-grid: rgba(15, 23, 42, 0.06);
+
+  /* Risk Indicators (Soft Non-Neon Tints) */
+  --risk-lower: #059669;
+  --risk-lower-bg: rgba(5, 150, 105, 0.08);
+  --risk-lower-border: rgba(5, 150, 105, 0.22);
+  --risk-moderate: #D97706;
+  --risk-moderate-bg: rgba(217, 119, 6, 0.08);
+  --risk-moderate-border: rgba(217, 119, 6, 0.22);
+  --risk-higher: #DC2626;
+  --risk-higher-bg: rgba(220, 38, 38, 0.08);
+  --risk-higher-border: rgba(220, 38, 38, 0.22);
+  --risk-neutral: #475569;
+  --risk-neutral-bg: rgba(71, 85, 105, 0.08);
+  --risk-neutral-border: rgba(71, 85, 105, 0.22);
 }
 
+/* ==========================================================
+   DARK MODE: "Monochrome / Black & White / Silk"
+   Matches RIGHT SIDE of reference
+   ========================================================== */
 .dark {
-  --background: #060D1F;
-  --foreground: #F8FAFC;
-  --surface-base: #060D1F;
-  --surface-card: #0A162E;
-  --surface-elevated: #0E1F3D;
-  --surface-highlight: #14274E;
-  --surface-border: rgba(255, 255, 255, 0.08);
-  --card: #0A162E;
-  --card-foreground: #F8FAFC;
-  --popover: #0A162E;
-  --popover-foreground: #F8FAFC;
-  --primary: #C8F451;
-  --primary-foreground: #07111F;
-  --secondary: #0E1F3D;
-  --secondary-foreground: #F8FAFC;
-  --muted: #0E1F3D;
-  --muted-foreground: #A8B7CC;
-  --accent: #14274E;
-  --accent-foreground: #F8FAFC;
-  --destructive: #F87171;
-  --destructive-foreground: #450A0A;
+  --background: #08090A;
+  --background-secondary: #0D0E10;
+
+  --surface: #121416;
+  --surface-elevated: #181A1D;
+  --surface-highlight: #22252A;
+
+  --foreground: #F5F5F5;
+  --foreground-secondary: #A1A1AA;
+  --foreground-muted: #71717A;
+
   --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+
+  --primary: #F5F5F5;
+  --primary-foreground: #08090A;
+
+  --secondary: rgba(255, 255, 255, 0.05);
+  --secondary-foreground: #F5F5F5;
+
+  --accent: rgba(255, 255, 255, 0.08);
+  --accent-secondary: rgba(255, 255, 255, 0.04);
+
+  --card: #121416;
+  --card-foreground: #F5F5F5;
+  --popover: #121416;
+  --popover-foreground: #F5F5F5;
+
+  --muted: #181A1D;
+  --muted-foreground: #71717A;
+
+  --destructive: #F87171;
+  --destructive-foreground: #08090A;
+
+  --success: #34C759;
+  --success-foreground: #08090A;
+
   --input: rgba(255, 255, 255, 0.12);
-  --ring: #22D3EE;
+  --ring: rgba(255, 255, 255, 0.3);
+
+  /* Wave Silk Strand Tokens (Dark: Pure Monochrome Silver/White) */
+  --wave-strand-1: #FFFFFF;
+  --wave-strand-2: #E4E4E7;
+  --wave-strand-3: #D4D4D8;
+  --wave-strand-4: #A1A1AA;
+  --wave-strand-5: #71717A;
+  --wave-shine: rgba(255, 255, 255, 0.95);
+  --star-color: #FFFFFF;
+
+  /* Charts (Dark: Grayscale / Monochrome) */
+  --chart-primary: #FFFFFF;
+  --chart-secondary: #A1A1AA;
+  --chart-tertiary: #71717A;
+  --chart-grid: rgba(255, 255, 255, 0.06);
+
+  /* Risk Indicators (Distinguishable Subtle Semantic Tints in Dark Mode) */
+  --risk-lower: #34D399;
+  --risk-lower-bg: rgba(52, 211, 153, 0.12);
+  --risk-lower-border: rgba(52, 211, 153, 0.28);
+  --risk-moderate: #FBBF24;
+  --risk-moderate-bg: rgba(251, 191, 36, 0.12);
+  --risk-moderate-border: rgba(251, 191, 36, 0.28);
+  --risk-higher: #F87171;
+  --risk-higher-bg: rgba(248, 113, 113, 0.12);
+  --risk-higher-border: rgba(248, 113, 113, 0.28);
+  --risk-neutral: #94A3B8;
+  --risk-neutral-bg: rgba(148, 163, 184, 0.12);
+  --risk-neutral-border: rgba(148, 163, 184, 0.28);
 }
 
 @layer base {
@@ -127,23 +215,35 @@
     box-sizing: border-box;
   }
   body {
-    @apply bg-background text-foreground antialiased selection:bg-cyan-500/25 selection:text-cyan-200;
+    @apply bg-background text-foreground antialiased;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    transition: background-color 200ms cubic-bezier(0.4, 0, 0.2, 1),
+                color 200ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 
-/* Custom delicate scrollbar for dark surfaces */
+/* Subtle theme transitions without layout shifts */
+.theme-transition,
+.theme-transition * {
+  transition: background-color 200ms ease,
+              border-color 200ms ease,
+              color 200ms ease,
+              fill 200ms ease,
+              stroke 200ms ease;
+}
+
+/* Custom delicate scrollbar matching active theme */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #060D1F;
+  background: var(--background);
 }
 ::-webkit-scrollbar-thumb {
-  background: #14274E;
+  background: var(--border-strong);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #2563EB;
+  background: var(--foreground-muted);
 }

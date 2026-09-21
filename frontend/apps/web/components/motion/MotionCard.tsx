@@ -22,12 +22,12 @@ export function MotionCard({
   const shouldReduceMotion = useReducedMotion();
 
   const baseStyles =
-    'rounded-2xl bg-card text-card-foreground border border-white/[0.08] p-5 sm:p-6 shadow-sm transition-colors';
+    'rounded-2xl bg-surface text-foreground border border-border p-5 sm:p-6 shadow-xs transition-colors';
 
   if (shouldReduceMotion || !hoverable) {
     return (
       <div
-        className={cn(baseStyles, onClick && 'cursor-pointer hover:border-white/20', className)}
+        className={cn(baseStyles, onClick && 'cursor-pointer hover:border-border-strong', className)}
         onClick={onClick}
         {...props}
       >

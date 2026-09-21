@@ -5,7 +5,7 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
 } from 'react-native-reanimated';
-import { MobileTheme } from '../lib/theme';
+import { MobileTheme, useTheme } from '../lib/theme';
 import { MOBILE_SPRING_TACTILE } from '../lib/animations';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -25,9 +25,20 @@ export function Card({
 }: MobileCardProps) {
   const scale = useSharedValue(1);
 
+  let colors = MobileTheme.colors;
+  try {
+    const theme = useTheme();
+    colors = theme.colors;
+  } catch {}
+
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
   }));
+
+  const dynamicCardStyle = {
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+  };
 
   if (onPress || interactive) {
     return (
@@ -39,7 +50,7 @@ export function Card({
         onPressOut={() => {
           scale.value = withSpring(1, MOBILE_SPRING_TACTILE);
         }}
-        style={[styles.card, animatedStyle, style]}
+        style={[styles.card, dynamicCardStyle, animatedStyle, style]}
         {...props}
       >
         {children}
@@ -48,7 +59,7 @@ export function Card({
   }
 
   return (
-    <View style={[styles.card, style]} {...props}>
+    <View style={[styles.card, dynamicCardStyle, style]} {...props}>
       {children}
     </View>
   );
@@ -56,10 +67,8 @@ export function Card({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: MobileTheme.colors.surface,
     borderRadius: MobileTheme.radii.card,
-    padding: 20,
+    padding: 18,
     borderWidth: 1,
-    borderColor: MobileTheme.colors.border,
   },
 });

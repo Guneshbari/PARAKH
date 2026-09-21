@@ -55,7 +55,6 @@ export function MethodologyModal({ isOpen, onClose }: MethodologyModalProps) {
       number: '01',
       title: 'Alternative Data Ingestion',
       icon: Layers,
-      color: 'text-teal-400',
       badge: 'Consented Telemetry',
       summary:
         'Captures verified real-world operational cashflows rather than relying solely on traditional credit bureau scores.',
@@ -83,7 +82,6 @@ export function MethodologyModal({ isOpen, onClose }: MethodologyModalProps) {
       number: '02',
       title: 'Volatility Normalization',
       icon: Activity,
-      color: 'text-[#C4B5FD]',
       badge: 'Seasonality-Aware',
       summary:
         'Normal gig-income variation is mathematically isolated so cyclical seasonal swings are not misclassified as credit distress.',
@@ -107,7 +105,6 @@ export function MethodologyModal({ isOpen, onClose }: MethodologyModalProps) {
       number: '03',
       title: 'Shock Rebound Dynamics',
       icon: TrendingUp,
-      color: 'text-emerald-400',
       badge: '10–14 Day Velocity',
       summary:
         'Measures how rapidly cashflow rebounds to baseline following an earning shock, quantifying behavioral resilience.',
@@ -131,7 +128,6 @@ export function MethodologyModal({ isOpen, onClose }: MethodologyModalProps) {
       number: '04',
       title: 'Financial Commitments & Cushion',
       icon: DollarSign,
-      color: 'text-amber-400',
       badge: 'Safe Debt Buffer',
       summary:
         'Calculates real disposable cushion between fixed obligations and fluctuating informal inflows.',
@@ -155,7 +151,6 @@ export function MethodologyModal({ isOpen, onClose }: MethodologyModalProps) {
       number: '05',
       title: 'Explainable AI & SHAP Attributions',
       icon: Sparkles,
-      color: 'text-teal-300',
       badge: 'No Black Boxes',
       summary:
         'Every score is paired with transparent SHAP feature contributions, positive drivers, and actionable recommendations.',
@@ -179,17 +174,16 @@ export function MethodologyModal({ isOpen, onClose }: MethodologyModalProps) {
       number: '06',
       title: 'Human Review & Non-Lending Boundary',
       icon: Scale,
-      color: 'text-purple-400',
       badge: 'Human-in-the-Loop',
       summary:
         'PARAKH is an assessment intelligence engine. It never executes automated loan originations or binding credit approvals.',
       points: [
         {
           label: 'Statutory Independence',
-          desc: 'Algorithmic scores serve as explanatory decision-support evidence for institutional underwriting partners.',
+          desc: 'Algorithmic scores serve as explanatory decision-support evidence for institutional credit partners.',
         },
         {
-          label: 'Certified Underwriter Reviews',
+          label: 'Certified Credit Reviews',
           desc: 'Non-standard volatility patterns undergo human review (MANUAL_REVIEW, REQUEST_VERIFICATION, RECORD_OUTCOME) by certified officers.',
         },
         {
@@ -206,23 +200,23 @@ export function MethodologyModal({ isOpen, onClose }: MethodologyModalProps) {
       : sections.filter((s) => s.id === activeTab);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="bg-[#11161D] border border-white/[0.1] rounded-2xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-background/80 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="bg-surface border border-border rounded-2xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
         {/* Header */}
-        <div className="flex items-start justify-between p-5 sm:p-6 border-b border-white/[0.08] bg-[#141A22]">
+        <div className="flex items-start justify-between p-5 sm:p-6 border-b border-border bg-surface">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <div className="size-7 rounded-lg bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-300">
+              <div className="size-7 rounded-lg bg-surface-highlight border border-border flex items-center justify-center text-foreground">
                 <Sparkles className="size-4" />
               </div>
-              <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight">
+              <h2 className="text-lg sm:text-xl font-semibold text-foreground tracking-tight">
                 PARAKH Assessment Methodology
               </h2>
-              <Badge variant="mint" className="text-[10px] py-0.5 px-2 font-mono">
+              <Badge variant="outline" className="text-[10px] py-0.5 px-2 font-mono">
                 v2.4 Framework
               </Badge>
             </div>
-            <p className="text-xs text-muted-foreground max-w-2xl leading-relaxed">
+            <p className="text-xs text-foreground-muted max-w-2xl leading-relaxed">
               How PARAKH translates informal earnings, seasonal volatility, and shock rebound dynamics into explainable alternative credit intelligence.
             </p>
           </div>
@@ -230,20 +224,20 @@ export function MethodologyModal({ isOpen, onClose }: MethodologyModalProps) {
           <button
             onClick={onClose}
             aria-label="Close modal"
-            className="p-1.5 rounded-xl text-muted-foreground hover:text-white hover:bg-white/[0.05] transition-colors cursor-pointer"
+            className="p-1.5 rounded-xl text-foreground-muted hover:text-foreground hover:bg-surface-highlight transition-colors cursor-pointer"
           >
             <X className="size-5" />
           </button>
         </div>
 
         {/* Pillar Navigation Pills */}
-        <div className="px-5 py-3 border-b border-white/[0.06] bg-[#0E1318] flex items-center gap-1.5 overflow-x-auto text-xs scrollbar-none">
+        <div className="px-5 py-3 border-b border-border bg-surface-elevated/40 flex items-center gap-1.5 overflow-x-auto text-xs scrollbar-none">
           <button
             onClick={() => setActiveTab('all')}
-            className={`px-3 py-1.5 rounded-lg font-medium whitespace-nowrap transition-all cursor-pointer ${
+            className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${
               activeTab === 'all'
-                ? 'bg-teal-400 text-slate-950 font-bold shadow-sm'
-                : 'text-muted-foreground hover:text-white hover:bg-white/[0.04]'
+                ? 'bg-foreground text-background font-semibold shadow-xs'
+                : 'text-foreground-muted hover:text-foreground hover:bg-surface-highlight'
             }`}
           >
             All 6 Pillars
@@ -252,10 +246,10 @@ export function MethodologyModal({ isOpen, onClose }: MethodologyModalProps) {
             <button
               key={sec.id}
               onClick={() => setActiveTab(sec.id as MethodologyPillarId)}
-              className={`px-3 py-1.5 rounded-lg font-medium whitespace-nowrap transition-all cursor-pointer ${
+              className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${
                 activeTab === sec.id
-                  ? 'bg-teal-400 text-slate-950 font-bold shadow-sm'
-                  : 'text-muted-foreground hover:text-white hover:bg-white/[0.04]'
+                  ? 'bg-foreground text-background font-semibold shadow-xs'
+                  : 'text-foreground-muted hover:text-foreground hover:bg-surface-highlight'
               }`}
             >
               {sec.number}. {sec.title.split(' ')[0]}
@@ -264,18 +258,18 @@ export function MethodologyModal({ isOpen, onClose }: MethodologyModalProps) {
         </div>
 
         {/* Scrollable Content Body */}
-        <div className="p-5 sm:p-6 overflow-y-auto space-y-6 text-xs divide-y divide-white/[0.05]">
+        <div className="p-5 sm:p-6 overflow-y-auto space-y-6 text-xs divide-y divide-border">
           {displayedSections.map((sec) => {
             const Icon = sec.icon;
             return (
               <div key={sec.id} className="pt-6 first:pt-0 space-y-3.5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-2.5">
-                    <span className="font-mono font-bold text-teal-400 text-sm">
+                    <span className="font-mono font-semibold text-foreground-muted text-sm">
                       {sec.number}
                     </span>
-                    <Icon className={`size-4 ${sec.color}`} />
-                    <h3 className="text-sm sm:text-base font-bold text-white tracking-tight">
+                    <Icon className="size-4 text-foreground-secondary" />
+                    <h3 className="text-sm sm:text-base font-semibold text-foreground tracking-tight">
                       {sec.title}
                     </h3>
                   </div>
@@ -284,7 +278,7 @@ export function MethodologyModal({ isOpen, onClose }: MethodologyModalProps) {
                   </Badge>
                 </div>
 
-                <p className="text-slate-300 text-xs leading-relaxed max-w-3xl">
+                <p className="text-foreground-secondary text-xs leading-relaxed max-w-3xl">
                   {sec.summary}
                 </p>
 
@@ -292,13 +286,13 @@ export function MethodologyModal({ isOpen, onClose }: MethodologyModalProps) {
                   {sec.points.map((pt) => (
                     <div
                       key={pt.label}
-                      className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.04] space-y-1"
+                      className="p-3 rounded-xl bg-surface-highlight/40 border border-border space-y-1"
                     >
-                      <span className="font-semibold text-white block flex items-center gap-1.5 text-xs">
-                        <CheckCircle2 className="size-3 text-teal-400 shrink-0" />
+                      <span className="font-semibold text-foreground flex items-center gap-1.5 text-xs">
+                        <CheckCircle2 className="size-3 text-foreground-secondary shrink-0" />
                         {pt.label}
                       </span>
-                      <p className="text-[11px] text-muted-foreground leading-relaxed pl-4.5">
+                      <p className="text-[11px] text-foreground-muted leading-relaxed pl-4.5">
                         {pt.desc}
                       </p>
                     </div>
@@ -310,19 +304,19 @@ export function MethodologyModal({ isOpen, onClose }: MethodologyModalProps) {
         </div>
 
         {/* Footer */}
-        <div className="p-4 sm:p-5 border-t border-white/[0.08] bg-[#141A22] flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-muted-foreground">
+        <div className="p-4 sm:p-5 border-t border-border bg-surface flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-foreground-muted">
           <div className="flex items-center gap-2">
-            <Info className="size-3.5 text-teal-400 shrink-0" />
+            <Info className="size-3.5 text-foreground-secondary shrink-0" />
             <span>
               DPDP Act 2023 Compliant • Purpose: Alternative Credit Evaluation Only
             </span>
           </div>
 
           <Button
-            variant="outline"
+            variant="secondary"
             size="sm"
             onClick={onClose}
-            className="rounded-xl text-xs h-8 px-4 w-full sm:w-auto"
+            className="rounded-full text-xs h-8 px-4 w-full sm:w-auto"
           >
             Close Dossier
           </Button>

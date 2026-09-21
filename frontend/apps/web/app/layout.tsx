@@ -25,8 +25,31 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
-  themeColor: '#060D1F',
+  themeColor: '#08090A',
 };
+
+const antiFlashScript = `
+(function() {
+  try {
+    var stored = localStorage.getItem('parakh-theme');
+    var theme = stored === 'light' ? 'light' : 'dark';
+    if (theme === 'light') {
+      document.documentElement.classList.add('light');
+      document.documentElement.classList.remove('dark');
+      document.documentElement.setAttribute('data-theme', 'light');
+      document.documentElement.style.colorScheme = 'light';
+    } else {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
+      document.documentElement.setAttribute('data-theme', 'dark');
+      document.documentElement.style.colorScheme = 'dark';
+    }
+  } catch (e) {
+    document.documentElement.classList.add('dark');
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+})();
+`;
 
 export default function RootLayout({
   children,
@@ -39,7 +62,10 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} dark h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col bg-background text-foreground selection:bg-teal-500/20 selection:text-teal-200">
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: antiFlashScript }} />
+      </head>
+      <body className="min-h-full flex flex-col bg-background text-foreground selection:bg-foreground/10 selection:text-foreground">
         <Providers>
           <Header />
           <main className="flex-1 pb-20 md:pb-6">{children}</main>

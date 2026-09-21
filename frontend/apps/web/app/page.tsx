@@ -127,8 +127,8 @@ export default function HomePage() {
 
   return (
     <PageTransition className="space-y-12 sm:space-y-16 pb-12">
-      {/* 1. HERO SECTION (REFERENCE-BASED FINTECH HERO WITH FLOWING MULTICOLOR WAVES) */}
-      <section className="relative w-full bg-[#051336] bg-[radial-gradient(ellipse_95%_75%_at_50%_35%,#123AA8_0%,#092472_40%,#051848_75%,#030C22_100%)] overflow-hidden pt-2 pb-10 sm:pb-14">
+      {/* 1. HERO SECTION (REFERENCE-BASED FINTECH HERO WITH FLOWING SILK WAVES) */}
+      <section className="relative w-full bg-background overflow-hidden pt-2 pb-14 sm:pb-18 transition-colors">
         {/* Animated Silk Wave System */}
         <HeroWaveSystem />
 
@@ -136,107 +136,108 @@ export default function HomePage() {
         <LandingNavbar />
 
         {/* Hero Content Container */}
-        <div className="relative z-10 mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center pt-8 sm:pt-14 space-y-6">
+        <div className="relative z-10 mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center pt-5 sm:pt-8 space-y-4 sm:space-y-5">
           {/* Eyebrow Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/15 border border-cyan-400/35 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.2)]">
-            <Sparkles className="size-3.5 text-cyan-300" />
-            <span className="text-[11px] font-bold uppercase tracking-widest font-mono">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface-highlight border border-border text-foreground text-[11px] font-semibold tracking-wide">
+            <Sparkles className="size-3.5 text-foreground-secondary" />
+            <span className="font-mono uppercase tracking-widest text-[10px]">
               AI-Powered Credit Assessment
             </span>
           </div>
 
           {/* Main Editorial Heading */}
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-white leading-[1.08]">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground leading-[1.1]">
             Credit assessment <br />
             for the{' '}
-            <span className="bg-gradient-to-r from-cyan-400 via-sky-300 to-violet-400 bg-clip-text text-transparent">
+            <span className="text-foreground-secondary font-semibold italic">
               invisible.
             </span>
           </h1>
 
           {/* Supporting Copy */}
-          <p className="text-base sm:text-lg text-slate-200/90 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-base sm:text-lg text-foreground-secondary max-w-2xl mx-auto leading-relaxed">
             PARAKH evaluates financial behavior beyond traditional credit history, using alternative
             data and explainable AI.
           </p>
 
           {/* Action CTAs */}
-          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 pt-2">
-            <Link href="/user/applications/new">
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 pt-1">
+            <Link href="/login?role=applicant">
               <Button
-                variant="lime"
+                variant="default"
                 size="lg"
-                className="gap-2 font-bold px-7 h-12 shadow-[0_10px_25px_rgba(200,244,81,0.25)] hover:shadow-[0_12px_30px_rgba(200,244,81,0.35)] transition-all cursor-pointer"
+                className="gap-2 font-semibold px-7 h-11 rounded-full cursor-pointer shadow-xs"
               >
-                <span>Start Assessment</span>
+                <span>Applicant Portal</span>
                 <ArrowRight className="size-4" />
               </Button>
             </Link>
 
-            <a href="#how-it-works">
+            <Link href="/login?role=reviewer">
               <Button
                 variant="pillOutline"
                 size="lg"
-                className="gap-2 px-7 h-12 transition-all cursor-pointer"
+                className="gap-2 font-semibold px-7 h-11 rounded-full cursor-pointer"
               >
-                <Play className="size-3.5 fill-cyan-200 text-cyan-200" />
-                <span>How It Works</span>
+                <ShieldCheck className="size-4 text-foreground" />
+                <span>Credit Reviewer</span>
               </Button>
-            </a>
+            </Link>
+          </div>
+        </div>
+
+        {/* Product / Phone Mockup with Floating Cards */}
+        <div className="relative z-10 w-full px-4 sm:px-6 lg:px-8 mt-4 sm:mt-6 flex justify-center overflow-visible">
+          <HeroProductPreview />
+        </div>
+
+        {/* Bottom Trust Statement & Institutional Badges */}
+        <div className="relative z-10 mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-foreground-muted">
+          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center sm:text-left">
+            <span className="font-medium text-foreground">
+              Built for transparent, explainable financial assessment.
+            </span>
+            <div className="flex items-center gap-2 text-[11px]">
+              <span className="px-2.5 py-0.5 rounded-full bg-surface border border-border text-foreground-secondary">
+                DPDP Act 2023
+              </span>
+              <span className="px-2.5 py-0.5 rounded-full bg-surface border border-border text-foreground-secondary">
+                RBI AA Ecosystem
+              </span>
+              <span className="px-2.5 py-0.5 rounded-full bg-surface border border-border text-foreground-secondary">
+                Fairlearn Audited
+              </span>
+            </div>
           </div>
 
-          {/* Product / Phone Mockup with Floating Cards */}
-          <HeroProductPreview />
-
-          {/* Bottom Trust Statement & Institutional Badges */}
-          <div className="pt-6 sm:pt-8 border-t border-white/[0.08] flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-300">
-            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center sm:text-left">
-              <span className="font-semibold text-white">
-                Built for transparent, explainable financial assessment.
-              </span>
-              <div className="flex items-center gap-2 text-[11px] text-cyan-200/80">
-                <span className="px-2 py-0.5 rounded-full bg-[#0A162E] border border-white/[0.08]">
-                  DPDP Act 2023
-                </span>
-                <span className="px-2 py-0.5 rounded-full bg-[#0A162E] border border-white/[0.08]">
-                  RBI AA Ecosystem
-                </span>
-                <span className="px-2 py-0.5 rounded-full bg-[#0A162E] border border-white/[0.08]">
-                  Fairlearn Audited
-                </span>
-              </div>
-            </div>
-
-            {/* Right pill badge */}
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-400/25 text-cyan-300 text-[11px] font-medium">
-              <Sparkles className="size-3 text-cyan-300" />
-              <span>More people. Real incomes. Better credit.</span>
-            </div>
+          {/* Right pill badge */}
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-highlight border border-border text-foreground-secondary text-[11px] font-medium">
+            <Sparkles className="size-3 opacity-70" />
+            <span>More people. Real incomes. Better credit.</span>
           </div>
         </div>
       </section>
 
       {/* 2. THE CORE PARADIGM SHIFT: TRADITIONAL BUREAU VS PARAKH */}
       <section id="how-it-works" className="relative pt-4 sm:pt-6 pb-12 sm:pb-16 overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,rgba(18,57,166,0.14)_0%,transparent_100%)]" />
         <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 space-y-10">
           <div className="text-center max-w-2xl mx-auto space-y-3">
-            <Badge variant="cyan" className="text-xs">Paradigm Shift</Badge>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+            <Badge variant="outline" className="text-xs">Paradigm Shift</Badge>
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight">
               Why traditional scoring fails the informal economy
             </h2>
-            <p className="text-sm text-slate-300 leading-relaxed">
+            <p className="text-sm text-foreground-muted leading-relaxed">
               When legacy scoring models evaluate gig workers, normal weekly variance is misinterpreted as financial instability.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
             {/* Legacy Bureau Column */}
-            <Card className="border border-red-500/20 bg-[#0A162E] space-y-5 p-6 sm:p-7 rounded-2xl">
+            <Card className="border border-border bg-surface space-y-5 p-6 sm:p-7 rounded-2xl">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <XCircle className="size-5 text-red-400" />
-                  <span className="text-sm font-bold uppercase tracking-wider text-red-300">
+                  <XCircle className="size-5 text-foreground-muted" />
+                  <span className="text-sm font-semibold uppercase tracking-wider text-foreground-muted">
                     Traditional Credit Bureaus
                   </span>
                 </div>
@@ -244,40 +245,40 @@ export default function HomePage() {
               </div>
 
               <div className="space-y-2">
-                <div className="text-3xl font-black text-slate-400 font-mono">
+                <div className="text-3xl font-bold text-foreground-muted font-mono">
                   - - - / 850
                 </div>
-                <p className="text-xs text-red-200/80 font-medium">
+                <p className="text-xs text-foreground-muted font-medium">
                   Automatic Rejection or High Risk Surcharge
                 </p>
               </div>
 
-              <ul className="space-y-2.5 text-xs text-slate-300 border-t border-red-500/15 pt-4">
+              <ul className="space-y-2.5 text-xs text-foreground-muted border-t border-border pt-4">
                 <li className="flex items-start gap-2">
-                  <span className="text-red-400 font-bold">•</span>
+                  <span className="font-bold">•</span>
                   <span>Requires historical formal debt and bureau trade-lines (CIBIL/Experian).</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-red-400 font-bold">•</span>
+                  <span className="font-bold">•</span>
                   <span>Penalizes income variance: off-peak earning weeks are flagged as high risk.</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-red-400 font-bold">•</span>
+                  <span className="font-bold">•</span>
                   <span>Zero visibility into UPI transactions, utility punctuality, or platform tenure.</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-red-400 font-bold">•</span>
-                  <span>Opaque, non-actionable decisions leaving borrowers stranded.</span>
+                  <span className="font-bold">•</span>
+                  <span>Opaque, non-actionable decisions leaving applicants stranded.</span>
                 </li>
               </ul>
             </Card>
 
             {/* PARAKH Volatility-Aware Column */}
-            <Card className="border border-teal-500/30 bg-[#0A162E] space-y-5 p-6 sm:p-7 rounded-2xl shadow-[0_0_25px_rgba(45,212,191,0.06)]">
+            <Card className="border border-border-strong bg-surface space-y-5 p-6 sm:p-7 rounded-2xl shadow-xs">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="size-5 text-teal-400" />
-                  <span className="text-sm font-bold uppercase tracking-wider text-teal-300">
+                  <CheckCircle2 className="size-5 text-foreground" />
+                  <span className="text-sm font-semibold uppercase tracking-wider text-foreground">
                     PARAKH Alternative Intelligence
                   </span>
                 </div>
@@ -285,30 +286,30 @@ export default function HomePage() {
               </div>
 
               <div className="space-y-2">
-                <div className="text-3xl font-black text-white font-mono">
+                <div className="text-3xl font-bold text-foreground font-mono">
                   742 / 850
                 </div>
-                <p className="text-xs text-teal-300 font-medium">
+                <p className="text-xs text-foreground-secondary font-medium">
                   High Confidence • 94% Shock Rebound Demonstrated
                 </p>
               </div>
 
-              <ul className="space-y-2.5 text-xs text-slate-200 border-t border-teal-500/20 pt-4">
+              <ul className="space-y-2.5 text-xs text-foreground-secondary border-t border-border pt-4">
                 <li className="flex items-start gap-2">
-                  <span className="text-teal-400 font-bold">✓</span>
+                  <span className="font-bold text-foreground">✓</span>
                   <span>Evaluates alternative cashflow consistency, UPI cadence, and bill payments.</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-teal-400 font-bold">✓</span>
+                  <span className="font-bold text-foreground">✓</span>
                   <span>Distinguishes healthy cyclical gig variation from persistent deterioration.</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-teal-400 font-bold">✓</span>
+                  <span className="font-bold text-foreground">✓</span>
                   <span>Tracks recovery speed: verifies that earning dips are followed by active rebound.</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-teal-400 font-bold">✓</span>
-                  <span>Human-understandable SHAP explanations empower borrower improvement.</span>
+                  <span className="font-bold text-foreground">✓</span>
+                  <span>Human-understandable SHAP explanations empower applicant improvement.</span>
                 </li>
               </ul>
             </Card>
@@ -321,24 +322,24 @@ export default function HomePage() {
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div className="space-y-2 max-w-xl">
             <Badge variant="mint" className="text-xs">Interactive Simulator</Badge>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight">
               Test Volatility Resilience
             </h2>
-            <p className="text-sm text-slate-300 leading-relaxed">
+            <p className="text-sm text-foreground-muted leading-relaxed">
               Explore how PARAKH processes real-world cashflow curves across different informal and gig sectors.
             </p>
           </div>
 
           {/* Profile Switcher Tabs */}
-          <div className="flex flex-wrap gap-2 bg-[#0A162E] p-1.5 rounded-full border border-white/[0.08]">
+          <div className="flex flex-wrap gap-1.5 bg-surface-highlight p-1 rounded-full border border-border">
             {Object.entries(SIMULATION_PROFILES).map(([key, prof]) => (
               <button
                 key={key}
                 onClick={() => setSelectedProfileKey(key)}
-                className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
                   selectedProfileKey === key
-                    ? 'bg-[#C8F451] text-[#07111F] font-bold shadow-sm'
-                    : 'text-muted-foreground hover:text-white'
+                    ? 'bg-foreground text-background font-semibold shadow-xs'
+                    : 'text-foreground-muted hover:text-foreground'
                 }`}
               >
                 {prof.role.split('(')[0].trim()}
@@ -348,10 +349,10 @@ export default function HomePage() {
         </div>
 
         {/* Active Profile Info Banner */}
-        <div className="p-4 rounded-2xl bg-[#0A162E] border border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+        <div className="p-4 rounded-2xl bg-surface border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
           <div>
-            <span className="font-bold text-white text-sm">{activeProfile.role}: </span>
-            <span className="text-slate-300">{activeProfile.description}</span>
+            <span className="font-semibold text-foreground text-sm">{activeProfile.role}: </span>
+            <span className="text-foreground-secondary">{activeProfile.description}</span>
           </div>
           <Badge variant="outline" className="shrink-0 text-[11px] rounded-full">
             {activeProfile.positiveDriver}
@@ -369,68 +370,68 @@ export default function HomePage() {
       {/* 4. METHODOLOGY PILLARS */}
       <section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 space-y-10">
         <div className="text-center max-w-2xl mx-auto space-y-3">
-          <Badge variant="ai" className="text-xs">Model Architecture</Badge>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+          <Badge variant="secondary" className="text-xs">Model Architecture</Badge>
+          <h2 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight">
             Built on three analytical pillars
           </h2>
-          <p className="text-sm text-slate-300 leading-relaxed">
-            Engineered to provide risk analysts and underwriters with actionable, explainable signals.
+          <p className="text-sm text-foreground-muted leading-relaxed">
+            Engineered to provide risk analysts and credit reviewers with actionable, explainable signals.
           </p>
         </div>
 
         <StaggerList className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <StaggerItem>
-            <MotionCard className="space-y-4 p-6 sm:p-7 rounded-2xl bg-[#0A162E] border-white/[0.08] h-full flex flex-col justify-between">
+            <MotionCard className="space-y-4 p-6 sm:p-7 rounded-2xl bg-surface border-border h-full flex flex-col justify-between">
               <div className="space-y-3">
-                <div className="size-10 rounded-full bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-300">
-                  <Activity className="size-5" />
+                <div className="size-10 rounded-full bg-surface-highlight border border-border flex items-center justify-center text-foreground">
+                  <Activity className="size-5 opacity-80" />
                 </div>
-                <h3 className="text-xl font-bold text-white">Volatility Normalization</h3>
-                <p className="text-xs text-slate-300 leading-relaxed">
+                <h3 className="text-xl font-semibold text-foreground">Volatility Normalization</h3>
+                <p className="text-xs text-foreground-muted leading-relaxed">
                   Separates expected week-to-week seasonal swings from persistent earning decline.
                   Gig demand troughs are evaluated alongside platform tenure and customer reviews.
                 </p>
               </div>
 
-              <div className="pt-4 border-t border-white/[0.08] text-[11px] text-cyan-300 font-semibold">
+              <div className="pt-4 border-t border-border text-[11px] text-foreground-secondary font-medium">
                 Metric: Volatility Index (CoV)
               </div>
             </MotionCard>
           </StaggerItem>
 
           <StaggerItem>
-            <MotionCard className="space-y-4 p-6 sm:p-7 rounded-2xl bg-[#0A162E] border-white/[0.08] h-full flex flex-col justify-between">
+            <MotionCard className="space-y-4 p-6 sm:p-7 rounded-2xl bg-surface border-border h-full flex flex-col justify-between">
               <div className="space-y-3">
-                <div className="size-10 rounded-full bg-violet-500/15 border border-violet-500/30 flex items-center justify-center text-violet-300">
-                  <TrendingUp className="size-5" />
+                <div className="size-10 rounded-full bg-surface-highlight border border-border flex items-center justify-center text-foreground">
+                  <TrendingUp className="size-5 opacity-80" />
                 </div>
-                <h3 className="text-xl font-bold text-white">Shock Recovery Velocity</h3>
-                <p className="text-xs text-slate-300 leading-relaxed">
-                  Measures the historical speed at which a borrower recovers cashflow following illness,
+                <h3 className="text-xl font-semibold text-foreground">Shock Recovery Velocity</h3>
+                <p className="text-xs text-foreground-muted leading-relaxed">
+                  Measures the historical speed at which an applicant recovers cashflow following illness,
                   vehicle breakdown, or seasonal platform lulls back to sustainable levels.
                 </p>
               </div>
 
-              <div className="pt-4 border-t border-white/[0.08] text-[11px] text-violet-300 font-semibold">
+              <div className="pt-4 border-t border-border text-[11px] text-foreground-secondary font-medium">
                 Metric: Mean Days to Rebound
               </div>
             </MotionCard>
           </StaggerItem>
 
           <StaggerItem>
-            <MotionCard className="space-y-4 p-6 sm:p-7 rounded-2xl bg-[#0A162E] border-white/[0.08] h-full flex flex-col justify-between">
+            <MotionCard className="space-y-4 p-6 sm:p-7 rounded-2xl bg-surface border-border h-full flex flex-col justify-between">
               <div className="space-y-3">
-                <div className="size-10 rounded-full bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-300">
-                  <Zap className="size-5" />
+                <div className="size-10 rounded-full bg-surface-highlight border border-border flex items-center justify-center text-foreground">
+                  <Zap className="size-5 opacity-80" />
                 </div>
-                <h3 className="text-xl font-bold text-white">Explainable Transparency</h3>
-                <p className="text-xs text-slate-300 leading-relaxed">
+                <h3 className="text-xl font-semibold text-foreground">Explainable Transparency</h3>
+                <p className="text-xs text-foreground-muted leading-relaxed">
                   Every assessment surfaces positive drivers and attention areas via human-translated SHAP
                   explanations, ensuring full regulatory compliance and applicant trust.
                 </p>
               </div>
 
-              <div className="pt-4 border-t border-white/[0.08] text-[11px] text-amber-300 font-semibold">
+              <div className="pt-4 border-t border-border text-[11px] text-foreground-secondary font-medium">
                 Metric: Feature Contribution Weights
               </div>
             </MotionCard>
@@ -440,17 +441,17 @@ export default function HomePage() {
 
       {/* 5. TRUST, FAIRNESS & GOVERNANCE */}
       <section id="institutions" className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <Card className="p-6 sm:p-8 space-y-6 bg-[#0A162E] border border-white/[0.08] rounded-2xl">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.08]">
+        <Card className="p-6 sm:p-8 space-y-6 bg-surface border border-border rounded-2xl">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
             <div className="flex items-center gap-3">
-              <div className="size-9 rounded-full bg-cyan-500/15 flex items-center justify-center text-cyan-300">
-                <Scale className="size-5" />
+              <div className="size-9 rounded-full bg-surface-highlight border border-border flex items-center justify-center text-foreground">
+                <Scale className="size-5 opacity-80" />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-white tracking-tight">
+                <h3 className="text-xl font-semibold text-foreground tracking-tight">
                   Governance & Responsible Lending Standards
                 </h3>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-foreground-muted">
                   Audited with Fairlearn for demographic parity and non-discriminatory credit assessment.
                 </p>
               </div>
@@ -462,25 +463,25 @@ export default function HomePage() {
             </Badge>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs text-slate-300">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs text-foreground-secondary">
             <div className="space-y-1.5">
-              <span className="font-bold text-white block">No Automated Legal Mandates</span>
-              <p className="text-muted-foreground leading-relaxed">
-                PARAKH operates as an underwriter intelligence assistant. Review decisions remain firmly in the
+              <span className="font-semibold text-foreground block">No Automated Legal Mandates</span>
+              <p className="text-foreground-muted leading-relaxed">
+                PARAKH operates as a credit reviewer intelligence assistant. Review decisions remain firmly in the
                 hands of human risk officers through structured review workflows.
               </p>
             </div>
             <div className="space-y-1.5">
-              <span className="font-bold text-white block">Privacy & Data Minimization</span>
-              <p className="text-muted-foreground leading-relaxed">
+              <span className="font-semibold text-foreground block">Privacy & Data Minimization</span>
+              <p className="text-foreground-muted leading-relaxed">
                 Only verifiable cashflow metadata and platform signals are processed with explicit applicant
                 consent. Raw sensitive credentials are never stored.
               </p>
             </div>
             <div className="space-y-1.5">
-              <span className="font-bold text-white block">Bias & Disparity Monitoring</span>
-              <p className="text-muted-foreground leading-relaxed">
-                Underwriters have continuous access to model fairness metrics, monitoring demographic parity
+              <span className="font-semibold text-foreground block">Bias & Disparity Monitoring</span>
+              <p className="text-foreground-muted leading-relaxed">
+                Credit Reviewers have continuous access to model fairness metrics, monitoring demographic parity
                 across gig work categories and geographic cohorts.
               </p>
             </div>
@@ -491,47 +492,45 @@ export default function HomePage() {
       {/* 6. DUAL PORTAL ENTRY / CTA */}
       <section id="about" className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 pb-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Borrower Portal Gateway */}
-          <Card className="p-6 sm:p-8 space-y-5 bg-[#0A162E] border border-white/[0.08] rounded-2xl flex flex-col justify-between">
+          {/* Applicant Portal Gateway */}
+          <Card className="p-6 sm:p-8 space-y-5 bg-surface border border-border rounded-2xl flex flex-col justify-between">
             <div className="space-y-3">
-              <Badge variant="cyan">Borrower Experience</Badge>
-              <h3 className="text-2xl font-black text-white">For Gig Workers & Earners</h3>
-              <p className="text-xs text-slate-300 leading-relaxed">
-                Check your alternative credit score, understand what drives your evaluation, and submit voluntary alternative data.
+              <Badge variant="secondary">Applicant Portal</Badge>
+              <h3 className="text-2xl font-bold text-foreground">For Gig Workers & Earners</h3>
+              <p className="text-xs text-foreground-muted leading-relaxed">
+                Check your alternative credit assessment, understand what drives your score, and submit voluntary platform activity data.
               </p>
             </div>
 
-            <div className="pt-4 border-t border-white/[0.08] flex items-center justify-between">
-              <Link href="/user/dashboard">
-                <Button variant="lime" className="gap-2 text-xs font-bold px-5">
-                  Open Borrower Portal <ArrowRight className="size-3.5" />
+            <div className="pt-4 border-t border-border flex items-center justify-between">
+              <Link href="/login?role=applicant">
+                <Button variant="default" className="gap-2 text-xs font-semibold px-5 rounded-full cursor-pointer">
+                  Applicant Portal <ArrowRight className="size-3.5" />
                 </Button>
               </Link>
-              <Link href="/user/applications/new">
-                <span className="text-xs text-cyan-300 hover:underline">New Assessment →</span>
+              <Link href="/signup?role=applicant">
+                <span className="text-xs text-foreground-secondary hover:text-foreground font-medium underline-offset-4 hover:underline">New Account →</span>
               </Link>
             </div>
           </Card>
 
-          {/* Underwriter Cockpit Gateway */}
-          <Card className="p-6 sm:p-8 space-y-5 bg-[#0A162E] border border-cyan-500/25 rounded-2xl flex flex-col justify-between">
+          {/* Credit Reviewer Gateway */}
+          <Card className="p-6 sm:p-8 space-y-5 bg-surface border border-border rounded-2xl flex flex-col justify-between">
             <div className="space-y-3">
-              <Badge variant="mint">Underwriter Cockpit</Badge>
-              <h3 className="text-2xl font-black text-white">For Risk Analysts & NBFCs</h3>
-              <p className="text-xs text-slate-300 leading-relaxed">
-                Review priority application queues, audit SHAP feature weights, perform manual reviews, and inspect model fairness metrics.
+              <Badge variant="outline">Credit Reviewer</Badge>
+              <h3 className="text-2xl font-bold text-foreground">For Risk Analysts & NBFCs</h3>
+              <p className="text-xs text-foreground-muted leading-relaxed">
+                Review priority application queues, audit SHAP feature weights, perform manual human reviews, and inspect model fairness metrics.
               </p>
             </div>
 
-            <div className="pt-4 border-t border-white/[0.08] flex items-center justify-between">
-              <Link href="/admin/dashboard">
-                <Button variant="pillOutline" className="gap-2 text-xs font-bold px-5">
-                  Open Underwriter Cockpit <ArrowRight className="size-3.5" />
+            <div className="pt-4 border-t border-border flex items-center justify-between">
+              <Link href="/login?role=reviewer">
+                <Button variant="secondary" className="gap-2 text-xs font-semibold px-5 rounded-full cursor-pointer">
+                  Credit Reviewer <ArrowRight className="size-3.5" />
                 </Button>
               </Link>
-              <Link href="/admin/applications">
-                <span className="text-xs text-slate-300 hover:text-white">Review Queue (4) →</span>
-              </Link>
+              <span className="text-[11px] font-mono text-foreground-muted">Station Access Only</span>
             </div>
           </Card>
         </div>

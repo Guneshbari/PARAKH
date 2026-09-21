@@ -3,23 +3,38 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 const badgeVariants = cva(
-  'inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold tracking-wide transition-colors uppercase select-none',
+  'inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold tracking-wide transition-colors select-none',
   {
     variants: {
       variant: {
-        default: 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30',
-        secondary: 'bg-[#0E1F3D] text-[#F8FAFC] border border-white/[0.08]',
-        outline: 'border border-white/[0.14] text-muted-foreground bg-transparent',
-        mint: 'bg-emerald-400/15 text-emerald-300 border border-emerald-400/30',
-        cyan: 'bg-cyan-400/15 text-cyan-300 border border-cyan-400/30',
-        lime: 'bg-[#C8F451]/15 text-[#C8F451] border border-[#C8F451]/30',
-        lavender: 'bg-violet-500/15 text-violet-300 border border-violet-500/30',
-        ai: 'bg-violet-500/15 text-violet-300 border border-violet-500/30 shadow-[0_0_12px_rgba(139,92,246,0.15)]',
-        // Assessment Risk State Badges
-        riskLower: 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30',
-        riskModerate: 'bg-amber-400/15 text-amber-300 border border-amber-400/30',
-        riskHigher: 'bg-red-400/15 text-red-300 border border-red-400/30',
-        riskNeutral: 'bg-slate-400/15 text-slate-300 border border-slate-400/30',
+        default:
+          'bg-surface-elevated text-foreground border border-border shadow-xs',
+        secondary:
+          'bg-surface-highlight text-foreground-secondary border border-border',
+        outline:
+          'border border-border text-foreground-muted bg-transparent',
+        mint:
+          'bg-emerald-500/10 text-emerald-800 dark:text-foreground dark:bg-white/[0.06] border border-emerald-500/20 dark:border-white/[0.12]',
+        cyan:
+          'bg-sky-500/10 text-sky-800 dark:text-foreground dark:bg-white/[0.06] border border-sky-500/20 dark:border-white/[0.12]',
+        lime:
+          'bg-surface-elevated text-foreground border border-border',
+        lavender:
+          'bg-indigo-500/10 text-indigo-800 dark:text-foreground dark:bg-white/[0.06] border border-indigo-500/20 dark:border-white/[0.12]',
+        ai:
+          'bg-indigo-500/10 text-indigo-800 dark:text-foreground dark:bg-white/[0.06] border border-indigo-500/20 dark:border-white/[0.14]',
+
+        // Assessment Risk State Badges:
+        // Dark: Distinguishable subtle semantic tints (restrained institutional palette)
+        // Light: Soft semantic tints with deep text for high legibility
+        riskLower:
+          'bg-emerald-50 text-emerald-900 border border-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-500/30 font-semibold',
+        riskModerate:
+          'bg-amber-50 text-amber-900 border border-amber-200/80 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-500/30 font-semibold',
+        riskHigher:
+          'bg-rose-50 text-rose-900 border border-rose-200/80 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-500/30 font-semibold',
+        riskNeutral:
+          'bg-slate-100 text-slate-800 border border-slate-200/80 dark:bg-slate-900/50 dark:text-slate-300 dark:border-slate-700/50 font-semibold',
       },
     },
     defaultVariants: {

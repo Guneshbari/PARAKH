@@ -23,13 +23,13 @@ export function ApplicationCard({
       onClick={onSelect ? () => onSelect(application.id) : undefined}
       hoverable={!!onSelect}
     >
-      <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-white/[0.06]">
+      <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-border">
         <div className="flex items-center gap-2">
-          <span className="font-mono text-xs font-bold text-teal-400">
+          <span className="font-mono text-xs font-semibold text-foreground">
             {application.id}
           </span>
-          <span className="text-xs text-muted-foreground">•</span>
-          <span className="text-xs text-muted-foreground flex items-center gap-1">
+          <span className="text-xs text-foreground-muted">•</span>
+          <span className="text-xs text-foreground-muted flex items-center gap-1">
             <Calendar className="size-3" />
             {new Date(application.submittedAt).toLocaleDateString('en-IN', {
               month: 'short',
@@ -50,15 +50,15 @@ export function ApplicationCard({
       <div className="pt-3 flex items-center justify-between">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="text-2xl font-black text-white font-mono">
+            <span className="text-xl sm:text-2xl font-semibold text-foreground font-mono">
               {formatCurrency(application.requestedAmount)}
             </span>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-white/[0.05] text-muted-foreground">
+            <span className="text-xs px-2.5 py-0.5 rounded-full bg-surface-highlight border border-border text-foreground-secondary">
               {application.purpose}
             </span>
           </div>
 
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <div className="flex items-center gap-2 text-xs text-foreground-muted">
             <Layers className="size-3" />
             <span>{application.applicantName}</span>
             <span>•</span>
@@ -67,7 +67,7 @@ export function ApplicationCard({
         </div>
 
         {onSelect && (
-          <div className="size-8 rounded-full bg-white/[0.04] flex items-center justify-center text-muted-foreground group-hover:text-white group-hover:bg-white/[0.08] transition-colors">
+          <div className="size-8 rounded-full bg-surface-highlight border border-border flex items-center justify-center text-foreground-muted hover:text-foreground transition-colors">
             <ChevronRight className="size-4" />
           </div>
         )}
