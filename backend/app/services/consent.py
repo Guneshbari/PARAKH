@@ -3,12 +3,14 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Union
 from sqlalchemy.orm import Session
+from app.core.audit_events import AuditAction, AuditOutcome
 from app.models.consent import Consent, ConsentDataSource
 from app.repositories.applicant import ApplicantRepository
 from app.repositories.application import ApplicationRepository
 from app.repositories.base import _parse_id
 from app.repositories.consent import ConsentRepository
 from app.schemas.consent import ConsentCreate
+from app.services.audit import AuditService
 from app.services.exceptions import (
     ConsentRequiredError,
     EntityNotFoundError,
@@ -38,12 +40,14 @@ class ConsentService:
         consent_repo: Optional[ConsentRepository] = None,
         app_repo: Optional[ApplicationRepository] = None,
         applicant_repo: Optional[ApplicantRepository] = None,
+        audit_service: Optional[AuditService] = None,
     ) -> None:
-        """Initialize ConsentService with required repositories."""
+        """Initialize ConsentService with required repositories and audit service."""
         self.db = db
         self.consent_repo = consent_repo or ConsentRepository(db=db)
         self.app_repo = app_repo or ApplicationRepository(db=db)
         self.applicant_repo = applicant_repo or ApplicantRepository(db=db)
+        self.audit_service = audit_service or AuditService(db=db)
 
     def create_consent(
         self,
@@ -125,6 +129,24 @@ class ConsentService:
 
         try:
             consent = self.consent_repo.create(data, commit=False, db=self.db)
+            if self.audit_service:
+                try:
+                    data_source = getattr(consent, "data_source", None)
+                    source_str = data_source.value if hasattr(data_source, "value") else str(data_source)
+                    self.audit_service.record_event(
+                        action=AuditAction.CONSENT_GRANTED,
+                        entity_type="Consent",
+                        entity_id=getattr(consent, "id", None),
+                        application_id=getattr(consent, "application_id", None),
+                        outcome=AuditOutcome.SUCCESS,
+                        metadata={
+                            "data_source": source_str,
+                            "purpose": getattr(consent, "purpose", None),
+                        },
+                        commit=False,
+                    )
+                except Exception:
+                    pass
             if auto_commit:
                 self.db.commit()
                 self.db.refresh(consent)
@@ -293,6 +315,24 @@ class ConsentService:
             revoked = self.consent_repo.revoke(
                 existing, revoked_at=revoked_at, commit=False, db=self.db
             )
+            if self.audit_service:
+                try:
+                    data_source = getattr(revoked, "data_source", None)
+                    source_str = data_source.value if hasattr(data_source, "value") else str(data_source)
+                    self.audit_service.record_event(
+                        action=AuditAction.CONSENT_REVOKED,
+                        entity_type="Consent",
+                        entity_id=getattr(revoked, "id", None),
+                        application_id=getattr(revoked, "application_id", None),
+                        outcome=AuditOutcome.SUCCESS,
+                        metadata={
+                            "data_source": source_str,
+                            "revoked_at": str(getattr(revoked, "revoked_at", "")),
+                        },
+                        commit=False,
+                    )
+                except Exception:
+                    pass
             if auto_commit:
                 self.db.commit()
                 self.db.refresh(revoked)

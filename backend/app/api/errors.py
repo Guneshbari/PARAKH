@@ -10,6 +10,7 @@ from app.assessment.exceptions import (
     AssessmentOutputError,
 )
 from app.services.exceptions import (
+    AuditLoggingError,
     AuthenticationError,
     AuthorizationError,
     ConsentRequiredError,
@@ -117,5 +118,15 @@ def register_exception_handlers(app: FastAPI) -> None:
         return JSONResponse(
             status_code=status.HTTP_403_FORBIDDEN,
             content={"detail": exc.message},
+        )
+
+    @app.exception_handler(AuditLoggingError)
+    async def handle_audit_logging_error(
+        request: Request, exc: AuditLoggingError
+    ) -> JSONResponse:
+        logger.error(f"Audit logging error: {exc.message}")
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={"detail": "An internal audit recording error occurred."},
         )
 

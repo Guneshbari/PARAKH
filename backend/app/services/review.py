@@ -2,11 +2,13 @@
 import uuid
 from typing import Any, Dict, List, Optional, Union
 from sqlalchemy.orm import Session
+from app.core.audit_events import AuditAction, AuditOutcome
 from app.models.review import ReviewOutcome
 from app.repositories.application import ApplicationRepository
 from app.repositories.review import ReviewRepository
 from app.repositories.user import UserRepository
 from app.schemas.review import ReviewOutcomeCreate
+from app.services.audit import AuditService
 from app.services.exceptions import EntityNotFoundError, ValidationError
 
 
@@ -28,12 +30,14 @@ class ReviewService:
         review_repo: Optional[ReviewRepository] = None,
         app_repo: Optional[ApplicationRepository] = None,
         user_repo: Optional[UserRepository] = None,
+        audit_service: Optional[AuditService] = None,
     ) -> None:
-        """Initialize ReviewService with required repositories."""
+        """Initialize ReviewService with required repositories and audit service."""
         self.db = db
         self.review_repo = review_repo or ReviewRepository(db=db)
         self.app_repo = app_repo or ApplicationRepository(db=db)
         self.user_repo = user_repo or UserRepository(db=db)
+        self.audit_service = audit_service or AuditService(db=db)
 
     def create_review(
         self,
@@ -78,6 +82,25 @@ class ReviewService:
 
         try:
             review = self.review_repo.create(data, commit=False, db=self.db)
+            if self.audit_service:
+                try:
+                    outcome = getattr(review, "outcome", None)
+                    outcome_str = outcome.value if hasattr(outcome, "value") else str(outcome)
+                    self.audit_service.record_event(
+                        action=AuditAction.REVIEW_CREATED,
+                        entity_type="ReviewOutcome",
+                        entity_id=getattr(review, "id", None),
+                        application_id=getattr(review, "application_id", None),
+                        user_id=getattr(review, "reviewer_id", None),
+                        outcome=AuditOutcome.SUCCESS,
+                        metadata={
+                            "review_outcome": outcome_str,
+                            "notes_present": bool(getattr(review, "notes", None)),
+                        },
+                        commit=False,
+                    )
+                except Exception:
+                    pass
             if auto_commit:
                 self.db.commit()
                 self.db.refresh(review)

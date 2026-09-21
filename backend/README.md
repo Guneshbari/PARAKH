@@ -821,3 +821,79 @@ All authentication and authorization exceptions integrate with the centralized h
 5. Enter the `access_token` into the `Value` field and click **Authorize**.
 6. All subsequent requests in the Swagger UI will automatically include the `Authorization: Bearer <token>` header.
 
+---
+
+## 14. Audit Logging & Compliance Architecture (TASK 13)
+
+PARAKH implements a centralized, reliable, privacy-safe audit logging framework designed for regulatory traceability, security auditing, and compliance without compromising applicant privacy.
+
+### 14.1 Architecture & Core Components
+- **Data Model (`app.models.audit.AuditLog`)**:
+  - Leverages the existing `audit_logs` table (`id`, `user_id`, `application_id`, `action`, `entity_type`, `entity_id`, `metadata`, `created_at`).
+  - Uses `SET NULL` on foreign keys to guarantee that historical compliance records survive entity deletions or lifecycles.
+  - Zero schema changes or migrations needed: the existing schema is fully leveraged.
+- **Repository (`app.repositories.audit.AuditRepository`)**:
+  - Implements persistence and querying: `create`, `get_by_application`, `get_by_user`, and `list_audit_logs`.
+- **Centralized Service (`app.services.audit.AuditService`)**:
+  - Coordinates event validation, privacy sanitization, metadata enrichment (`outcome`, `actor_role`), and persistence.
+  - Exposes `record_event`, `list_events`, `get_event`, `get_by_application`, and `get_by_user`.
+
+### 14.2 Centralized Audit Event Types
+Defined in `app.core.audit_events.AuditAction`:
+
+| Category | Action Identifier | Trigger Condition | Captured Metadata |
+| :--- | :--- | :--- | :--- |
+| **Authentication** | `AUTH_LOGIN_SUCCESS` | Successful user password verification | User ID, email, outcome=SUCCESS |
+| **Authentication** | `AUTH_LOGIN_FAILURE` | Invalid credentials supplied | Attempted email, outcome=FAILURE |
+| **Security** | `AUTH_ACCESS_DENIED` | Role restriction violation / inactive login | Actor ID, role, attempted roles, outcome=DENIED |
+| **Security** | `AUTH_OWNERSHIP_VIOLATION` | Cross-tenant application access attempt | Application ID, actor ID, outcome=DENIED |
+| **User** | `USER_CREATED` | User registration | User ID, email, assigned role, outcome=SUCCESS |
+| **User** | `USER_UPDATED` | Account updates | Updated fields, password_updated flag |
+| **User** | `USER_ROLE_CHANGED` | Role modification | Previous role, new role |
+| **Applicant** | `APPLICANT_PROFILE_CREATED` | Profile setup | Profile ID, gig work type, platform |
+| **Applicant** | `APPLICANT_PROFILE_UPDATED` | Profile update | Profile ID, updated fields |
+| **Application** | `APPLICATION_CREATED` | New credit application | Application ID, profile ID, status |
+| **Application** | `APPLICATION_UPDATED` | Loan amount / details update | Application ID, updated fields |
+| **Application** | `APPLICATION_STATUS_CHANGED`| Formal pipeline transition | Previous status, new status |
+| **Consent** | `CONSENT_GRANTED` | Explicit data access consent | Application ID, data source, purpose |
+| **Consent** | `CONSENT_REVOKED` | Soft revocation of access | Application ID, data source, revoked_at |
+| **Financial Signal**| `FINANCIAL_SIGNAL_CREATED` | Derived metrics ingestion | Application ID, signal source |
+| **Assessment** | `ASSESSMENT_EXECUTED` | Scoring run output recorded | Application ID, risk level, model version |
+| **Model Version** | `MODEL_VERSION_CREATED` | Model registered in registry | Model name, version, is_active |
+| **Review** | `REVIEW_CREATED` | Human review outcome recorded | Application ID, reviewer ID, outcome |
+
+### 14.3 Privacy & Data Minimization (Sanitization Engine)
+The audit subsystem enforces strict recursive privacy sanitization via `sanitize_audit_metadata`:
+- **Never Logged**:
+  - Plaintext passwords, `password_hash`, hashed passwords
+  - JWT access tokens, bearer headers, `SECRET_KEY`, API keys
+  - Bank account numbers, banking credentials, login PINs
+  - UPI IDs, VPAs (`*@upi`, `*@paytm`, etc.)
+  - Raw bank transactions, raw statements, raw UPI logs
+  - Merchant names and descriptions
+  - GPS coordinates, location histories, latitudes/longitudes
+  - Contact lists and address books
+- **Automated Filtering**: If a caller accidentally includes any prohibited key or JWT-like string in audit metadata, the key is recursively stripped or redacted before persistence.
+
+### 14.4 Transaction Behavior
+- **Business Operations**: Domain services stage audit records in the active transaction session (`commit=False`). When the service commits (`self.db.commit()`), the entity and its corresponding audit log commit atomically.
+- **Rollback Safety**: If a business operation encounters validation or database errors, `self.db.rollback()` rolls back both the business modification and the staged audit record, preventing false success entries.
+- **Standalone Security Events**: Authentication failures and authorization denials are persisted independently with `commit=True` so security events are never lost.
+
+### 14.5 Audit Retrieval API (Admin-Only)
+Secured audit retrieval is provided under `/api/v1/audit-logs`:
+- `GET /api/v1/audit-logs`: List paginated audit events with optional filters (`user_id`, `application_id`, `action`, `entity_type`, `skip`, `limit`).
+- `GET /api/v1/audit-logs/{audit_id}`: Retrieve a specific audit trail record by ID.
+- **Access Control**: Strict `ADMIN`-only authorization enforced via `require_role(UserRole.ADMIN)`. Unauthenticated callers receive `401 Unauthorized`; non-admin callers receive `403 Forbidden`.
+
+### 14.6 Testing Strategy
+A comprehensive 35-test suite in `backend/tests/test_audit_logging.py` validates:
+- Audit service and repository functionality.
+- Actor, role, resource, and timestamp capture.
+- Authentication events (login success, failure, authorization denial).
+- All 10 domain business operations.
+- Privacy sanitization across credentials, tokens, UPI, banking, GPS, and contacts.
+- Atomic commit / rollback behavior.
+- Admin-only retrieval endpoint security.
+- Live PostgreSQL integration lifecycle and end-to-end audit trails with complete database cleanup.
+

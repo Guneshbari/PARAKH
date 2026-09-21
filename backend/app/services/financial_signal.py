@@ -2,11 +2,13 @@
 import uuid
 from typing import Any, Dict, List, Optional, Union
 from sqlalchemy.orm import Session
+from app.core.audit_events import AuditAction, AuditOutcome
 from app.models.consent import ConsentDataSource
 from app.models.financial_signal import FinancialSignal, SignalSource
 from app.repositories.application import ApplicationRepository
 from app.repositories.financial_signal import FinancialSignalRepository
 from app.schemas.financial_signal import FinancialSignalCreate
+from app.services.audit import AuditService
 from app.services.consent import ConsentService
 from app.services.exceptions import EntityNotFoundError, ValidationError
 
@@ -62,12 +64,14 @@ class FinancialSignalService:
         signal_repo: Optional[FinancialSignalRepository] = None,
         app_repo: Optional[ApplicationRepository] = None,
         consent_service: Optional[ConsentService] = None,
+        audit_service: Optional[AuditService] = None,
     ) -> None:
-        """Initialize FinancialSignalService with required repositories."""
+        """Initialize FinancialSignalService with required repositories and audit service."""
         self.db = db
         self.signal_repo = signal_repo or FinancialSignalRepository(db=db)
         self.app_repo = app_repo or ApplicationRepository(db=db)
         self.consent_service = consent_service
+        self.audit_service = audit_service or AuditService(db=db)
 
     def create_signal(
         self,
@@ -121,6 +125,23 @@ class FinancialSignalService:
 
         try:
             signal = self.signal_repo.create(data, commit=False, db=self.db)
+            if self.audit_service:
+                try:
+                    source = getattr(signal, "source", None)
+                    source_str = source.value if hasattr(source, "value") else str(source)
+                    self.audit_service.record_event(
+                        action=AuditAction.FINANCIAL_SIGNAL_CREATED,
+                        entity_type="FinancialSignal",
+                        entity_id=getattr(signal, "id", None),
+                        application_id=getattr(signal, "application_id", None),
+                        outcome=AuditOutcome.SUCCESS,
+                        metadata={
+                            "source": source_str,
+                        },
+                        commit=False,
+                    )
+                except Exception:
+                    pass
             if auto_commit:
                 self.db.commit()
                 self.db.refresh(signal)

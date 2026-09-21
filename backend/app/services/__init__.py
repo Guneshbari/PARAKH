@@ -5,8 +5,10 @@ from app.services.application import (
     ApplicationService,
 )
 from app.services.assessment import AssessmentService
+from app.services.audit import AuditService
 from app.services.consent import ConsentService
 from app.services.exceptions import (
+    AuditLoggingError,
     ConsentRequiredError,
     DuplicateEntityError,
     EntityNotFoundError,
@@ -27,6 +29,7 @@ __all__ = [
     "InvalidStateTransitionError",
     "ValidationError",
     "ConsentRequiredError",
+    "AuditLoggingError",
     # Constants
     "VALID_STATUS_TRANSITIONS",
     # Services
@@ -38,4 +41,5 @@ __all__ = [
     "AssessmentService",
     "ModelVersionService",
     "ReviewService",
+    "AuditService",
 ]

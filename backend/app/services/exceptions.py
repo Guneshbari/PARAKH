@@ -54,3 +54,9 @@ class AuthorizationError(ServiceError):
     pass
 
 
+class AuditLoggingError(ServiceError):
+    """Raised when an audit log persistence operation fails."""
+
+    pass
+
+

@@ -90,5 +90,44 @@ class AuditRepository(BaseRepository[AuditLog]):
         )
         return list(session.scalars(stmt).all())
 
+    def list_audit_logs(
+        self,
+        user_id: Optional[Union[uuid.UUID, str]] = None,
+        application_id: Optional[Union[uuid.UUID, str]] = None,
+        action: Optional[str] = None,
+        entity_type: Optional[str] = None,
+        skip: int = 0,
+        limit: int = 100,
+        db: Optional[Session] = None,
+    ) -> List[AuditLog]:
+        """Fetch audit events with optional filters, ordered by creation date descending.
+
+        Args:
+            user_id: Optional user ID filter.
+            application_id: Optional application ID filter.
+            action: Optional action identifier filter.
+            entity_type: Optional entity type filter.
+            skip: Pagination offset.
+            limit: Maximum items to return.
+            db: Optional session override.
+
+        Returns:
+            List[AuditLog]: Filtered audit records.
+        """
+        session = self._get_db(db)
+        stmt = select(AuditLog)
+
+        if user_id is not None:
+            stmt = stmt.where(AuditLog.user_id == _parse_id(user_id))
+        if application_id is not None:
+            stmt = stmt.where(AuditLog.application_id == _parse_id(application_id))
+        if action is not None:
+            stmt = stmt.where(AuditLog.action == action)
+        if entity_type is not None:
+            stmt = stmt.where(AuditLog.entity_type == entity_type)
+
+        stmt = stmt.order_by(AuditLog.created_at.desc()).offset(skip).limit(limit)
+        return list(session.scalars(stmt).all())
+
 
 AuditLogRepository = AuditRepository

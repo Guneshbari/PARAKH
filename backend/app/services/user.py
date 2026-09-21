@@ -2,10 +2,12 @@
 import uuid
 from typing import Any, Dict, Optional, Union
 from sqlalchemy.orm import Session
+from app.core.audit_events import AuditAction, AuditOutcome
 from app.core.security import hash_password, verify_password
 from app.models.user import User
 from app.repositories.user import UserRepository
 from app.schemas.user import UserCreate, UserUpdate
+from app.services.audit import AuditService
 from app.services.exceptions import DuplicateEntityError, EntityNotFoundError, ValidationError
 
 
@@ -25,10 +27,12 @@ class UserService:
         self,
         db: Session,
         user_repo: Optional[UserRepository] = None,
+        audit_service: Optional[AuditService] = None,
     ) -> None:
-        """Initialize UserService with an active database session and repository."""
+        """Initialize UserService with an active database session, repository, and audit service."""
         self.db = db
         self.user_repo = user_repo or UserRepository(db=db)
+        self.audit_service = audit_service or AuditService(db=db)
 
     def create_user(
         self,
@@ -65,6 +69,22 @@ class UserService:
 
         try:
             user = self.user_repo.create(data, commit=False, db=self.db)
+            if self.audit_service:
+                try:
+                    user_role = getattr(user, "role", None)
+                    role_str = user_role.value if hasattr(user_role, "value") else str(user_role)
+                    self.audit_service.record_event(
+                        action=AuditAction.USER_CREATED,
+                        entity_type="User",
+                        entity_id=getattr(user, "id", None),
+                        user_id=getattr(user, "id", None),
+                        actor_role=role_str,
+                        outcome=AuditOutcome.SUCCESS,
+                        metadata={"email": getattr(user, "email", None), "role": role_str},
+                        commit=False,
+                    )
+                except Exception:
+                    pass
             if auto_commit:
                 self.db.commit()
                 self.db.refresh(user)
@@ -147,8 +167,41 @@ class UserService:
             if raw_password:
                 data["password_hash"] = hash_password(str(raw_password))
 
+        old_role = getattr(user, "role", None)
         try:
             updated_user = self.user_repo.update(user, data, commit=False, db=self.db)
+            if self.audit_service:
+                try:
+                    new_role = getattr(updated_user, "role", None)
+                    role_changed = old_role != new_role
+                    metadata: Dict[str, Any] = {
+                        "updated_fields": list(data.keys()),
+                    }
+                    if "password_hash" in data:
+                        metadata["password_updated"] = True
+                    if role_changed:
+                        metadata["previous_role"] = old_role.value if hasattr(old_role, "value") else str(old_role)
+                        metadata["new_role"] = new_role.value if hasattr(new_role, "value") else str(new_role)
+                        self.audit_service.record_event(
+                            action=AuditAction.USER_ROLE_CHANGED,
+                            entity_type="User",
+                            entity_id=getattr(updated_user, "id", None),
+                            user_id=getattr(updated_user, "id", None),
+                            outcome=AuditOutcome.SUCCESS,
+                            metadata=metadata,
+                            commit=False,
+                        )
+                    self.audit_service.record_event(
+                        action=AuditAction.USER_UPDATED,
+                        entity_type="User",
+                        entity_id=getattr(updated_user, "id", None),
+                        user_id=getattr(updated_user, "id", None),
+                        outcome=AuditOutcome.SUCCESS,
+                        metadata=metadata,
+                        commit=False,
+                    )
+                except Exception:
+                    pass
             if auto_commit:
                 self.db.commit()
                 self.db.refresh(updated_user)

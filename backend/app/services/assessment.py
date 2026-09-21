@@ -6,12 +6,14 @@ from sqlalchemy.orm import Session
 from app.assessment.base import AssessmentEngine
 from app.assessment.exceptions import AssessmentEngineError, AssessmentOutputError
 from app.assessment.schemas import AssessmentInput, AssessmentResult
+from app.core.audit_events import AuditAction, AuditOutcome
 from app.models.assessment import CreditAssessment
 from app.repositories.application import ApplicationRepository
 from app.repositories.assessment import AssessmentRepository
 from app.repositories.financial_signal import FinancialSignalRepository
 from app.repositories.model_version import ModelVersionRepository
 from app.schemas.assessment import CreditAssessmentCreate
+from app.services.audit import AuditService
 from app.services.exceptions import EntityNotFoundError, ValidationError
 
 
@@ -35,14 +37,16 @@ class AssessmentService:
         model_version_repo: Optional[ModelVersionRepository] = None,
         signal_repo: Optional[FinancialSignalRepository] = None,
         engine: Optional[AssessmentEngine] = None,
+        audit_service: Optional[AuditService] = None,
     ) -> None:
-        """Initialize AssessmentService with required repositories and optional engine."""
+        """Initialize AssessmentService with required repositories, optional engine, and audit service."""
         self.db = db
         self.assessment_repo = assessment_repo or AssessmentRepository(db=db)
         self.app_repo = app_repo or ApplicationRepository(db=db)
         self.model_version_repo = model_version_repo or ModelVersionRepository(db=db)
         self.signal_repo = signal_repo or FinancialSignalRepository(db=db)
         self.engine = engine
+        self.audit_service = audit_service or AuditService(db=db)
 
     def create_assessment(
         self,
@@ -102,6 +106,24 @@ class AssessmentService:
 
         try:
             assessment = self.assessment_repo.create(data, commit=False, db=self.db)
+            if self.audit_service:
+                try:
+                    risk_level = getattr(assessment, "risk_level", None)
+                    risk_str = risk_level.value if hasattr(risk_level, "value") else str(risk_level)
+                    self.audit_service.record_event(
+                        action=AuditAction.ASSESSMENT_EXECUTED,
+                        entity_type="CreditAssessment",
+                        entity_id=getattr(assessment, "id", None),
+                        application_id=getattr(assessment, "application_id", None),
+                        outcome=AuditOutcome.SUCCESS,
+                        metadata={
+                            "risk_level": risk_str,
+                            "model_version_id": str(getattr(assessment, "model_version_id", "")),
+                        },
+                        commit=False,
+                    )
+                except Exception:
+                    pass
             if auto_commit:
                 self.db.commit()
                 self.db.refresh(assessment)

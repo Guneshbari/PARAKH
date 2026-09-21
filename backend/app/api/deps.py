@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.assessment.base import AssessmentEngine
 from app.assessment.mock import MockAssessmentEngine
+from app.core.audit_events import AuditAction, AuditOutcome
 from app.core.config import settings
 from app.core.database import get_db
 from app.core.security import decode_access_token
@@ -15,6 +16,7 @@ from app.repositories.user import UserRepository
 from app.services.applicant import ApplicantService
 from app.services.application import ApplicationService
 from app.services.assessment import AssessmentService
+from app.services.audit import AuditService
 from app.services.consent import ConsentService
 from app.services.financial_signal import FinancialSignalService
 from app.services.model_version import ModelVersionService
@@ -45,6 +47,7 @@ __all__ = [
     "get_assessment_service",
     "get_model_version_service",
     "get_review_service",
+    "get_audit_service",
 ]
 
 
@@ -99,6 +102,11 @@ def get_model_version_service(
 def get_review_service(db: Session = Depends(get_db)) -> ReviewService:
     """Dependency providing a ReviewService instance bound to the request database session."""
     return ReviewService(db=db)
+
+
+def get_audit_service(db: Session = Depends(get_db)) -> AuditService:
+    """Dependency providing an AuditService instance bound to the request database session."""
+    return AuditService(db=db)
 
 
 def get_current_user(
@@ -159,11 +167,28 @@ def get_current_active_user(
 require_authenticated_user = get_current_active_user
 
 
-def require_role(*allowed_roles: UserRole) -> Callable[[User], User]:
+def require_role(*allowed_roles: UserRole) -> Callable[..., User]:
     """Dependency factory restricting route access to specified roles."""
 
-    def role_checker(current_user: User = Depends(get_current_active_user)) -> User:
+    def role_checker(
+        current_user: User = Depends(get_current_active_user),
+        db: Session = Depends(get_db),
+    ) -> User:
         if current_user.role not in allowed_roles:
+            try:
+                audit_service = AuditService(db=db)
+                audit_service.record_event(
+                    action=AuditAction.ACCESS_DENIED,
+                    entity_type="Security",
+                    entity_id=None,
+                    user_id=current_user.id,
+                    actor_role=current_user.role,
+                    outcome=AuditOutcome.DENIED,
+                    metadata={"required_roles": [r.value for r in allowed_roles]},
+                    commit=True,
+                )
+            except Exception:
+                pass
             role_names = ", ".join(r.value for r in allowed_roles)
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -174,7 +199,7 @@ def require_role(*allowed_roles: UserRole) -> Callable[[User], User]:
     return role_checker
 
 
-def require_any_role(allowed_roles: Sequence[UserRole]) -> Callable[[User], User]:
+def require_any_role(allowed_roles: Sequence[UserRole]) -> Callable[..., User]:
     """Dependency factory restricting route access to any of the specified roles."""
     return require_role(*allowed_roles)
 
@@ -196,11 +221,39 @@ def check_application_ownership(
         applicant_service = ApplicantService(db=db)
         profile = applicant_service.get_profile(app.applicant_profile_id)
         if profile.user_id != current_user.id:
+            try:
+                AuditService(db=db).record_event(
+                    action=AuditAction.OWNERSHIP_VIOLATION,
+                    entity_type="Application",
+                    entity_id=str(application_id),
+                    user_id=current_user.id,
+                    application_id=application_id,
+                    actor_role=current_user.role,
+                    outcome=AuditOutcome.DENIED,
+                    metadata={"reason": "Cannot access another applicant's data."},
+                    commit=True,
+                )
+            except Exception:
+                pass
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Access denied: cannot access another applicant's data.",
             )
         return
+    try:
+        AuditService(db=db).record_event(
+            action=AuditAction.ACCESS_DENIED,
+            entity_type="Application",
+            entity_id=str(application_id),
+            user_id=current_user.id,
+            application_id=application_id,
+            actor_role=current_user.role,
+            outcome=AuditOutcome.DENIED,
+            metadata={"reason": "Operation not permitted for current user role."},
+            commit=True,
+        )
+    except Exception:
+        pass
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,
         detail="Operation not permitted for current user role.",

@@ -3,10 +3,12 @@ import uuid
 from decimal import Decimal
 from typing import Any, Dict, List, Optional, Set, Union
 from sqlalchemy.orm import Session
+from app.core.audit_events import AuditAction, AuditOutcome
 from app.models.application import Application, ApplicationStatus
 from app.repositories.applicant import ApplicantRepository
 from app.repositories.application import ApplicationRepository
 from app.schemas.application import ApplicationCreate, ApplicationUpdate
+from app.services.audit import AuditService
 from app.services.exceptions import (
     EntityNotFoundError,
     InvalidStateTransitionError,
@@ -45,11 +47,13 @@ class ApplicationService:
         db: Session,
         app_repo: Optional[ApplicationRepository] = None,
         applicant_repo: Optional[ApplicantRepository] = None,
+        audit_service: Optional[AuditService] = None,
     ) -> None:
-        """Initialize ApplicationService with required repositories."""
+        """Initialize ApplicationService with required repositories and audit service."""
         self.db = db
         self.app_repo = app_repo or ApplicationRepository(db=db)
         self.applicant_repo = applicant_repo or ApplicantRepository(db=db)
+        self.audit_service = audit_service or AuditService(db=db)
 
     def create_application(
         self,
@@ -94,6 +98,22 @@ class ApplicationService:
 
         try:
             app = self.app_repo.create(data, commit=False, db=self.db)
+            if self.audit_service:
+                try:
+                    self.audit_service.record_event(
+                        action=AuditAction.APPLICATION_CREATED,
+                        entity_type="Application",
+                        entity_id=getattr(app, "id", None),
+                        application_id=getattr(app, "id", None),
+                        outcome=AuditOutcome.SUCCESS,
+                        metadata={
+                            "applicant_profile_id": str(getattr(app, "applicant_profile_id", "")),
+                            "status": getattr(app.status, "value", str(app.status)),
+                        },
+                        commit=False,
+                    )
+                except Exception:
+                    pass
             if auto_commit:
                 self.db.commit()
                 self.db.refresh(app)
@@ -178,8 +198,35 @@ class ApplicationService:
             self._validate_transition(app.status, new_status)
             data["status"] = new_status
 
+        old_status = app.status
         try:
             updated_app = self.app_repo.update(app, data, commit=False, db=self.db)
+            if self.audit_service:
+                try:
+                    metadata: Dict[str, Any] = {"updated_fields": list(data.keys())}
+                    if "status" in data and updated_app.status != old_status:
+                        metadata["previous_status"] = old_status.value if hasattr(old_status, "value") else str(old_status)
+                        metadata["new_status"] = updated_app.status.value if hasattr(updated_app.status, "value") else str(updated_app.status)
+                        self.audit_service.record_event(
+                            action=AuditAction.APPLICATION_STATUS_CHANGED,
+                            entity_type="Application",
+                            entity_id=getattr(updated_app, "id", None),
+                            application_id=getattr(updated_app, "id", None),
+                            outcome=AuditOutcome.SUCCESS,
+                            metadata=metadata,
+                            commit=False,
+                        )
+                    self.audit_service.record_event(
+                        action=AuditAction.APPLICATION_UPDATED,
+                        entity_type="Application",
+                        entity_id=getattr(updated_app, "id", None),
+                        application_id=getattr(updated_app, "id", None),
+                        outcome=AuditOutcome.SUCCESS,
+                        metadata=metadata,
+                        commit=False,
+                    )
+                except Exception:
+                    pass
             if auto_commit:
                 self.db.commit()
                 self.db.refresh(updated_app)
@@ -213,6 +260,7 @@ class ApplicationService:
         if isinstance(new_status, str):
             new_status = ApplicationStatus(new_status)
 
+        old_status = app.status
         self._validate_transition(app.status, new_status)
 
         try:
@@ -221,6 +269,22 @@ class ApplicationService:
             )
             if updated_app is None:
                 raise EntityNotFoundError(f"Application with id '{application_id}' not found.")
+            if self.audit_service:
+                try:
+                    self.audit_service.record_event(
+                        action=AuditAction.APPLICATION_STATUS_CHANGED,
+                        entity_type="Application",
+                        entity_id=getattr(updated_app, "id", None),
+                        application_id=getattr(updated_app, "id", None),
+                        outcome=AuditOutcome.SUCCESS,
+                        metadata={
+                            "previous_status": old_status.value if hasattr(old_status, "value") else str(old_status),
+                            "new_status": new_status.value if hasattr(new_status, "value") else str(new_status),
+                        },
+                        commit=False,
+                    )
+                except Exception:
+                    pass
             if auto_commit:
                 self.db.commit()
                 self.db.refresh(updated_app)
@@ -229,6 +293,8 @@ class ApplicationService:
             if auto_commit:
                 self.db.rollback()
             raise
+
+    transition_status = update_status
 
     def _validate_transition(
         self,

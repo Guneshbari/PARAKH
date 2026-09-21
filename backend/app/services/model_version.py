@@ -2,9 +2,11 @@
 import uuid
 from typing import Any, Dict, List, Optional, Union
 from sqlalchemy.orm import Session
+from app.core.audit_events import AuditAction, AuditOutcome
 from app.models.model_version import ModelVersion
 from app.repositories.model_version import ModelVersionRepository
 from app.schemas.model_version import ModelVersionCreate
+from app.services.audit import AuditService
 from app.services.exceptions import EntityNotFoundError, ValidationError
 
 
@@ -24,10 +26,12 @@ class ModelVersionService:
         self,
         db: Session,
         model_version_repo: Optional[ModelVersionRepository] = None,
+        audit_service: Optional[AuditService] = None,
     ) -> None:
-        """Initialize ModelVersionService with ModelVersionRepository."""
+        """Initialize ModelVersionService with ModelVersionRepository and audit service."""
         self.db = db
         self.model_version_repo = model_version_repo or ModelVersionRepository(db=db)
+        self.audit_service = audit_service or AuditService(db=db)
 
     def create_model_version(
         self,
@@ -54,6 +58,22 @@ class ModelVersionService:
 
         try:
             mv = self.model_version_repo.create(data, commit=False, db=self.db)
+            if self.audit_service:
+                try:
+                    self.audit_service.record_event(
+                        action=AuditAction.MODEL_VERSION_CREATED,
+                        entity_type="ModelVersion",
+                        entity_id=getattr(mv, "id", None),
+                        outcome=AuditOutcome.SUCCESS,
+                        metadata={
+                            "model_name": getattr(mv, "model_name", None),
+                            "version": getattr(mv, "version", None),
+                            "is_active": getattr(mv, "is_active", None),
+                        },
+                        commit=False,
+                    )
+                except Exception:
+                    pass
             if auto_commit:
                 self.db.commit()
                 self.db.refresh(mv)

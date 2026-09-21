@@ -2,10 +2,12 @@
 import uuid
 from typing import Any, Dict, Optional, Union
 from sqlalchemy.orm import Session
+from app.core.audit_events import AuditAction, AuditOutcome
 from app.models.applicant import ApplicantProfile
 from app.repositories.applicant import ApplicantRepository
 from app.repositories.user import UserRepository
 from app.schemas.applicant import ApplicantProfileCreate, ApplicantProfileUpdate
+from app.services.audit import AuditService
 from app.services.exceptions import DuplicateEntityError, EntityNotFoundError, ValidationError
 
 
@@ -26,11 +28,13 @@ class ApplicantService:
         db: Session,
         applicant_repo: Optional[ApplicantRepository] = None,
         user_repo: Optional[UserRepository] = None,
+        audit_service: Optional[AuditService] = None,
     ) -> None:
-        """Initialize ApplicantService with required repositories."""
+        """Initialize ApplicantService with required repositories and audit service."""
         self.db = db
         self.applicant_repo = applicant_repo or ApplicantRepository(db=db)
         self.user_repo = user_repo or UserRepository(db=db)
+        self.audit_service = audit_service or AuditService(db=db)
 
     def create_profile(
         self,
@@ -74,6 +78,22 @@ class ApplicantService:
 
         try:
             profile = self.applicant_repo.create(data, commit=False, db=self.db)
+            if self.audit_service:
+                try:
+                    self.audit_service.record_event(
+                        action=AuditAction.APPLICANT_PROFILE_CREATED,
+                        entity_type="ApplicantProfile",
+                        entity_id=getattr(profile, "id", None),
+                        user_id=getattr(profile, "user_id", None),
+                        outcome=AuditOutcome.SUCCESS,
+                        metadata={
+                            "gig_work_type": getattr(profile, "gig_work_type", None),
+                            "primary_platform": getattr(profile, "primary_platform", None),
+                        },
+                        commit=False,
+                    )
+                except Exception:
+                    pass
             if auto_commit:
                 self.db.commit()
                 self.db.refresh(profile)
@@ -143,6 +163,19 @@ class ApplicantService:
             updated_profile = self.applicant_repo.update(
                 profile, data, commit=False, db=self.db
             )
+            if self.audit_service:
+                try:
+                    self.audit_service.record_event(
+                        action=AuditAction.APPLICANT_PROFILE_UPDATED,
+                        entity_type="ApplicantProfile",
+                        entity_id=getattr(updated_profile, "id", None),
+                        user_id=getattr(updated_profile, "user_id", None),
+                        outcome=AuditOutcome.SUCCESS,
+                        metadata={"updated_fields": list(data.keys())},
+                        commit=False,
+                    )
+                except Exception:
+                    pass
             if auto_commit:
                 self.db.commit()
                 self.db.refresh(updated_profile)
