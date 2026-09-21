@@ -44,13 +44,13 @@ PostgreSQL Database
 3. **Schemas (`app/schemas/`)**:
    Pydantic models defining input validation rules and output response serialization contracts (`StatusResponse`, `DatabaseHealthResponse`).
 4. **Models (`app/models/`)**:
-   SQLAlchemy 2.0 DeclarativeBase (`models/base.py`) providing the foundation for future database entities.
+   SQLAlchemy 2.0 domain entities and DeclarativeBase providing the data model for accounts, profiles, applications, consents, signals, and assessments.
 5. **Services (`app/services/`)**:
    Business logic and orchestration layer. Will house workflows for credit assessment calculations, consent handling, and external integrations.
 6. **Repositories (`app/repositories/`)**:
    Data access abstraction isolating database queries and persistence mechanisms from business logic.
 
-> **Note**: `services/`, `repositories/`, and specific business tables in `models/` represent architectural boundaries prepared for future implementation. Business tables, database migrations (Alembic), authentication (JWT), and ML scoring logic do not exist yet and will be introduced in subsequent tasks.
+> **Note**: `services/` and `repositories/` represent architectural boundaries prepared for future implementation. Database migrations (Alembic), authentication (JWT), and ML scoring logic will be introduced in subsequent tasks.
 
 ---
 
@@ -59,12 +59,55 @@ PostgreSQL Database
 - **Relational Database**: PostgreSQL is the primary database for application state, audit logs, and structured assessments.
 - **ORM & Abstraction**: SQLAlchemy 2.0 provides declarative modeling, type safety, and connection pool management.
 - **Driver**: `psycopg` (v3 with binary extensions) serves as the modern DBAPI driver.
-- **Declarative Base**: Defined in `app/models/base.py` as the root for future entity definitions.
+- **Declarative Base**: Defined in `app/models/base.py` with common mixins for UUID primary keys and timezone-aware timestamps.
 - **Session Lifecycle**: The `get_db()` dependency yields a scoped SQLAlchemy `Session` per request and ensures it is reliably closed upon completion.
 
 ---
 
-## 5. Local Setup & Configuration
+## 5. Domain Data Model
+
+The PARAKH domain model represents the core entities required for privacy-preserving, explainable alternative credit assessment for gig workers:
+
+### Conceptual Entity Diagram
+```
+User
+ ↓ (1:1)
+ApplicantProfile
+ ↓ (1:N)
+Application
+ ├── Consent (1:N)
+ ├── FinancialSignal (1:N)
+ ├── CreditAssessment (1:N)
+ │      ↓ (N:1)
+ │   ModelVersion
+ └── ReviewOutcome (1:N)
+
+AuditLog
+ ├── User (N:1, SET NULL)
+ └── Application (N:1, SET NULL)
+```
+
+### Domain Entities Summary:
+1. **User (`users`)**: Represents account identities supporting roles (`APPLICANT`, `REVIEWER`). Uses unique email and placeholder storage for future authentication hashes.
+2. **ApplicantProfile (`applicant_profiles`)**: One-to-one extension of `User` holding gig worker profile details (`gig_work_type`, `years_working`, `average_working_days`, `business_or_loan_purpose`).
+3. **Application (`applications`)**: Credit assessment requests with requested amounts, purpose, repayment period, and lifecycle status (`DRAFT`, `SUBMITTED`, `UNDER_REVIEW`, `ASSESSED`, `MANUAL_REVIEW`, `COMPLETED`).
+4. **Consent (`consents`)**: Explicit applicant permission tracking per data source (`PLATFORM`, `FINANCIAL_ACTIVITY`, `UTILITY`) and purpose, supporting grant and revocation timestamps (`granted_at`, `revoked_at`).
+5. **FinancialSignal (`financial_signals`)**: Aggregated, derived financial metrics (e.g. `average_income`, `median_income`, `income_volatility`, `income_trend`, `active_days`, `payment_regularity`, `cashflow_buffer`, `existing_obligation`, `platform_rating`).
+   > **Data Minimization Principle**: `FinancialSignal` strictly contains aggregated and derived indicators. It **does NOT** store raw UPI transaction descriptions, merchant names, contact books, GPS/location history, or raw bank credentials.
+6. **CreditAssessment (`credit_assessments`)**: Generated assessment output including `credit_score`, `risk_probability`, `risk_level` (`LOWER`, `MODERATE`, `HIGHER`, `INSUFFICIENT`), `confidence`, and financial health ratios. Nullable values are supported when evidence is insufficient.
+7. **ModelVersion (`model_versions`)**: Traceability record identifying the specific scoring model, version string, algorithm name, and description used to produce an assessment.
+8. **ReviewOutcome (`review_outcomes`)**: Decision support record capturing human reviewer evaluation (`REVIEWED`, `ESCALATED`, `ADDITIONAL_INFORMATION_REQUIRED`) with notes.
+9. **AuditLog (`audit_logs`)**: Immutable audit trail of system and user events with JSONB metadata. Foreign keys use `ON DELETE SET NULL` to preserve historical integrity.
+
+### Data Model Conventions:
+- **Primary Keys**: Universal `UUID` strategy across all entities.
+- **Timestamps**: Timezone-aware UTC `DateTime(timezone=True)` with server defaults.
+- **Monetary Fields**: Fixed-precision `Numeric(12, 2)` preventing floating-point rounding errors.
+- **Constraints**: Non-negative monetary check constraints, risk probability bounds [0, 1], and email uniqueness.
+
+---
+
+## 6. Local Setup & Configuration
 
 ### Prerequisites
 - Python 3.10+ (tested on Python 3.12)
@@ -118,7 +161,7 @@ PostgreSQL Database
 
 ---
 
-## 6. Endpoints
+## 7. Endpoints
 
 | Method | Endpoint | Description | Sample Response (Success) |
 |---|---|---|---|
@@ -149,19 +192,19 @@ curl -s http://127.0.0.1:8000/api/v1/database/health
 
 ---
 
-## 7. Running Tests
+## 8. Running Tests
 
 Run the full unit and integration test suite:
 ```bash
 python -m unittest discover -s tests -p "test_*.py" -v
 ```
 
-- **Unit tests**: Validate configuration, SQLAlchemy engine creation, DeclarativeBase inheritance, `get_db()` lifecycle, and error handling.
+- **Unit tests**: Validate configuration, SQLAlchemy engine creation, DeclarativeBase inheritance, `get_db()` lifecycle, domain model relationships, constraints, and data minimization.
 - **Integration tests**: Automatically attempt live `SELECT 1` queries against PostgreSQL if available. If PostgreSQL is offline locally, integration tests skip gracefully without failing the build.
 
 ---
 
-## 8. Project Structure
+## 9. Project Structure
 ```
 backend/
 ├── app/
@@ -179,8 +222,17 @@ backend/
 │   │   ├── __init__.py
 │   │   └── common.py        # StatusResponse and DatabaseHealthResponse schemas
 │   ├── models/
-│   │   ├── __init__.py
-│   │   └── base.py          # SQLAlchemy DeclarativeBase
+│   │   ├── __init__.py      # Exports all domain models and enums
+│   │   ├── base.py          # DeclarativeBase, UUIDPrimaryKeyMixin, TimestampMixin
+│   │   ├── user.py          # User account entity
+│   │   ├── applicant.py     # ApplicantProfile entity
+│   │   ├── application.py   # Application entity
+│   │   ├── consent.py       # Consent entity
+│   │   ├── financial_signal.py # FinancialSignal entity
+│   │   ├── assessment.py    # CreditAssessment entity
+│   │   ├── model_version.py # ModelVersion entity
+│   │   ├── review.py        # ReviewOutcome entity
+│   │   └── audit.py         # AuditLog entity
 │   ├── services/
 │   │   └── __init__.py      # Business logic orchestration (placeholder)
 │   └── repositories/
@@ -189,10 +241,11 @@ backend/
 ├── tests/
 │   ├── __init__.py
 │   ├── test_health.py       # API endpoints and database health tests
-│   └── test_database.py     # Database engine, session, and unit/integration tests
+│   ├── test_database.py     # Database engine, session, and unit/integration tests
+│   └── test_models.py       # Domain model structure, relationship, and constraint tests
 │
 ├── .env.example             # Example configuration template with DATABASE_URL
 ├── .gitignore               # Ignored files (.env, .venv, caches)
 ├── requirements.txt         # Current backend dependencies
-└── README.md                # Comprehensive documentation & setup guide
+└── README.md                # Comprehensive documentation & architecture guide
 ```
