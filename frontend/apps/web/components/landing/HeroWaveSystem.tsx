@@ -18,30 +18,23 @@ export interface RibbonStrandConfig {
   strokeWidth: number;
   opacity: number;
   tier: 'hairline' | 'secondary' | 'primary' | 'ambient';
-  gradientId: string;
+  gradType: 'subtle' | 'primary' | 'secondary' | 'accent';
 }
 
-// Responsive strand counts per side (Left and Right)
-// Desktop: 22 per side (44 total)
-// Tablet: 16 per side (32 total)
-// Mobile: 10 per side (20 total)
+// ==========================================================
+// SHARED WAVE MOTION & GEOMETRY (SOURCE OF TRUTH: DARK MODE)
+// Both Light and Dark modes share the exact same strand counts,
+// origin points, endpoints, phases, amplitudes, speeds, and bundles.
+// ==========================================================
 const DESKTOP_STRAND_COUNT = 22;
 const TABLET_STRAND_COUNT = 16;
 const MOBILE_STRAND_COUNT = 10;
-
-// Shared conceptual center: Phone center is at X=720, Y=540 on 1440x950 canvas
 const HERO_CENTER_X = 720;
 
-// Deterministically construct organic, DNA-woven, non-radial silk strand configurations
-function buildRibbonStrandConfigs(side: 'left' | 'right'): RibbonStrandConfig[] {
+function buildSharedRibbonStrands(side: 'left' | 'right'): RibbonStrandConfig[] {
   const isLeft = side === 'left';
   const strands: RibbonStrandConfig[] = [];
 
-  // 4 intentional clusters for uneven density:
-  // 0-4: Upper Swell cluster (5 strands) - floating higher in the field
-  // 5-13: Mid DNA Weave cluster (9 strands) - dense interwoven ribbon core
-  // 14-18: Lower Cascade cluster (5 strands) - draping lower
-  // 19-21: Ambient Hairlines (3 strands) - delicate spatial breathers
   for (let i = 0; i < DESKTOP_STRAND_COUNT; i++) {
     let y0 = 530;
     let drapeSlope = 0;
@@ -53,12 +46,13 @@ function buildRibbonStrandConfigs(side: 'left' | 'right'): RibbonStrandConfig[] 
     let phase1 = i * 0.75 + (isLeft ? 0 : 1.95);
     let phase2 = i * 1.1 + (isLeft ? 1.2 : 0.45);
     let speed = 0.75 + (i % 4) * 0.12;
-    let strokeWidth = 0.75;
-    let opacity = 0.35;
-    let tier: RibbonStrandConfig['tier'] = 'secondary';
+    let strokeWidth = 0.65;
+    let opacity = 0.25;
+    let tier: RibbonStrandConfig['tier'] = 'hairline';
+    let gradType: RibbonStrandConfig['gradType'] = 'subtle';
 
     if (i < 5) {
-      // Upper Swell: strands gradually drift upward (Y ~ 180-320)
+      // BUNDLE 1: Upper bundle (Strands 0-4)
       const u = i / 4;
       y0 = isLeft ? 510 - u * 25 : 515 - u * 25;
       drapeSlope = isLeft ? -220 - u * 60 : -200 - u * 70;
@@ -67,14 +61,27 @@ function buildRibbonStrandConfigs(side: 'left' | 'right'): RibbonStrandConfig[] 
       k1 = 1.4 + u * 0.3;
       amp2 = 18 + u * 8;
       k2 = 2.6 + u * 0.4;
-      strokeWidth = i === 2 ? 1.45 : i % 2 === 0 ? 0.58 : 0.88;
-      opacity = i === 2 ? 0.68 : i % 2 === 0 ? 0.22 : 0.38;
-      tier = i === 2 ? 'primary' : i % 2 === 0 ? 'hairline' : 'secondary';
+
+      if (i === 2) {
+        strokeWidth = 1.45;
+        opacity = 0.58;
+        tier = 'primary';
+        gradType = 'accent';
+      } else if (i === 3) {
+        strokeWidth = 0.92;
+        opacity = 0.40;
+        tier = 'secondary';
+        gradType = 'primary';
+      } else {
+        strokeWidth = 0.62;
+        opacity = 0.25;
+        tier = 'hairline';
+        gradType = 'subtle';
+      }
     } else if (i < 14) {
-      // Mid DNA Weave: dense cluster around Y ~ 430-580 with alternating S-curves
+      // BUNDLE 2: Middle ribbon (Strands 5-13)
       const u = (i - 5) / 8;
       y0 = isLeft ? 530 + (u - 0.5) * 45 : 525 + (u - 0.5) * 45;
-      // DNA alternating slope & wave phase
       const isEven = (i - 5) % 2 === 0;
       drapeSlope = isEven ? -40 - u * 30 : 50 + u * 30;
       drapeCurve = isEven ? 30 : -30;
@@ -82,13 +89,37 @@ function buildRibbonStrandConfigs(side: 'left' | 'right'): RibbonStrandConfig[] 
       k1 = 1.75 + (isEven ? 0.2 : -0.2);
       amp2 = 24;
       k2 = 3.2;
-      phase1 = (i - 5) * 0.9 + (isEven ? 0 : Math.PI); // Phase inversion creates DNA helix crossings!
+      phase1 = (i - 5) * 0.9 + (isEven ? 0 : Math.PI);
       phase2 = (i - 5) * 1.3 + (isEven ? Math.PI * 0.5 : -Math.PI * 0.5);
-      strokeWidth = i === 7 || i === 11 ? 1.5 : i % 2 === 0 ? 0.65 : 0.95;
-      opacity = i === 7 || i === 11 ? 0.72 : i % 2 === 0 ? 0.25 : 0.42;
-      tier = i === 7 || i === 11 ? 'primary' : i % 2 === 0 ? 'hairline' : 'secondary';
+
+      if (i === 7) {
+        strokeWidth = 1.5;
+        opacity = 0.60;
+        tier = 'primary';
+        gradType = 'primary';
+      } else if (i === 11) {
+        strokeWidth = 1.4;
+        opacity = 0.54;
+        tier = 'primary';
+        gradType = 'secondary';
+      } else if (i === 6) {
+        strokeWidth = 1.0;
+        opacity = 0.42;
+        tier = 'secondary';
+        gradType = 'secondary';
+      } else if (i === 9 || i === 13) {
+        strokeWidth = 0.92;
+        opacity = 0.38;
+        tier = 'secondary';
+        gradType = 'primary';
+      } else {
+        strokeWidth = 0.65;
+        opacity = 0.26;
+        tier = 'hairline';
+        gradType = 'subtle';
+      }
     } else if (i < 19) {
-      // Lower Cascade: draping down towards Y ~ 680-800
+      // BUNDLE 3: Lower bundle (Strands 14-18)
       const u = (i - 14) / 4;
       y0 = isLeft ? 550 + u * 20 : 545 + u * 20;
       drapeSlope = isLeft ? 200 + u * 50 : 210 + u * 55;
@@ -97,11 +128,25 @@ function buildRibbonStrandConfigs(side: 'left' | 'right'): RibbonStrandConfig[] 
       k1 = 1.5 + u * 0.25;
       amp2 = 20;
       k2 = 2.7;
-      strokeWidth = i === 16 ? 1.38 : i % 2 === 0 ? 0.58 : 0.85;
-      opacity = i === 16 ? 0.62 : i % 2 === 0 ? 0.18 : 0.32;
-      tier = i === 16 ? 'primary' : i % 2 === 0 ? 'hairline' : 'secondary';
+
+      if (i === 16) {
+        strokeWidth = 1.35;
+        opacity = 0.52;
+        tier = 'primary';
+        gradType = 'accent';
+      } else if (i === 17) {
+        strokeWidth = 0.88;
+        opacity = 0.38;
+        tier = 'secondary';
+        gradType = 'primary';
+      } else {
+        strokeWidth = 0.65;
+        opacity = 0.25;
+        tier = 'hairline';
+        gradType = 'subtle';
+      }
     } else {
-      // Ambient hairlines: very calm, low opacity
+      // Ambient strands (Strands 19-21)
       const u = (i - 19) / 2;
       y0 = u === 0 ? 490 : u === 1 ? 570 : 530;
       drapeSlope = u === 0 ? -380 : u === 1 ? 340 : -140;
@@ -110,9 +155,10 @@ function buildRibbonStrandConfigs(side: 'left' | 'right'): RibbonStrandConfig[] 
       k1 = 1.2;
       amp2 = 10;
       k2 = 2.0;
-      strokeWidth = 0.5;
-      opacity = 0.14;
+      strokeWidth = 0.52;
+      opacity = 0.22;
       tier = 'ambient';
+      gradType = 'subtle';
     }
 
     strands.push({
@@ -130,23 +176,131 @@ function buildRibbonStrandConfigs(side: 'left' | 'right'): RibbonStrandConfig[] 
       strokeWidth,
       opacity,
       tier,
-      gradientId: `${side}Grad_${i % 4}`,
+      gradType,
     });
   }
 
   return strands;
 }
 
-const leftStrands = buildRibbonStrandConfigs('left');
-const rightStrands = buildRibbonStrandConfigs('right');
+const leftStrands = buildSharedRibbonStrands('left');
+const rightStrands = buildSharedRibbonStrands('right');
+
+// ==========================================================
+// LIGHT MODE VISUAL SPECIFICATIONS (Per-strand styling)
+// Applied strictly AFTER geometry is calculated.
+// Hierarchy:
+// - Hero strands (~18%): 1.50-1.70px, opacity 0.78-0.86
+// - Medium strands (~23%): 1.20-1.28px, opacity 0.62-0.68
+// - Subtle strands (~59%): 0.80-0.90px, opacity 0.48-0.54
+// Colors: Periwinkle (#6F86E8), Cyan (#45C4DB), Lavender (#9B7DE3),
+//         Soft Blue (#6FA9ED), Subtle Ice (#9EAFD4)
+// ==========================================================
+interface LightVisualConfig {
+  grad: 'periwinkle_1' | 'periwinkle_2' | 'blue' | 'cyan_1' | 'cyan_2' | 'lavender_1' | 'lavender_2' | 'ice';
+  width: number;
+  opacity: number;
+}
+
+const LEFT_LIGHT_VISUALS: LightVisualConfig[] = [
+  { grad: 'ice', width: 0.85, opacity: 0.50 },          // 0: Subtle Ice
+  { grad: 'periwinkle_1', width: 0.90, opacity: 0.54 }, // 1: Primary Periwinkle
+  { grad: 'cyan_1', width: 1.65, opacity: 0.84 },       // 2: HERO Pastel Cyan (Shine A)
+  { grad: 'periwinkle_2', width: 1.25, opacity: 0.66 }, // 3: Medium Secondary Periwinkle
+  { grad: 'blue', width: 0.85, opacity: 0.50 },         // 4: Subtle Soft Blue
+  { grad: 'periwinkle_1', width: 0.90, opacity: 0.54 }, // 5: Subtle Primary Periwinkle
+  { grad: 'blue', width: 1.25, opacity: 0.65 },         // 6: Medium Soft Blue
+  { grad: 'periwinkle_1', width: 1.70, opacity: 0.86 }, // 7: HERO Primary Periwinkle (Shine B)
+  { grad: 'ice', width: 0.85, opacity: 0.48 },          // 8: Subtle Ice
+  { grad: 'lavender_1', width: 1.20, opacity: 0.64 },   // 9: Medium Lavender
+  { grad: 'periwinkle_2', width: 0.88, opacity: 0.52 }, // 10: Subtle Secondary Periwinkle
+  { grad: 'lavender_1', width: 1.55, opacity: 0.80 },   // 11: HERO Pastel Lavender
+  { grad: 'blue', width: 0.85, opacity: 0.50 },         // 12: Subtle Soft Blue
+  { grad: 'cyan_2', width: 1.20, opacity: 0.64 },       // 13: Medium Secondary Cyan
+  { grad: 'ice', width: 0.85, opacity: 0.48 },          // 14: Subtle Ice
+  { grad: 'periwinkle_1', width: 0.90, opacity: 0.54 }, // 15: Subtle Primary Periwinkle
+  { grad: 'cyan_1', width: 1.50, opacity: 0.78 },       // 16: HERO Pastel Cyan
+  { grad: 'lavender_2', width: 1.20, opacity: 0.62 },   // 17: Medium Secondary Lavender
+  { grad: 'periwinkle_2', width: 0.85, opacity: 0.48 }, // 18: Subtle Secondary Periwinkle
+  { grad: 'ice', width: 0.80, opacity: 0.48 },          // 19: Ambient Ice
+  { grad: 'blue', width: 0.85, opacity: 0.50 },         // 20: Ambient Soft Blue
+  { grad: 'ice', width: 0.80, opacity: 0.48 },          // 21: Ambient Ice
+];
+
+const RIGHT_LIGHT_VISUALS: LightVisualConfig[] = [
+  { grad: 'lavender_2', width: 0.90, opacity: 0.54 },   // 0: Subtle Secondary Lavender
+  { grad: 'lavender_1', width: 1.28, opacity: 0.68 },   // 1: Medium Lavender
+  { grad: 'lavender_1', width: 1.70, opacity: 0.86 },   // 2: HERO Signature Lavender Bloom (Shine A)
+  { grad: 'cyan_1', width: 1.60, opacity: 0.82 },       // 3: HERO Pastel Cyan
+  { grad: 'periwinkle_1', width: 0.90, opacity: 0.54 }, // 4: Subtle Primary Periwinkle
+  { grad: 'ice', width: 0.85, opacity: 0.48 },          // 5: Subtle Ice
+  { grad: 'periwinkle_1', width: 0.90, opacity: 0.54 }, // 6: Subtle Primary Periwinkle
+  { grad: 'cyan_2', width: 1.65, opacity: 0.84 },       // 7: HERO Secondary Cyan (Shine B)
+  { grad: 'blue', width: 1.25, opacity: 0.66 },         // 8: Medium Soft Blue
+  { grad: 'periwinkle_2', width: 0.90, opacity: 0.54 }, // 9: Subtle Secondary Periwinkle
+  { grad: 'lavender_1', width: 1.20, opacity: 0.62 },   // 10: Medium Lavender
+  { grad: 'periwinkle_1', width: 1.55, opacity: 0.80 }, // 11: HERO Primary Periwinkle
+  { grad: 'blue', width: 0.85, opacity: 0.50 },         // 12: Subtle Soft Blue
+  { grad: 'periwinkle_2', width: 1.20, opacity: 0.64 }, // 13: Medium Secondary Periwinkle
+  { grad: 'cyan_1', width: 1.25, opacity: 0.66 },       // 14: Medium Pastel Cyan
+  { grad: 'periwinkle_1', width: 0.90, opacity: 0.54 }, // 15: Subtle Primary Periwinkle
+  { grad: 'blue', width: 1.50, opacity: 0.78 },         // 16: HERO Soft Blue
+  { grad: 'lavender_2', width: 1.20, opacity: 0.62 },   // 17: Medium Secondary Lavender
+  { grad: 'periwinkle_2', width: 0.85, opacity: 0.48 }, // 18: Subtle Secondary Periwinkle
+  { grad: 'ice', width: 0.80, opacity: 0.48 },          // 19: Ambient Ice
+  { grad: 'blue', width: 0.85, opacity: 0.50 },         // 20: Ambient Soft Blue
+  { grad: 'ice', width: 0.80, opacity: 0.48 },          // 21: Ambient Ice
+];
+
+// Precompute CSS rules for all 22 strands (zero runtime string allocation in RAF)
+function generatePrecomputedStrandCSS(): string {
+  const lines: string[] = [];
+
+  for (let i = 0; i < DESKTOP_STRAND_COUNT; i++) {
+    const lDark = leftStrands[i];
+    const lLight = LEFT_LIGHT_VISUALS[i];
+    lines.push(`
+      .strand-left-${i} {
+        stroke: url(#leftLightGrad_${lLight.grad});
+        stroke-width: ${lLight.width}px;
+        stroke-opacity: ${lLight.opacity};
+      }
+      .dark .strand-left-${i} {
+        stroke: url(#leftDarkGrad_${lDark.gradType});
+        stroke-width: ${lDark.strokeWidth}px;
+        stroke-opacity: ${lDark.opacity};
+      }
+    `);
+
+    const rDark = rightStrands[i];
+    const rLight = RIGHT_LIGHT_VISUALS[i];
+    lines.push(`
+      .strand-right-${i} {
+        stroke: url(#rightLightGrad_${rLight.grad});
+        stroke-width: ${rLight.width}px;
+        stroke-opacity: ${rLight.opacity};
+      }
+      .dark .strand-right-${i} {
+        stroke: url(#rightDarkGrad_${rDark.gradType});
+        stroke-width: ${rDark.strokeWidth}px;
+        stroke-opacity: ${rDark.opacity};
+      }
+    `);
+  }
+
+  return lines.join('\n');
+}
+
+const PRECOMPUTED_STRAND_CSS = generatePrecomputedStrandCSS();
 
 // Fast evaluation points buffer (5 points)
 const PTS_X = [0, 0, 0, 0, 0];
 const PTS_Y = [0, 0, 0, 0, 0];
 const STEPS = [0, 0.22, 0.48, 0.74, 1.0];
 
-// Compute smooth Catmull-Rom cubic Bezier ribbon path with zero allocations
-function computeRibbonPath(strand: RibbonStrandConfig, t: number, side: 'left' | 'right'): string {
+// THE SINGLE SOURCE OF TRUTH FOR WAVE PATHS (LOCKED DARK MODE MATHEMATICS)
+// Originates at center (HERO_CENTER_X) behind the smartphone and flows outward.
+function computeSharedRibbonPath(strand: RibbonStrandConfig, t: number, side: 'left' | 'right'): string {
   const isLeft = side === 'left';
   const startX = HERO_CENTER_X + (isLeft ? -15 : 15);
   const endX = isLeft ? -50 : 1490;
@@ -155,15 +309,11 @@ function computeRibbonPath(strand: RibbonStrandConfig, t: number, side: 'left' |
   for (let idx = 0; idx < 5; idx++) {
     const s = STEPS[idx];
     const x = startX + s * totalDx;
-
-    // Envelope: 0 behind phone center, smoothly rising past bezel so origin is calm
     const env = Math.pow(Math.sin(s * Math.PI * 0.5), 0.85);
 
-    // Harmonic undulating waves
     const w1 = Math.sin(s * strand.k1 * Math.PI * 2 + t * 0.0009 * strand.speed + strand.phase1);
     const w2 = Math.cos(s * strand.k2 * Math.PI * 2 - t * 0.0005 * strand.speed + strand.phase2);
 
-    // Base drape curve
     const drape = strand.drapeSlope * s + strand.drapeCurve * s * s;
     const y = strand.y0 + drape + (strand.amp1 * w1 + strand.amp2 * w2) * env;
 
@@ -171,7 +321,10 @@ function computeRibbonPath(strand: RibbonStrandConfig, t: number, side: 'left' |
     PTS_Y[idx] = y;
   }
 
-  // Generate Catmull-Rom Bezier string
+  return buildBezierFromPoints();
+}
+
+function buildBezierFromPoints(): string {
   let d = `M ${PTS_X[0].toFixed(1)},${PTS_Y[0].toFixed(1)}`;
   for (let i = 0; i < 4; i++) {
     const p0x = i > 0 ? PTS_X[i - 1] : PTS_X[i];
@@ -190,38 +343,46 @@ function computeRibbonPath(strand: RibbonStrandConfig, t: number, side: 'left' |
 
     d += ` C ${cp1x.toFixed(1)},${cp1y.toFixed(1)} ${cp2x.toFixed(1)},${cp2y.toFixed(1)} ${p2x.toFixed(1)},${p2y.toFixed(1)}`;
   }
-
   return d;
 }
 
-// 14 subtle particles along the organic silk ribbon arcs
-const PARTICLES = [
-  // Left side arcs
-  { cx: 340, cy: 350, r: 1.0, delay: '0s', dur: '4.2s' },
-  { cx: 180, cy: 260, r: 1.5, delay: '1.2s', dur: '5.1s' },
-  { cx: 450, cy: 500, r: 1.0, delay: '2.5s', dur: '3.8s' },
-  { cx: 310, cy: 540, r: 1.5, delay: '0.8s', dur: '4.7s' },
-  { cx: 180, cy: 490, r: 2.0, delay: '2.1s', dur: '6.0s' },
-  { cx: 380, cy: 660, r: 1.0, delay: '3.0s', dur: '4.5s' },
-  { cx: 220, cy: 750, r: 1.5, delay: '1.7s', dur: '5.4s' },
+interface ParticleConfig {
+  cx: number;
+  cy: number;
+  r: number;
+  delay: string;
+  dur: string;
+  type: 'normal' | 'secondary' | 'bright';
+}
 
-  // Right side arcs
-  { cx: 1100, cy: 340, r: 1.5, delay: '0.5s', dur: '4.8s' },
-  { cx: 1260, cy: 260, r: 1.0, delay: '2.2s', dur: '3.9s' },
-  { cx: 990, cy: 500, r: 2.0, delay: '1.4s', dur: '5.8s' },
-  { cx: 1130, cy: 540, r: 1.5, delay: '3.1s', dur: '4.3s' },
-  { cx: 1260, cy: 490, r: 1.0, delay: '0.9s', dur: '5.0s' },
-  { cx: 1060, cy: 660, r: 1.0, delay: '2.7s', dur: '4.1s' },
-  { cx: 1220, cy: 750, r: 1.5, delay: '1.9s', dur: '5.2s' },
+// SHARED PARTICLES (Identical positions, pulse timings, and cycles in both themes)
+const SHARED_PARTICLES: ParticleConfig[] = [
+  { cx: 340, cy: 350, r: 1.0, delay: '0s', dur: '4.2s', type: 'normal' },
+  { cx: 180, cy: 260, r: 1.5, delay: '1.2s', dur: '4.9s', type: 'secondary' },
+  { cx: 450, cy: 500, r: 1.0, delay: '2.5s', dur: '3.8s', type: 'normal' },
+  { cx: 310, cy: 540, r: 1.5, delay: '0.8s', dur: '4.6s', type: 'secondary' },
+  { cx: 180, cy: 490, r: 2.0, delay: '2.1s', dur: '3.9s', type: 'bright' },
+  { cx: 380, cy: 660, r: 1.0, delay: '3.0s', dur: '4.5s', type: 'normal' },
+  { cx: 220, cy: 750, r: 1.5, delay: '1.7s', dur: '3.6s', type: 'secondary' },
+  { cx: 1100, cy: 340, r: 1.5, delay: '0.5s', dur: '4.8s', type: 'secondary' },
+  { cx: 1260, cy: 260, r: 1.0, delay: '2.2s', dur: '3.9s', type: 'normal' },
+  { cx: 990, cy: 500, r: 2.0, delay: '1.4s', dur: '4.4s', type: 'bright' },
+  { cx: 1130, cy: 540, r: 1.5, delay: '3.1s', dur: '4.3s', type: 'secondary' },
+  { cx: 1260, cy: 490, r: 1.0, delay: '0.9s', dur: '4.7s', type: 'normal' },
+  { cx: 1060, cy: 660, r: 1.0, delay: '2.7s', dur: '4.1s', type: 'normal' },
+  { cx: 1220, cy: 750, r: 1.5, delay: '1.9s', dur: '3.7s', type: 'secondary' },
 ];
 
 export function HeroWaveSystem() {
   const shouldReduceMotion = useReducedMotion();
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Shared path refs — same DOM elements used in both Light and Dark themes
   const leftPathsRef = useRef<(SVGPathElement | null)[]>([]);
   const rightPathsRef = useRef<(SVGPathElement | null)[]>([]);
   const leftShinePathsRef = useRef<(SVGPathElement | null)[]>([]);
   const rightShinePathsRef = useRef<(SVGPathElement | null)[]>([]);
+
   const animationFrameRef = useRef<number | null>(null);
   const timeRef = useRef<number>(0);
   const lastFrameTimeRef = useRef<number>(0);
@@ -239,48 +400,33 @@ export function HeroWaveSystem() {
         activeCountRef.current = DESKTOP_STRAND_COUNT;
       }
 
-      const activeCount = activeCountRef.current;
+      const count = activeCountRef.current;
       for (let i = 0; i < DESKTOP_STRAND_COUNT; i++) {
         const lEl = leftPathsRef.current[i];
-        if (lEl) lEl.style.display = i < activeCount ? 'block' : 'none';
+        if (lEl) lEl.style.display = i < count ? 'block' : 'none';
         const rEl = rightPathsRef.current[i];
-        if (rEl) rEl.style.display = i < activeCount ? 'block' : 'none';
+        if (rEl) rEl.style.display = i < count ? 'block' : 'none';
       }
     };
 
     handleResize();
     window.addEventListener('resize', handleResize);
 
-    const activeCount = activeCountRef.current;
-
-    // Initial render of paths
+    // Initial render of shared paths (static base at t = 1200)
     for (let i = 0; i < DESKTOP_STRAND_COUNT; i++) {
       const lEl = leftPathsRef.current[i];
       if (lEl) {
-        const dStr = computeRibbonPath(leftStrands[i], 1200, 'left');
+        const dStr = computeSharedRibbonPath(leftStrands[i], 1200, 'left');
         lEl.setAttribute('d', dStr);
-        lEl.style.display = i < activeCount ? 'block' : 'none';
-
-        if (i === 2 && leftShinePathsRef.current[0]) {
-          leftShinePathsRef.current[0]!.setAttribute('d', dStr);
-        }
-        if (i === 7 && leftShinePathsRef.current[1]) {
-          leftShinePathsRef.current[1]!.setAttribute('d', dStr);
-        }
+        if (i === 2 && leftShinePathsRef.current[0]) leftShinePathsRef.current[0]!.setAttribute('d', dStr);
+        if (i === 7 && leftShinePathsRef.current[1]) leftShinePathsRef.current[1]!.setAttribute('d', dStr);
       }
-
       const rEl = rightPathsRef.current[i];
       if (rEl) {
-        const dStr = computeRibbonPath(rightStrands[i], 1200, 'right');
+        const dStr = computeSharedRibbonPath(rightStrands[i], 1200, 'right');
         rEl.setAttribute('d', dStr);
-        rEl.style.display = i < activeCount ? 'block' : 'none';
-
-        if (i === 2 && rightShinePathsRef.current[0]) {
-          rightShinePathsRef.current[0]!.setAttribute('d', dStr);
-        }
-        if (i === 7 && rightShinePathsRef.current[1]) {
-          rightShinePathsRef.current[1]!.setAttribute('d', dStr);
-        }
+        if (i === 2 && rightShinePathsRef.current[0]) rightShinePathsRef.current[0]!.setAttribute('d', dStr);
+        if (i === 7 && rightShinePathsRef.current[1]) rightShinePathsRef.current[1]!.setAttribute('d', dStr);
       }
     }
 
@@ -305,35 +451,26 @@ export function HeroWaveSystem() {
         lastFrameTimeRef.current = currentTime - (delta % TARGET_INTERVAL);
         timeRef.current += Math.min(delta, 64);
         const t = timeRef.current;
-        const count = activeCountRef.current;
 
+        // SINGLE ANIMATION LOOP FOR BOTH THEMES — continuous, seamless motion
+        const count = activeCountRef.current;
         for (let idx = 0; idx < count; idx++) {
           const lStrand = leftStrands[idx];
           const lPath = leftPathsRef.current[idx];
           if (lPath) {
-            const dStr = computeRibbonPath(lStrand, t, 'left');
+            const dStr = computeSharedRibbonPath(lStrand, t, 'left');
             lPath.setAttribute('d', dStr);
-
-            if (idx === 2 && leftShinePathsRef.current[0]) {
-              leftShinePathsRef.current[0]!.setAttribute('d', dStr);
-            }
-            if (idx === 7 && leftShinePathsRef.current[1]) {
-              leftShinePathsRef.current[1]!.setAttribute('d', dStr);
-            }
+            if (idx === 2 && leftShinePathsRef.current[0]) leftShinePathsRef.current[0]!.setAttribute('d', dStr);
+            if (idx === 7 && leftShinePathsRef.current[1]) leftShinePathsRef.current[1]!.setAttribute('d', dStr);
           }
 
           const rStrand = rightStrands[idx];
           const rPath = rightPathsRef.current[idx];
           if (rPath) {
-            const dStr = computeRibbonPath(rStrand, t, 'right');
+            const dStr = computeSharedRibbonPath(rStrand, t, 'right');
             rPath.setAttribute('d', dStr);
-
-            if (idx === 2 && rightShinePathsRef.current[0]) {
-              rightShinePathsRef.current[0]!.setAttribute('d', dStr);
-            }
-            if (idx === 7 && rightShinePathsRef.current[1]) {
-              rightShinePathsRef.current[1]!.setAttribute('d', dStr);
-            }
+            if (idx === 2 && rightShinePathsRef.current[0]) rightShinePathsRef.current[0]!.setAttribute('d', dStr);
+            if (idx === 7 && rightShinePathsRef.current[1]) rightShinePathsRef.current[1]!.setAttribute('d', dStr);
           }
         }
       }
@@ -396,210 +533,389 @@ export function HeroWaveSystem() {
         preserveAspectRatio="xMidYMid slice"
       >
         <defs>
-          {/* Gradients using semantic CSS tokens:
-              In Dark mode: White, Silver, Zinc, Charcoal (#FFFFFF, #E4E4E7, #D4D4D8, #A1A1AA, #71717A)
-              In Light mode: Soft Pastels (#CBD5FF, #C4B5FD, #93C5FD, #67E8F9, #D8B4FE)
-              Theme toggle updates tokens automatically without resetting RAF! */}
-          <linearGradient id="leftGrad_0" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="var(--wave-strand-1)" stopOpacity="0.35" />
-            <stop offset="45%" stopColor="var(--wave-strand-2)" stopOpacity="0.7" />
-            <stop offset="85%" stopColor="var(--wave-strand-3)" stopOpacity="0.85" />
-            <stop offset="100%" stopColor="var(--wave-strand-4)" stopOpacity="0.75" />
+          {/* ==========================================================
+              LIGHT MODE GRADIENTS: Strong, visible pastels with smooth center fade
+              Full opacity across outer fields; fades to 0 behind phone (X: 570 -> 870)
+              ========================================================== */}
+          {/* Left Light Gradients: X = -50 (0%) to X = 705 (100%) */}
+          <linearGradient id="leftLightGrad_periwinkle_1" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#6F86E8" stopOpacity="1.0" />
+            <stop offset="55%" stopColor="#6F86E8" stopOpacity="0.98" />
+            <stop offset="75%" stopColor="#6F86E8" stopOpacity="0.92" />
+            <stop offset="88%" stopColor="#6F86E8" stopOpacity="0.55" />
+            <stop offset="100%" stopColor="#6F86E8" stopOpacity="0.00" />
           </linearGradient>
 
-          <linearGradient id="leftGrad_1" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="var(--wave-strand-2)" stopOpacity="0.45" />
-            <stop offset="40%" stopColor="var(--wave-strand-3)" stopOpacity="0.8" />
-            <stop offset="75%" stopColor="var(--wave-strand-4)" stopOpacity="0.95" />
-            <stop offset="100%" stopColor="var(--wave-strand-5)" stopOpacity="0.75" />
+          <linearGradient id="leftLightGrad_periwinkle_2" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#6179D8" stopOpacity="1.0" />
+            <stop offset="55%" stopColor="#6179D8" stopOpacity="0.98" />
+            <stop offset="75%" stopColor="#6179D8" stopOpacity="0.92" />
+            <stop offset="88%" stopColor="#6179D8" stopOpacity="0.55" />
+            <stop offset="100%" stopColor="#6179D8" stopOpacity="0.00" />
           </linearGradient>
 
-          <linearGradient id="leftGrad_2" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="var(--wave-strand-3)" stopOpacity="0.5" />
-            <stop offset="40%" stopColor="var(--wave-strand-4)" stopOpacity="0.85" />
-            <stop offset="80%" stopColor="var(--wave-strand-1)" stopOpacity="0.9" />
-            <stop offset="100%" stopColor="var(--wave-strand-2)" stopOpacity="0.7" />
+          <linearGradient id="leftLightGrad_blue" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#6FA9ED" stopOpacity="1.0" />
+            <stop offset="55%" stopColor="#6FA9ED" stopOpacity="0.98" />
+            <stop offset="75%" stopColor="#6FA9ED" stopOpacity="0.92" />
+            <stop offset="88%" stopColor="#6FA9ED" stopOpacity="0.55" />
+            <stop offset="100%" stopColor="#6FA9ED" stopOpacity="0.00" />
           </linearGradient>
 
-          <linearGradient id="leftGrad_3" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="var(--wave-strand-4)" stopOpacity="0.55" />
-            <stop offset="50%" stopColor="var(--wave-strand-5)" stopOpacity="0.8" />
-            <stop offset="85%" stopColor="var(--wave-strand-2)" stopOpacity="0.85" />
-            <stop offset="100%" stopColor="var(--wave-strand-3)" stopOpacity="0.65" />
+          <linearGradient id="leftLightGrad_cyan_1" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#45C4DB" stopOpacity="1.0" />
+            <stop offset="55%" stopColor="#45C4DB" stopOpacity="0.98" />
+            <stop offset="75%" stopColor="#45C4DB" stopOpacity="0.94" />
+            <stop offset="88%" stopColor="#45C4DB" stopOpacity="0.58" />
+            <stop offset="100%" stopColor="#45C4DB" stopOpacity="0.00" />
           </linearGradient>
 
-          {/* Right Gradients */}
-          <linearGradient id="rightGrad_0" x1="100%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="var(--wave-strand-1)" stopOpacity="0.35" />
-            <stop offset="45%" stopColor="var(--wave-strand-2)" stopOpacity="0.7" />
-            <stop offset="85%" stopColor="var(--wave-strand-3)" stopOpacity="0.85" />
-            <stop offset="100%" stopColor="var(--wave-strand-4)" stopOpacity="0.75" />
+          <linearGradient id="leftLightGrad_cyan_2" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#5BCDDD" stopOpacity="1.0" />
+            <stop offset="55%" stopColor="#5BCDDD" stopOpacity="0.98" />
+            <stop offset="75%" stopColor="#5BCDDD" stopOpacity="0.92" />
+            <stop offset="88%" stopColor="#5BCDDD" stopOpacity="0.55" />
+            <stop offset="100%" stopColor="#5BCDDD" stopOpacity="0.00" />
           </linearGradient>
 
-          <linearGradient id="rightGrad_1" x1="100%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="var(--wave-strand-2)" stopOpacity="0.45" />
-            <stop offset="40%" stopColor="var(--wave-strand-3)" stopOpacity="0.8" />
-            <stop offset="75%" stopColor="var(--wave-strand-4)" stopOpacity="0.95" />
-            <stop offset="100%" stopColor="var(--wave-strand-5)" stopOpacity="0.75" />
+          <linearGradient id="leftLightGrad_lavender_1" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#9B7DE3" stopOpacity="1.0" />
+            <stop offset="55%" stopColor="#9B7DE3" stopOpacity="0.98" />
+            <stop offset="75%" stopColor="#9B7DE3" stopOpacity="0.94" />
+            <stop offset="88%" stopColor="#9B7DE3" stopOpacity="0.58" />
+            <stop offset="100%" stopColor="#9B7DE3" stopOpacity="0.00" />
           </linearGradient>
 
-          <linearGradient id="rightGrad_2" x1="100%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="var(--wave-strand-3)" stopOpacity="0.5" />
-            <stop offset="40%" stopColor="var(--wave-strand-4)" stopOpacity="0.85" />
-            <stop offset="80%" stopColor="var(--wave-strand-1)" stopOpacity="0.9" />
-            <stop offset="100%" stopColor="var(--wave-strand-2)" stopOpacity="0.7" />
+          <linearGradient id="leftLightGrad_lavender_2" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#AE93E8" stopOpacity="1.0" />
+            <stop offset="55%" stopColor="#AE93E8" stopOpacity="0.98" />
+            <stop offset="75%" stopColor="#AE93E8" stopOpacity="0.92" />
+            <stop offset="88%" stopColor="#AE93E8" stopOpacity="0.55" />
+            <stop offset="100%" stopColor="#AE93E8" stopOpacity="0.00" />
           </linearGradient>
 
-          <linearGradient id="rightGrad_3" x1="100%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="var(--wave-strand-4)" stopOpacity="0.55" />
-            <stop offset="50%" stopColor="var(--wave-strand-5)" stopOpacity="0.8" />
-            <stop offset="85%" stopColor="var(--wave-strand-2)" stopOpacity="0.85" />
-            <stop offset="100%" stopColor="var(--wave-strand-3)" stopOpacity="0.65" />
+          <linearGradient id="leftLightGrad_ice" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#9EAFD4" stopOpacity="0.98" />
+            <stop offset="55%" stopColor="#9EAFD4" stopOpacity="0.95" />
+            <stop offset="75%" stopColor="#9EAFD4" stopOpacity="0.88" />
+            <stop offset="88%" stopColor="#9EAFD4" stopOpacity="0.48" />
+            <stop offset="100%" stopColor="#9EAFD4" stopOpacity="0.00" />
           </linearGradient>
 
-          {/* Traveling studio light reflection gradient */}
+          {/* Right Light Gradients: X = 735 (0%) to X = 1490 (100%) */}
+          <linearGradient id="rightLightGrad_periwinkle_1" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#6F86E8" stopOpacity="0.00" />
+            <stop offset="12%" stopColor="#6F86E8" stopOpacity="0.55" />
+            <stop offset="25%" stopColor="#6F86E8" stopOpacity="0.92" />
+            <stop offset="45%" stopColor="#6F86E8" stopOpacity="0.98" />
+            <stop offset="100%" stopColor="#6F86E8" stopOpacity="1.0" />
+          </linearGradient>
+
+          <linearGradient id="rightLightGrad_periwinkle_2" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#6179D8" stopOpacity="0.00" />
+            <stop offset="12%" stopColor="#6179D8" stopOpacity="0.55" />
+            <stop offset="25%" stopColor="#6179D8" stopOpacity="0.92" />
+            <stop offset="45%" stopColor="#6179D8" stopOpacity="0.98" />
+            <stop offset="100%" stopColor="#6179D8" stopOpacity="1.0" />
+          </linearGradient>
+
+          <linearGradient id="rightLightGrad_blue" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#6FA9ED" stopOpacity="0.00" />
+            <stop offset="12%" stopColor="#6FA9ED" stopOpacity="0.55" />
+            <stop offset="25%" stopColor="#6FA9ED" stopOpacity="0.92" />
+            <stop offset="45%" stopColor="#6FA9ED" stopOpacity="0.98" />
+            <stop offset="100%" stopColor="#6FA9ED" stopOpacity="1.0" />
+          </linearGradient>
+
+          <linearGradient id="rightLightGrad_cyan_1" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#45C4DB" stopOpacity="0.00" />
+            <stop offset="12%" stopColor="#45C4DB" stopOpacity="0.58" />
+            <stop offset="25%" stopColor="#45C4DB" stopOpacity="0.94" />
+            <stop offset="45%" stopColor="#45C4DB" stopOpacity="0.98" />
+            <stop offset="100%" stopColor="#45C4DB" stopOpacity="1.0" />
+          </linearGradient>
+
+          <linearGradient id="rightLightGrad_cyan_2" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#5BCDDD" stopOpacity="0.00" />
+            <stop offset="12%" stopColor="#5BCDDD" stopOpacity="0.55" />
+            <stop offset="25%" stopColor="#5BCDDD" stopOpacity="0.92" />
+            <stop offset="45%" stopColor="#5BCDDD" stopOpacity="0.98" />
+            <stop offset="100%" stopColor="#5BCDDD" stopOpacity="1.0" />
+          </linearGradient>
+
+          <linearGradient id="rightLightGrad_lavender_1" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#9B7DE3" stopOpacity="0.00" />
+            <stop offset="12%" stopColor="#9B7DE3" stopOpacity="0.58" />
+            <stop offset="25%" stopColor="#9B7DE3" stopOpacity="0.94" />
+            <stop offset="45%" stopColor="#9B7DE3" stopOpacity="0.98" />
+            <stop offset="100%" stopColor="#9B7DE3" stopOpacity="1.0" />
+          </linearGradient>
+
+          <linearGradient id="rightLightGrad_lavender_2" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#AE93E8" stopOpacity="0.00" />
+            <stop offset="12%" stopColor="#AE93E8" stopOpacity="0.55" />
+            <stop offset="25%" stopColor="#AE93E8" stopOpacity="0.92" />
+            <stop offset="45%" stopColor="#AE93E8" stopOpacity="0.98" />
+            <stop offset="100%" stopColor="#AE93E8" stopOpacity="1.0" />
+          </linearGradient>
+
+          <linearGradient id="rightLightGrad_ice" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#9EAFD4" stopOpacity="0.00" />
+            <stop offset="12%" stopColor="#9EAFD4" stopOpacity="0.48" />
+            <stop offset="25%" stopColor="#9EAFD4" stopOpacity="0.88" />
+            <stop offset="45%" stopColor="#9EAFD4" stopOpacity="0.95" />
+            <stop offset="100%" stopColor="#9EAFD4" stopOpacity="0.98" />
+          </linearGradient>
+
+          {/* Traveling highlight reflection gradient for Light Mode */}
+          <linearGradient id="lightTravelingShineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#6F86E8" stopOpacity="0" />
+            <stop offset="42%" stopColor="#9B7DE3" stopOpacity="0.45" />
+            <stop offset="50%" stopColor="#FFFFFF" stopOpacity="0.98" />
+            <stop offset="58%" stopColor="#45C4DB" stopOpacity="0.45" />
+            <stop offset="100%" stopColor="#6F86E8" stopOpacity="0" />
+          </linearGradient>
+
+          {/* ==========================================================
+              DARK MODE GRADIENTS (LOCKED - 100% UNCHANGED)
+              ========================================================== */}
+          <linearGradient id="leftDarkGrad_subtle" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="var(--wave-strand-subtle)" stopOpacity="0.80" />
+            <stop offset="50%" stopColor="var(--wave-strand-subtle)" stopOpacity="0.95" />
+            <stop offset="100%" stopColor="var(--wave-strand-subtle)" stopOpacity="0.80" />
+          </linearGradient>
+          <linearGradient id="leftDarkGrad_primary" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="var(--wave-strand-primary-1)" stopOpacity="0.85" />
+            <stop offset="45%" stopColor="var(--wave-strand-primary-2)" stopOpacity="0.98" />
+            <stop offset="100%" stopColor="var(--wave-strand-primary-3)" stopOpacity="0.85" />
+          </linearGradient>
+          <linearGradient id="leftDarkGrad_secondary" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="var(--wave-strand-secondary-1)" stopOpacity="0.85" />
+            <stop offset="50%" stopColor="var(--wave-strand-secondary-2)" stopOpacity="0.98" />
+            <stop offset="100%" stopColor="var(--wave-strand-secondary-1)" stopOpacity="0.85" />
+          </linearGradient>
+          <linearGradient id="leftDarkGrad_accent" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="var(--wave-strand-accent-1)" stopOpacity="0.85" />
+            <stop offset="50%" stopColor="var(--wave-strand-accent-2)" stopOpacity="0.98" />
+            <stop offset="100%" stopColor="var(--wave-strand-accent-1)" stopOpacity="0.85" />
+          </linearGradient>
+
+          <linearGradient id="rightDarkGrad_subtle" x1="100%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="var(--wave-strand-subtle)" stopOpacity="0.80" />
+            <stop offset="50%" stopColor="var(--wave-strand-subtle)" stopOpacity="0.95" />
+            <stop offset="100%" stopColor="var(--wave-strand-subtle)" stopOpacity="0.80" />
+          </linearGradient>
+          <linearGradient id="rightDarkGrad_primary" x1="100%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="var(--wave-strand-primary-1)" stopOpacity="0.85" />
+            <stop offset="45%" stopColor="var(--wave-strand-primary-2)" stopOpacity="0.98" />
+            <stop offset="100%" stopColor="var(--wave-strand-primary-3)" stopOpacity="0.85" />
+          </linearGradient>
+          <linearGradient id="rightDarkGrad_secondary" x1="100%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="var(--wave-strand-secondary-1)" stopOpacity="0.85" />
+            <stop offset="50%" stopColor="var(--wave-strand-secondary-2)" stopOpacity="0.98" />
+            <stop offset="100%" stopColor="var(--wave-strand-secondary-1)" stopOpacity="0.85" />
+          </linearGradient>
+          <linearGradient id="rightDarkGrad_accent" x1="100%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="var(--wave-strand-accent-1)" stopOpacity="0.85" />
+            <stop offset="50%" stopColor="var(--wave-strand-accent-2)" stopOpacity="0.98" />
+            <stop offset="100%" stopColor="var(--wave-strand-accent-1)" stopOpacity="0.85" />
+          </linearGradient>
+
+          {/* Traveling highlight reflection gradient for Dark Mode */}
           <linearGradient id="travelingShineGrad" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="var(--wave-shine)" stopOpacity="0" />
-            <stop offset="45%" stopColor="var(--wave-shine)" stopOpacity="0.12" />
-            <stop offset="50%" stopColor="var(--wave-shine)" stopOpacity="0.9" />
-            <stop offset="55%" stopColor="var(--wave-shine)" stopOpacity="0.12" />
+            <stop offset="45%" stopColor="var(--wave-shine)" stopOpacity="0.15" />
+            <stop offset="50%" stopColor="var(--wave-shine)" stopOpacity="0.95" />
+            <stop offset="55%" stopColor="var(--wave-shine)" stopOpacity="0.15" />
             <stop offset="100%" stopColor="var(--wave-shine)" stopOpacity="0" />
           </linearGradient>
 
-          {/* Keyframe animation for traveling shine along curved trajectories */}
+          {/* Continuous keyframe animations & theme-specific strand rules */}
           <style>
             {`
+              ${PRECOMPUTED_STRAND_CSS}
+
+              /* Traveling Shines (Strand 2 & Strand 7) */
+              .hero-shine-a {
+                stroke: url(#lightTravelingShineGrad);
+                stroke-width: 1.95px;
+                stroke-dasharray: 260 1200;
+                animation: strandShineA 8.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+              }
+              .dark .hero-shine-a {
+                stroke: url(#travelingShineGrad);
+                stroke-width: 1.8px;
+              }
+
+              .hero-shine-b {
+                stroke: url(#lightTravelingShineGrad);
+                stroke-width: 1.85px;
+                stroke-dasharray: 220 1300;
+                animation: strandShineB 11s cubic-bezier(0.4, 0, 0.2, 1) infinite 3.5s;
+              }
+              .dark .hero-shine-b {
+                stroke: url(#travelingShineGrad);
+                stroke-width: 1.4px;
+              }
+
+              /* Particles & Stars */
+              .hero-particle-normal {
+                fill: #64748B;
+                opacity: 0.65;
+              }
+              .dark .hero-particle-normal {
+                fill: var(--star-normal);
+                opacity: 0.58;
+              }
+
+              .hero-particle-secondary {
+                fill: #7C8DB5;
+                opacity: 0.64;
+              }
+              .dark .hero-particle-secondary {
+                fill: var(--star-secondary);
+                opacity: 0.52;
+              }
+
+              .hero-particle-bright {
+                fill: #475569;
+                opacity: 0.78;
+              }
+              .dark .hero-particle-bright {
+                fill: var(--star-bright);
+                opacity: 0.78;
+              }
+
+              .hero-sparkle {
+                fill: #475569;
+                opacity: 0.84;
+              }
+              .dark .hero-sparkle {
+                fill: var(--star-bright);
+                opacity: 0.80;
+              }
+
               @keyframes strandShineA {
                 0% { stroke-dashoffset: 1600; opacity: 0; }
-                15% { opacity: 0.85; }
-                85% { opacity: 0.85; }
+                15% { opacity: 0.94; }
+                85% { opacity: 0.94; }
                 100% { stroke-dashoffset: -1600; opacity: 0; }
               }
               @keyframes strandShineB {
                 0% { stroke-dashoffset: 1800; opacity: 0; }
-                20% { opacity: 0.75; }
-                80% { opacity: 0.75; }
+                20% { opacity: 0.90; }
+                80% { opacity: 0.90; }
                 100% { stroke-dashoffset: -1800; opacity: 0; }
               }
               @keyframes dustShimmer {
-                0%, 100% { opacity: 0.2; transform: scale(0.9); }
-                50% { opacity: 0.8; transform: scale(1.15); }
+                0%, 100% { opacity: 0.50; transform: scale(0.9); }
+                50% { opacity: 0.85; transform: scale(1.05); }
               }
               @keyframes diamondGlint {
-                0%, 100% { opacity: 0.2; transform: scale(0.8) rotate(0deg); }
-                50% { opacity: 0.95; transform: scale(1.2) rotate(45deg); }
-              }
-              .shine-strand-a {
-                stroke-dasharray: 240 1200;
-                animation: strandShineA 9s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-              }
-              .shine-strand-b {
-                stroke-dasharray: 200 1300;
-                animation: strandShineB 12s cubic-bezier(0.4, 0, 0.2, 1) infinite 4s;
+                0%, 100% { opacity: 0.45; transform: scale(0.85) rotate(0deg); }
+                50% { opacity: 0.92; transform: scale(1.15) rotate(45deg); }
               }
             `}
           </style>
         </defs>
 
-        {/* LEFT WAVE STRANDS (Curved DNA / Silk Strands) */}
+        {/* ==========================================================
+            SHARED WAVE STRANDS & TRAVELING HIGHLIGHTS
+            Same SVG path elements for both themes: continuous motion,
+            zero jump, zero reset, and identical trajectories.
+            ========================================================== */}
         <g id="leftWaveGroup">
           {leftStrands.map((strand, idx) => (
             <path
-              key={`left_${strand.id}`}
+              key={`left_strand_${strand.id}`}
               ref={(el) => {
                 leftPathsRef.current[idx] = el;
               }}
-              d={computeRibbonPath(strand, 1000, 'left')}
-              stroke={`url(#${strand.gradientId})`}
-              strokeWidth={strand.strokeWidth}
-              strokeOpacity={strand.opacity}
-              strokeLinecap="round"
+              d={computeSharedRibbonPath(strand, 1200, 'left')}
+              className={`strand-left-${strand.id}`}
               fill="none"
+              strokeLinecap="round"
             />
           ))}
 
-          {/* Traveling light reflection paths on left bundle (following curved strands 2 & 7) */}
           {!shouldReduceMotion && (
             <>
               <path
                 ref={(el) => {
                   leftShinePathsRef.current[0] = el;
                 }}
-                stroke="url(#travelingShineGrad)"
-                strokeWidth={1.8}
+                d={computeSharedRibbonPath(leftStrands[2], 1200, 'left')}
                 strokeLinecap="round"
                 fill="none"
-                className="shine-strand-a"
+                className="hero-shine-a"
               />
               <path
                 ref={(el) => {
                   leftShinePathsRef.current[1] = el;
                 }}
-                stroke="url(#travelingShineGrad)"
-                strokeWidth={1.4}
+                d={computeSharedRibbonPath(leftStrands[7], 1200, 'left')}
                 strokeLinecap="round"
                 fill="none"
-                className="shine-strand-b"
+                className="hero-shine-b"
               />
             </>
           )}
         </g>
 
-        {/* RIGHT WAVE STRANDS (Curved DNA / Silk Strands) */}
         <g id="rightWaveGroup">
           {rightStrands.map((strand, idx) => (
             <path
-              key={`right_${strand.id}`}
+              key={`right_strand_${strand.id}`}
               ref={(el) => {
                 rightPathsRef.current[idx] = el;
               }}
-              d={computeRibbonPath(strand, 1000, 'right')}
-              stroke={`url(#${strand.gradientId})`}
-              strokeWidth={strand.strokeWidth}
-              strokeOpacity={strand.opacity}
-              strokeLinecap="round"
+              d={computeSharedRibbonPath(strand, 1200, 'right')}
+              className={`strand-right-${strand.id}`}
               fill="none"
+              strokeLinecap="round"
             />
           ))}
 
-          {/* Traveling light reflection paths on right bundle (following curved strands 2 & 7) */}
           {!shouldReduceMotion && (
             <>
               <path
                 ref={(el) => {
                   rightShinePathsRef.current[0] = el;
                 }}
-                stroke="url(#travelingShineGrad)"
-                strokeWidth={1.8}
+                d={computeSharedRibbonPath(rightStrands[2], 1200, 'right')}
                 strokeLinecap="round"
                 fill="none"
-                className="shine-strand-a"
+                className="hero-shine-a"
               />
               <path
                 ref={(el) => {
                   rightShinePathsRef.current[1] = el;
                 }}
-                stroke="url(#travelingShineGrad)"
-                strokeWidth={1.4}
+                d={computeSharedRibbonPath(rightStrands[7], 1200, 'right')}
                 strokeLinecap="round"
                 fill="none"
-                className="shine-strand-b"
+                className="hero-shine-b"
               />
             </>
           )}
         </g>
 
-        {/* SPARSE TINY PARTICLES & 4-POINT DIAMOND GLINTS ALONG SILK ARCS */}
+        {/* SHARED PARTICLES & SPARKLES */}
         <g id="particlesGroup">
-          {PARTICLES.map((p, idx) => (
+          {SHARED_PARTICLES.map((p, idx) => (
             <circle
               key={`particle_${idx}`}
               cx={p.cx}
               cy={p.cy}
               r={p.r}
-              fill="var(--star-color)"
+              className={
+                p.type === 'bright'
+                  ? 'hero-particle-bright'
+                  : p.type === 'secondary'
+                  ? 'hero-particle-secondary'
+                  : 'hero-particle-normal'
+              }
               style={{
-                opacity: 0.45,
                 animation: shouldReduceMotion
                   ? 'none'
                   : `dustShimmer ${p.dur} ease-in-out infinite ${p.delay}`,
@@ -608,7 +924,7 @@ export function HeroWaveSystem() {
             />
           ))}
 
-          {/* 3 Delicate 4-point diamond glints */}
+          {/* 3 Delicate 4-point diamond sparkles */}
           <g
             transform="translate(1080, 500)"
             style={{
@@ -618,8 +934,7 @@ export function HeroWaveSystem() {
           >
             <path
               d="M 0 -7 Q 0 0 7 0 Q 0 0 0 7 Q 0 0 -7 0 Q 0 0 0 -7 Z"
-              fill="var(--star-color)"
-              opacity="0.85"
+              className="hero-sparkle"
             />
           </g>
 
@@ -632,8 +947,7 @@ export function HeroWaveSystem() {
           >
             <path
               d="M 0 -5.5 Q 0 0 5.5 0 Q 0 0 0 5.5 Q 0 0 -5.5 0 Q 0 0 0 -5.5 Z"
-              fill="var(--star-color)"
-              opacity="0.75"
+              className="hero-sparkle"
             />
           </g>
 
@@ -646,8 +960,7 @@ export function HeroWaveSystem() {
           >
             <path
               d="M 0 -4.5 Q 0 0 4.5 0 Q 0 0 0 4.5 Q 0 0 -4.5 0 Q 0 0 0 -4.5 Z"
-              fill="var(--star-color)"
-              opacity="0.65"
+              className="hero-sparkle"
             />
           </g>
         </g>

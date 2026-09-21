@@ -8,19 +8,19 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        // Primary button: Dark = #F5F5F5 on #08090A; Light = #111827 on #FFFFFF
+        // Primary button: Dark = #F5F5F5 on #08090A; Light = #472393 on #FFFFFF
         default:
-          'bg-primary text-primary-foreground hover:opacity-90 shadow-sm border border-transparent font-bold',
+          'bg-[#472393] text-white hover:bg-[#3B1B7A] active:bg-[#321565] focus-visible:ring-[#472393]/30 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90 shadow-sm border border-transparent font-bold',
         // Legacy alias mapped to new primary
         lime:
-          'bg-primary text-primary-foreground hover:opacity-90 shadow-sm border border-transparent font-bold',
-        // Secondary button: Dark = charcoal/translucent + white border; Light = white + subtle dark border
+          'bg-[#472393] text-white hover:bg-[#3B1B7A] active:bg-[#321565] focus-visible:ring-[#472393]/30 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90 shadow-sm border border-transparent font-bold',
+        // Secondary button: Dark = charcoal/translucent + white border; Light = white surface + #472393 text & border
         secondary:
-          'bg-secondary text-secondary-foreground border border-border hover:bg-surface-elevated shadow-xs font-semibold',
+          'bg-white text-[#472393] border border-[rgba(71,35,147,0.22)] hover:bg-[#F5F1FF] hover:border-[rgba(71,35,147,0.35)] dark:bg-secondary dark:text-secondary-foreground dark:border-border dark:hover:bg-surface-elevated shadow-xs font-semibold',
         outline:
-          'border border-border bg-surface text-foreground hover:bg-surface-highlight hover:border-border-strong',
+          'border border-border bg-surface text-foreground hover:bg-[#F5F1FF] hover:text-[#472393] hover:border-[rgba(71,35,147,0.35)] dark:hover:bg-surface-highlight dark:hover:text-foreground dark:hover:border-border-strong',
         pillOutline:
-          'border border-border-strong bg-secondary text-foreground hover:bg-surface-highlight shadow-xs',
+          'border border-[rgba(71,35,147,0.22)] bg-white text-[#472393] hover:bg-[#F5F1FF] hover:border-[rgba(71,35,147,0.35)] dark:border-border-strong dark:bg-secondary dark:text-foreground dark:hover:bg-surface-highlight shadow-xs',
         ghost:
           'hover:bg-surface-highlight text-foreground-secondary hover:text-foreground border-transparent',
         destructive:

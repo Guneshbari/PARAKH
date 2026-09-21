@@ -226,18 +226,18 @@ export default function NewApplicationPage() {
               onClick={() => s.id < currentStep && setCurrentStep(s.id)}
               className={`flex flex-col items-center gap-1.5 p-2.5 rounded-2xl border transition-all cursor-pointer ${
                 isActive
-                  ? 'bg-foreground text-background border-foreground shadow-xs'
+                  ? 'bg-[#472393] text-white border-[#472393] shadow-xs dark:bg-foreground dark:text-background dark:border-foreground'
                   : isCompleted
-                  ? 'bg-surface-highlight border-border text-foreground'
+                  ? 'bg-[#F5F1FF] border-[rgba(71,35,147,0.25)] text-[#472393] dark:bg-surface-highlight dark:border-border dark:text-foreground'
                   : 'bg-surface border-border text-foreground-muted opacity-60'
               }`}
             >
               <div
                 className={`size-6 rounded-full flex items-center justify-center font-bold text-xs ${
                   isActive
-                    ? 'bg-background text-foreground'
+                    ? 'bg-white text-[#472393] dark:bg-background dark:text-foreground'
                     : isCompleted
-                    ? 'bg-foreground text-background'
+                    ? 'bg-[#472393] text-white dark:bg-foreground dark:text-background'
                     : 'bg-surface-highlight text-foreground-muted'
                 }`}
               >
@@ -360,8 +360,8 @@ export default function NewApplicationPage() {
                       onClick={() => updateField('employmentType', cat.id as ApplicationFormData['employmentType'])}
                       className={`p-3 rounded-2xl border text-xs font-medium text-center transition-all cursor-pointer ${
                         formData.employmentType === cat.id
-                          ? 'bg-foreground text-background font-semibold shadow-xs'
-                          : 'bg-surface-highlight border-border text-foreground-muted hover:text-foreground'
+                          ? 'bg-[#472393] text-white font-semibold shadow-xs border-[#472393] dark:bg-foreground dark:text-background dark:border-foreground'
+                          : 'bg-surface-highlight border-border text-foreground-muted hover:text-[#472393] hover:border-[rgba(71,35,147,0.3)] dark:hover:text-foreground dark:hover:border-border'
                       }`}
                     >
                       {cat.label}
@@ -443,8 +443,8 @@ export default function NewApplicationPage() {
                       onClick={() => updateField('incomeFrequency', freq.id as ApplicationFormData['incomeFrequency'])}
                       className={`p-2.5 rounded-2xl border text-xs font-medium text-center transition-all cursor-pointer ${
                         formData.incomeFrequency === freq.id
-                          ? 'bg-foreground text-background font-semibold shadow-xs'
-                          : 'bg-surface-highlight border-border text-foreground-muted hover:text-foreground'
+                          ? 'bg-[#472393] text-white font-semibold shadow-xs border-[#472393] dark:bg-foreground dark:text-background dark:border-foreground'
+                          : 'bg-surface-highlight border-border text-foreground-muted hover:text-[#472393] hover:border-[rgba(71,35,147,0.3)] dark:hover:text-foreground dark:hover:border-border'
                       }`}
                     >
                       {freq.label}
@@ -658,7 +658,7 @@ export default function NewApplicationPage() {
                   type="checkbox"
                   checked={formData.consentGiven}
                   onChange={(e) => updateField('consentGiven', e.target.checked)}
-                  className="size-4 rounded accent-foreground mt-0.5 cursor-pointer"
+                  className="size-4 rounded accent-[#472393] dark:accent-foreground mt-0.5 cursor-pointer"
                 />
                 <span className="text-xs text-foreground-secondary leading-relaxed">
                   I grant voluntary consent for PARAKH to evaluate my alternative cashflow frequency,

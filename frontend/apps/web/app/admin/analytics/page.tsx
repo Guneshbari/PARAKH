@@ -68,8 +68,8 @@ export default function AdminAnalyticsPage() {
       }
     : {
         food: '#0F172A',
-        home: '#3B82F6',
-        ride: '#6366F1',
+        home: '#472393',
+        ride: '#9B7DE3',
         bench: '#94A3B8',
       };
 
@@ -105,8 +105,8 @@ export default function AdminAnalyticsPage() {
                 onClick={() => setTimeRange(t.id)}
                 className={`px-3 py-1 rounded-full text-xs font-medium transition-all cursor-pointer ${
                   timeRange === t.id
-                    ? 'bg-foreground text-background font-semibold shadow-xs'
-                    : 'text-foreground-muted hover:text-foreground'
+                    ? 'bg-[#472393] text-white font-semibold shadow-xs dark:bg-foreground dark:text-background'
+                    : 'text-foreground-muted hover:text-[#472393] hover:bg-[#F5F1FF] dark:hover:text-foreground dark:hover:bg-transparent'
                 }`}
               >
                 {t.label}

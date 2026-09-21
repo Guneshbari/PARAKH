@@ -84,7 +84,7 @@ export default function UserDashboardPage() {
             actionLabel="View Methodology"
           />
 
-          <Card className="space-y-2.5 p-5 bg-surface border-border">
+          <Card variant="elevated" className="space-y-2.5 p-5">
             <div className="flex items-center justify-between text-xs">
               <span className="font-semibold text-foreground flex items-center gap-1.5">
                 <ShieldCheck className="size-3.5 text-foreground-secondary" />
@@ -178,7 +178,7 @@ export default function UserDashboardPage() {
             <h2 className="text-xs font-semibold uppercase tracking-wider text-foreground-muted">
               Recent Evaluations ({applications.length})
             </h2>
-            <Link href="/user/applications" className="text-xs text-foreground-secondary hover:text-foreground font-medium underline-offset-4 hover:underline">
+            <Link href="/user/applications" className="text-xs text-foreground-secondary hover:text-[#472393] dark:hover:text-foreground font-medium underline-offset-4 hover:underline">
               View all →
             </Link>
           </div>
@@ -218,7 +218,7 @@ export default function UserDashboardPage() {
                 Updated automatically on new data ingestion
               </span>
               <Link href="/user/profile">
-                <span className="text-xs text-foreground-secondary hover:text-foreground font-medium flex items-center gap-1">
+                <span className="text-xs text-foreground-secondary hover:text-[#472393] dark:hover:text-foreground font-medium flex items-center gap-1">
                   Manage Feeds <ChevronRight className="size-3" />
                 </span>
               </Link>

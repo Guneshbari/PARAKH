@@ -121,8 +121,8 @@ export default function AdminDashboardPage() {
     }, 1500);
   };
 
-  const chartBarColor = isDark ? '#FFFFFF' : '#0F172A';
-  const chartLineColor = isDark ? '#A1A1AA' : '#3B82F6';
+  const chartBarColor = isDark ? '#FFFFFF' : '#472393';
+  const chartLineColor = isDark ? '#A1A1AA' : '#9B7DE3';
   const chartGridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(15,23,42,0.06)';
   const chartAxisColor = isDark ? '#71717A' : '#94A3B8';
 
@@ -217,7 +217,7 @@ export default function AdminDashboardPage() {
         {mockOperationalAlerts.map((alert) => (
           <div
             key={alert.id}
-            className="p-4 rounded-2xl bg-surface border border-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+            className="p-4 rounded-2xl bg-surface border border-border shadow-card flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
           >
             <div className="flex items-start gap-3">
               <div className="size-8 rounded-xl bg-surface-highlight border border-border flex items-center justify-center shrink-0 mt-0.5 text-foreground">
@@ -622,8 +622,8 @@ export default function AdminDashboardPage() {
                   onClick={() => setStatusFilter(f.id)}
                   className={`px-3 py-1 rounded-full text-xs font-medium cursor-pointer transition-all ${
                     statusFilter === f.id
-                      ? 'bg-foreground text-background font-semibold shadow-xs'
-                      : 'text-foreground-muted hover:text-foreground'
+                      ? 'bg-[#472393] text-white font-semibold shadow-xs dark:bg-foreground dark:text-background'
+                      : 'text-foreground-muted hover:text-[#472393] hover:bg-[#F5F1FF] dark:hover:text-foreground dark:hover:bg-transparent'
                   }`}
                 >
                   {f.label}
@@ -780,8 +780,8 @@ export default function AdminDashboardPage() {
                       onClick={() => setReviewAction(act.id as ReviewActionType)}
                       className={`p-2 rounded-xl text-xs font-semibold border text-center transition-all cursor-pointer ${
                         reviewAction === act.id
-                          ? 'border-foreground bg-foreground text-background shadow-xs'
-                          : 'border-border bg-surface-highlight text-foreground-muted hover:text-foreground'
+                          ? 'border-[#472393] bg-[#472393] text-white shadow-xs dark:border-foreground dark:bg-foreground dark:text-background'
+                          : 'border-border bg-surface-highlight text-foreground-muted hover:text-[#472393] hover:border-[rgba(71,35,147,0.3)] dark:hover:text-foreground dark:hover:border-border'
                       }`}
                     >
                       {act.label}
@@ -800,7 +800,7 @@ export default function AdminDashboardPage() {
                   value={reviewNotes}
                   onChange={(e) => setReviewNotes(e.target.value)}
                   placeholder="Record qualitative rationale on volatility rebound, micro-obligations, or supplementary items required..."
-                  className="w-full text-xs p-3 rounded-xl bg-surface-highlight/30 border border-border text-foreground focus:outline-none focus:border-foreground leading-relaxed resize-none"
+                  className="w-full text-xs p-3 rounded-xl bg-surface-highlight/30 border border-border text-foreground focus:outline-none focus:border-[#472393] dark:focus:border-foreground leading-relaxed resize-none"
                 />
               </div>
 

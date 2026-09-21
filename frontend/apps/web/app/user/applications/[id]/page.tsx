@@ -186,7 +186,7 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailPageP
       </div>
 
       {/* 2. APPLICATION HEADER HERO */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 p-6 rounded-2xl bg-surface border border-border shadow-xs">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 p-6 rounded-2xl bg-surface dark:bg-surface-elevated border border-border-strong shadow-card-elevated">
         <div className="space-y-2">
           <div className="flex flex-wrap items-center gap-2.5">
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight font-mono">
@@ -272,9 +272,9 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailPageP
                 <div
                   className={`absolute -left-[31px] sm:-left-[39px] top-0.5 size-6 rounded-full flex items-center justify-center text-xs transition-transform ring-4 ring-surface ${
                     isCompleted
-                      ? 'bg-foreground text-background shadow-xs'
+                      ? 'bg-[#472393] text-white shadow-xs dark:bg-foreground dark:text-background'
                       : isActive
-                      ? 'bg-surface-highlight border border-border text-foreground animate-pulse'
+                      ? 'bg-[#F5F1FF] border border-[rgba(71,35,147,0.35)] text-[#472393] animate-pulse dark:bg-surface-highlight dark:border-border dark:text-foreground'
                       : 'bg-surface-highlight/50 text-foreground-muted border border-border'
                   }`}
                 >

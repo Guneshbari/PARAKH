@@ -73,7 +73,7 @@ function UnauthorizedContent() {
         </div>
 
         <div className="pt-4 border-t border-border flex items-center justify-center gap-4">
-          <Link href="/" className="text-xs text-foreground-muted hover:text-foreground flex items-center gap-1">
+          <Link href="/" className="text-xs text-foreground-muted hover:text-[#472393] dark:hover:text-foreground flex items-center gap-1">
             <Home className="size-3" /> Home
           </Link>
           {user && (

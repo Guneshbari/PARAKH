@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, FileText, Plus, BarChart3, User, LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/components/auth/AuthContext';
 
 interface NavItem {
   href: string;
@@ -15,11 +16,14 @@ interface NavItem {
 
 export function MobileNav() {
   const pathname = usePathname();
-  const isAdmin = pathname.startsWith('/admin');
+  const { user, role } = useAuth();
 
   if (pathname === '/' || pathname === '/login' || pathname === '/signup' || pathname === '/unauthorized') {
     return null;
   }
+
+  const userRole = user?.role || role;
+  const isReviewer = userRole === 'reviewer';
 
   const userNavItems: NavItem[] = [
     { href: '/user/dashboard', label: 'Home', icon: Home },
@@ -37,7 +41,7 @@ export function MobileNav() {
     { href: '/admin/profile', label: 'Profile', icon: User },
   ];
 
-  const navItems = isAdmin ? adminNavItems : userNavItems;
+  const navItems = isReviewer ? adminNavItems : userNavItems;
 
   return (
     <div className="fixed bottom-4 inset-x-0 z-50 flex justify-center px-4 md:hidden pointer-events-none">
@@ -68,8 +72,8 @@ export function MobileNav() {
               className={cn(
                 'flex flex-col items-center justify-center py-1 px-3 rounded-full text-[10px] font-medium transition-colors',
                 isActive
-                  ? 'text-foreground font-semibold'
-                  : 'text-foreground-muted hover:text-foreground'
+                  ? 'text-[#472393] font-semibold dark:text-foreground'
+                  : 'text-foreground-muted hover:text-[#472393] dark:hover:text-foreground'
               )}
             >
               <Icon className="size-4 mb-0.5" />

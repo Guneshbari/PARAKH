@@ -55,8 +55,8 @@ export function CashflowVolatilityChart({
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
-  const strokeColor = isDark ? '#FFFFFF' : '#0F172A';
-  const gradientColor = isDark ? '#FFFFFF' : '#3B82F6';
+  const strokeColor = isDark ? '#FFFFFF' : '#472393';
+  const gradientColor = isDark ? '#FFFFFF' : '#472393';
   const axisColor = isDark ? '#71717A' : '#94A3B8';
   const dotStroke = isDark ? '#08090A' : '#FFFFFF';
   const refLineColor = isDark ? '#71717A' : '#94A3B8';

@@ -1,12 +1,21 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 
-function Card({ className, ...props }: React.ComponentProps<'div'>) {
+export interface CardProps extends React.ComponentProps<'div'> {
+  variant?: 'default' | 'elevated' | 'floating';
+}
+
+function Card({ className, variant = 'default', ...props }: CardProps) {
   return (
     <div
       data-slot="card"
       className={cn(
-        'rounded-2xl bg-surface text-foreground border border-border p-5 sm:p-6 shadow-xs transition-colors duration-150',
+        'rounded-2xl p-5 sm:p-6 transition-all duration-200',
+        variant === 'elevated'
+          ? 'bg-surface dark:bg-surface-elevated text-foreground border border-border-strong shadow-card-elevated'
+          : variant === 'floating'
+          ? 'bg-surface dark:bg-surface-elevated text-foreground border border-border-strong shadow-floating'
+          : 'bg-surface text-foreground border border-border shadow-card',
         className
       )}
       {...props}

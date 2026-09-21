@@ -56,6 +56,13 @@
   --radius-2xl: 1rem;
   --radius-3xl: 1.25rem;
   --radius-pill: 9999px;
+
+  /* Card Elevation Tokens */
+  --shadow-card: var(--shadow-card);
+  --shadow-card-elevated: var(--shadow-card-elevated);
+  --shadow-card-hover: var(--shadow-card-hover);
+  --shadow-sidebar: var(--shadow-sidebar);
+  --shadow-floating: var(--shadow-floating);
 }
 
 /* ==========================================================
@@ -64,35 +71,40 @@
    ========================================================== */
 :root {
   --background: #F7F8FC;
-  --background-secondary: #F2F4FA;
+  --background-secondary: #EEF2F8;
 
   --surface: #FFFFFF;
   --surface-elevated: #F8FAFC;
   --surface-highlight: #EEF2F6;
 
-  --foreground: #0F172A;
-  --foreground-secondary: #475569;
-  --foreground-muted: #94A3B8;
+  --foreground: #101828;
+  --foreground-secondary: #475467;
+  --foreground-muted: #667085;
 
   --border: rgba(15, 23, 42, 0.08);
   --border-strong: rgba(15, 23, 42, 0.16);
 
-  --primary: #0F172A;
+  --primary: #472393;
   --primary-foreground: #FFFFFF;
+  --primary-hover: #3B1B7A;
+  --primary-active: #321565;
+  --primary-soft: #F1ECFF;
+  --primary-border: rgba(71, 35, 147, 0.22);
+  --primary-border-hover: rgba(71, 35, 147, 0.35);
 
   --secondary: #FFFFFF;
-  --secondary-foreground: #0F172A;
+  --secondary-foreground: #472393;
 
-  --accent: rgba(15, 23, 42, 0.05);
-  --accent-secondary: rgba(15, 23, 42, 0.03);
+  --accent: rgba(71, 35, 147, 0.05);
+  --accent-secondary: rgba(71, 35, 147, 0.03);
 
   --card: #FFFFFF;
-  --card-foreground: #0F172A;
+  --card-foreground: #101828;
   --popover: #FFFFFF;
-  --popover-foreground: #0F172A;
+  --popover-foreground: #101828;
 
   --muted: #F2F4FA;
-  --muted-foreground: #475569;
+  --muted-foreground: #475467;
 
   --destructive: #EF4444;
   --destructive-foreground: #FFFFFF;
@@ -101,22 +113,52 @@
   --success-foreground: #FFFFFF;
 
   --input: rgba(15, 23, 42, 0.12);
-  --ring: rgba(15, 23, 42, 0.22);
+  --ring: rgba(71, 35, 147, 0.28);
   --radius: 1rem;
 
-  /* Wave Silk Strand Tokens (Light: Soft Pastels) */
-  --wave-strand-1: #CBD5FF;
-  --wave-strand-2: #C4B5FD;
-  --wave-strand-3: #93C5FD;
-  --wave-strand-4: #67E8F9;
-  --wave-strand-5: #D8B4FE;
-  --wave-shine: rgba(147, 197, 253, 0.85);
-  --star-color: #93C5FD;
+  /* Card & Surface Elevation (Light Mode) */
+  --shadow-card: 0 2px 8px rgba(15, 23, 42, 0.05), 0 8px 24px rgba(15, 23, 42, 0.04);
+  --shadow-card-elevated: 0 4px 14px rgba(15, 23, 42, 0.07), 0 12px 32px rgba(15, 23, 42, 0.06);
+  --shadow-card-hover: 0 4px 12px rgba(15, 23, 42, 0.07), 0 12px 28px rgba(15, 23, 42, 0.06);
+  --shadow-sidebar: 0 4px 20px rgba(15, 23, 42, 0.04);
+  --shadow-floating: 0 8px 28px rgba(15, 23, 42, 0.08), 0 18px 44px rgba(15, 23, 42, 0.06);
+
+  /* Wave Silk Strand Tokens (Light: Stronger Pastel Palette) */
+  --wave-strand-periwinkle-1: #6F86E8;
+  --wave-strand-periwinkle-2: #6179D8;
+  --wave-strand-blue: #6FA9ED;
+  --wave-strand-cyan-1: #45C4DB;
+  --wave-strand-cyan-2: #5BCDDD;
+  --wave-strand-lavender-1: #9B7DE3;
+  --wave-strand-lavender-2: #AE93E8;
+  --wave-strand-ice: #9EAFD4;
+  --wave-shine: #6F86E8;
+
+  /* Legacy aliases for backwards compatibility */
+  --wave-strand-subtle: #9EAFD4;
+  --wave-strand-primary-1: #6F86E8;
+  --wave-strand-primary-2: #6179D8;
+  --wave-strand-primary-3: #6FA9ED;
+  --wave-strand-secondary-1: #45C4DB;
+  --wave-strand-secondary-2: #5BCDDD;
+  --wave-strand-accent-1: #9B7DE3;
+  --wave-strand-accent-2: #AE93E8;
+  --wave-strand-1: #6F86E8;
+  --wave-strand-2: #6179D8;
+  --wave-strand-3: #45C4DB;
+  --wave-strand-4: #9B7DE3;
+  --wave-strand-5: #9EAFD4;
+
+  /* Stars (Light Mode: Visible & Crisp Slate/Periwinkle) */
+  --star-normal: #64748B;
+  --star-secondary: #7C8DB5;
+  --star-bright: #475569;
+  --star-color: #64748B;
 
   /* Charts (Light: Minimal Slate / Navy / Soft Pastels) */
-  --chart-primary: #0F172A;
-  --chart-secondary: #60A5FA;
-  --chart-tertiary: #C4B5FD;
+  --chart-primary: #101828;
+  --chart-secondary: #45C4DB;
+  --chart-tertiary: #9B7DE3;
   --chart-grid: rgba(15, 23, 42, 0.06);
 
   /* Risk Indicators (Soft Non-Neon Tints) */
@@ -150,7 +192,7 @@
   --foreground-secondary: #A1A1AA;
   --foreground-muted: #71717A;
 
-  --border: rgba(255, 255, 255, 0.08);
+  --border: rgba(255, 255, 255, 0.10);
   --border-strong: rgba(255, 255, 255, 0.16);
 
   --primary: #F5F5F5;
@@ -179,13 +221,35 @@
   --input: rgba(255, 255, 255, 0.12);
   --ring: rgba(255, 255, 255, 0.3);
 
+  /* Card & Surface Elevation (Dark Mode: Restrained Charcoal Surfaces + Deep Ambient Shadows) */
+  --shadow-card: 0 4px 18px rgba(0, 0, 0, 0.28);
+  --shadow-card-elevated: 0 8px 28px rgba(0, 0, 0, 0.34);
+  --shadow-card-hover: 0 6px 22px rgba(0, 0, 0, 0.38);
+  --shadow-sidebar: none;
+  --shadow-floating: 0 12px 36px rgba(0, 0, 0, 0.45);
+
   /* Wave Silk Strand Tokens (Dark: Pure Monochrome Silver/White) */
+  --wave-strand-subtle: #71717A;
+  --wave-strand-primary-1: #E4E4E7;
+  --wave-strand-primary-2: #FFFFFF;
+  --wave-strand-primary-3: #D4D4D8;
+  --wave-strand-secondary-1: #E4E4E7;
+  --wave-strand-secondary-2: #D4D4D8;
+  --wave-strand-accent-1: #FFFFFF;
+  --wave-strand-accent-2: #E4E4E7;
+
+  /* Legacy tokens preserved */
   --wave-strand-1: #FFFFFF;
   --wave-strand-2: #E4E4E7;
   --wave-strand-3: #D4D4D8;
   --wave-strand-4: #A1A1AA;
   --wave-strand-5: #71717A;
   --wave-shine: rgba(255, 255, 255, 0.95);
+
+  /* Stars (Dark Mode: Pure Monochrome White) */
+  --star-normal: #FFFFFF;
+  --star-secondary: #FFFFFF;
+  --star-bright: #FFFFFF;
   --star-color: #FFFFFF;
 
   /* Charts (Dark: Grayscale / Monochrome) */
@@ -246,4 +310,55 @@
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--foreground-muted);
+}
+
+/* Card Elevation Hierarchy Utilities */
+.card-surface {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-card);
+}
+
+.card-elevated {
+  background-color: var(--surface);
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-card-elevated);
+}
+.dark .card-elevated {
+  background-color: var(--surface-elevated);
+}
+
+.card-floating {
+  background-color: var(--surface);
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-floating);
+}
+.dark .card-floating {
+  background-color: var(--surface-elevated);
+}
+
+/* Dashboard Desktop Independent Scroll Shell */
+@media (min-width: 768px) {
+  .dashboard-viewport {
+    display: flex;
+    flex-direction: row;
+    height: calc(100vh - 4rem);
+    max-height: calc(100vh - 4rem);
+    overflow: hidden;
+  }
+  .dashboard-sidebar {
+    height: 100%;
+    max-height: 100%;
+    flex: 0 0 16rem;
+    width: 16rem;
+    overflow-y: auto;
+  }
+  .dashboard-main-scroll {
+    height: 100%;
+    max-height: 100%;
+    flex: 1 1 0%;
+    min-width: 0;
+    min-height: 0;
+    overflow-y: auto;
+  }
 }

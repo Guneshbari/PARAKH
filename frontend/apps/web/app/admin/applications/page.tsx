@@ -97,13 +97,13 @@ export default function AdminApplicationsPage() {
 
       {/* 2. SUMMARY STRIP */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="p-3.5 rounded-2xl bg-surface border border-border space-y-1">
+        <div className="p-3.5 rounded-2xl bg-surface border border-border shadow-card space-y-1">
           <span className="text-[11px] text-foreground-muted block">Active In Queue</span>
           <span className="text-xl font-bold text-foreground font-mono">{allApps.length}</span>
           <span className="text-[10px] text-foreground-secondary block">Digital Inflow Feeds</span>
         </div>
 
-        <div className="p-3.5 rounded-2xl bg-surface border border-border space-y-1">
+        <div className="p-3.5 rounded-2xl bg-surface border border-border shadow-card space-y-1">
           <span className="text-[11px] text-foreground font-semibold block">
             Priority Review Required
           </span>
@@ -111,13 +111,13 @@ export default function AdminApplicationsPage() {
           <span className="text-[10px] text-foreground-muted block">Human Review Flagged</span>
         </div>
 
-        <div className="p-3.5 rounded-2xl bg-surface border border-border space-y-1">
+        <div className="p-3.5 rounded-2xl bg-surface border border-border shadow-card space-y-1">
           <span className="text-[11px] text-foreground-muted block">In Data Validation</span>
           <span className="text-xl font-bold text-foreground font-mono">{validationCount}</span>
           <span className="text-[10px] text-foreground-muted block">KYC / AA Telemetry</span>
         </div>
 
-        <div className="p-3.5 rounded-2xl bg-surface border border-border space-y-1">
+        <div className="p-3.5 rounded-2xl bg-surface border border-border shadow-card space-y-1">
           <span className="text-[11px] text-foreground-muted block">Assessed & Recorded</span>
           <span className="text-xl font-bold text-foreground font-mono">{completedCount}</span>
           <span className="text-[10px] text-foreground-secondary block">Dossiers Ready</span>
@@ -152,8 +152,8 @@ export default function AdminApplicationsPage() {
                 onClick={() => setStatusFilter(tab.id)}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
                   statusFilter === tab.id
-                    ? 'bg-foreground text-background font-semibold shadow-xs'
-                    : 'text-foreground-muted hover:text-foreground'
+                    ? 'bg-[#472393] text-white font-semibold shadow-xs dark:bg-foreground dark:text-background'
+                    : 'text-foreground-muted hover:text-[#472393] hover:bg-[#F5F1FF] dark:hover:text-foreground dark:hover:bg-transparent'
                 }`}
               >
                 {tab.label}
@@ -173,7 +173,7 @@ export default function AdminApplicationsPage() {
             <select
               value={riskFilter}
               onChange={(e) => setRiskFilter(e.target.value)}
-              className="bg-surface-highlight border border-border rounded-full px-3 py-1 text-foreground text-xs focus:outline-none focus:border-foreground"
+              className="bg-surface-highlight border border-border rounded-full px-3 py-1 text-foreground text-xs focus:outline-none focus:border-[#472393] focus:ring-2 focus:ring-[#472393]/20 dark:focus:border-foreground dark:focus:ring-0"
             >
               <option value="ALL">All Risk Tiers</option>
               <option value="LOWER_ESTIMATED RISK">Lower Estimated Risk</option>
@@ -188,7 +188,7 @@ export default function AdminApplicationsPage() {
             <select
               value={employmentFilter}
               onChange={(e) => setEmploymentFilter(e.target.value)}
-              className="bg-surface-highlight border border-border rounded-full px-3 py-1 text-foreground text-xs focus:outline-none focus:border-foreground"
+              className="bg-surface-highlight border border-border rounded-full px-3 py-1 text-foreground text-xs focus:outline-none focus:border-[#472393] focus:ring-2 focus:ring-[#472393]/20 dark:focus:border-foreground dark:focus:ring-0"
             >
               <option value="ALL">All Employment Sectors</option>
               <option value="GIG_WORKER">Gig Economy Worker</option>
@@ -239,7 +239,7 @@ export default function AdminApplicationsPage() {
           </Button>
         </Card>
       ) : (
-        <Card className="overflow-hidden p-0 bg-surface border-border rounded-2xl shadow-xs">
+        <Card className="overflow-hidden p-0">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="bg-surface-highlight/40 border-b border-border text-foreground-muted font-medium uppercase tracking-wider text-[11px]">
@@ -265,7 +265,7 @@ export default function AdminApplicationsPage() {
                       <td className="py-4 px-5 font-mono font-semibold text-foreground">
                         <Link
                           href={`/admin/applications/${app.id}`}
-                          className="hover:underline flex items-center gap-1"
+                          className="hover:underline hover:text-[#472393] dark:hover:text-foreground flex items-center gap-1"
                         >
                           {app.id}
                         </Link>

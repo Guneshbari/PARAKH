@@ -112,12 +112,12 @@ export default function UserProfilePage() {
       </div>
 
       {/* 2. BORROWER PROFILE HERO CARD */}
-      <div className="p-6 sm:p-7 rounded-2xl bg-surface border border-border shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+      <div className="p-6 sm:p-7 rounded-2xl bg-surface dark:bg-surface-elevated border border-border-strong shadow-card-elevated flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div className="flex items-start sm:items-center gap-5">
           {/* Avatar */}
           <div className="relative size-16 sm:size-20 rounded-2xl bg-surface-highlight border border-border flex items-center justify-center text-xl sm:text-2xl font-bold text-foreground shrink-0">
             AV
-            <div className="absolute -bottom-1 -right-1 size-5 rounded-full bg-foreground text-background flex items-center justify-center ring-4 ring-surface">
+            <div className="absolute -bottom-1 -right-1 size-5 rounded-full bg-[#472393] text-white flex items-center justify-center ring-4 ring-surface dark:bg-foreground dark:text-background">
               <CheckCircle2 className="size-3.5 stroke-[3]" />
             </div>
           </div>
@@ -474,12 +474,12 @@ export default function UserProfilePage() {
               type="button"
               onClick={() => setConsentRealtime(!consentRealtime)}
               className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
-                consentRealtime ? 'bg-foreground' : 'bg-surface-highlight border border-border'
+                consentRealtime ? 'bg-[#472393] dark:bg-foreground' : 'bg-surface-highlight border border-border'
               }`}
             >
               <span
                 className={`pointer-events-none inline-block size-4 transform rounded-full shadow-xs ring-0 transition duration-200 ease-in-out ${
-                  consentRealtime ? 'bg-background translate-x-4' : 'bg-foreground-muted translate-x-0'
+                  consentRealtime ? 'bg-white dark:bg-background translate-x-4' : 'bg-foreground-muted translate-x-0'
                 }`}
               />
             </button>
@@ -498,12 +498,12 @@ export default function UserProfilePage() {
               type="button"
               onClick={() => setConsentBenchmark(!consentBenchmark)}
               className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
-                consentBenchmark ? 'bg-foreground' : 'bg-surface-highlight border border-border'
+                consentBenchmark ? 'bg-[#472393] dark:bg-foreground' : 'bg-surface-highlight border border-border'
               }`}
             >
               <span
                 className={`pointer-events-none inline-block size-4 transform rounded-full shadow-xs ring-0 transition duration-200 ease-in-out ${
-                  consentBenchmark ? 'bg-background translate-x-4' : 'bg-foreground-muted translate-x-0'
+                  consentBenchmark ? 'bg-white dark:bg-background translate-x-4' : 'bg-foreground-muted translate-x-0'
                 }`}
               />
             </button>
@@ -522,12 +522,12 @@ export default function UserProfilePage() {
               type="button"
               onClick={() => setConsentAlerts(!consentAlerts)}
               className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
-                consentAlerts ? 'bg-foreground' : 'bg-surface-highlight border border-border'
+                consentAlerts ? 'bg-[#472393] dark:bg-foreground' : 'bg-surface-highlight border border-border'
               }`}
             >
               <span
                 className={`pointer-events-none inline-block size-4 transform rounded-full shadow-xs ring-0 transition duration-200 ease-in-out ${
-                  consentAlerts ? 'bg-background translate-x-4' : 'bg-foreground-muted translate-x-0'
+                  consentAlerts ? 'bg-white dark:bg-background translate-x-4' : 'bg-foreground-muted translate-x-0'
                 }`}
               />
             </button>

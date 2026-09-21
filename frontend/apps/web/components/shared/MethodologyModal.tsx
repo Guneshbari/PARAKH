@@ -200,7 +200,12 @@ export function MethodologyModal({ isOpen, onClose }: MethodologyModalProps) {
       : sections.filter((s) => s.id === activeTab);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-background/80 backdrop-blur-md animate-in fade-in duration-200">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="methodology-modal-title"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-background/80 backdrop-blur-md animate-in fade-in duration-200"
+    >
       <div className="bg-surface border border-border rounded-2xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
         {/* Header */}
         <div className="flex items-start justify-between p-5 sm:p-6 border-b border-border bg-surface">
@@ -209,7 +214,7 @@ export function MethodologyModal({ isOpen, onClose }: MethodologyModalProps) {
               <div className="size-7 rounded-lg bg-surface-highlight border border-border flex items-center justify-center text-foreground">
                 <Sparkles className="size-4" />
               </div>
-              <h2 className="text-lg sm:text-xl font-semibold text-foreground tracking-tight">
+              <h2 id="methodology-modal-title" className="text-lg sm:text-xl font-semibold text-foreground tracking-tight">
                 PARAKH Assessment Methodology
               </h2>
               <Badge variant="outline" className="text-[10px] py-0.5 px-2 font-mono">
@@ -236,8 +241,8 @@ export function MethodologyModal({ isOpen, onClose }: MethodologyModalProps) {
             onClick={() => setActiveTab('all')}
             className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${
               activeTab === 'all'
-                ? 'bg-foreground text-background font-semibold shadow-xs'
-                : 'text-foreground-muted hover:text-foreground hover:bg-surface-highlight'
+                ? 'bg-[#472393] text-white font-semibold shadow-xs dark:bg-foreground dark:text-background'
+                : 'text-foreground-muted hover:text-[#472393] hover:bg-[#F5F1FF] dark:hover:text-foreground dark:hover:bg-surface-highlight'
             }`}
           >
             All 6 Pillars
@@ -248,8 +253,8 @@ export function MethodologyModal({ isOpen, onClose }: MethodologyModalProps) {
               onClick={() => setActiveTab(sec.id as MethodologyPillarId)}
               className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${
                 activeTab === sec.id
-                  ? 'bg-foreground text-background font-semibold shadow-xs'
-                  : 'text-foreground-muted hover:text-foreground hover:bg-surface-highlight'
+                  ? 'bg-[#472393] text-white font-semibold shadow-xs dark:bg-foreground dark:text-background'
+                  : 'text-foreground-muted hover:text-[#472393] hover:bg-[#F5F1FF] dark:hover:text-foreground dark:hover:bg-surface-highlight'
               }`}
             >
               {sec.number}. {sec.title.split(' ')[0]}

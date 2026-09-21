@@ -128,7 +128,7 @@ function SignupFormContent() {
       <header className="relative z-10 w-full border-b border-border bg-surface/80 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-foreground text-background font-black shadow-xs transition-transform group-hover:scale-105">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#472393] text-white dark:bg-foreground dark:text-background font-black shadow-xs transition-transform group-hover:scale-105">
               <Sparkles className="size-4" />
             </div>
             <div className="flex flex-col">
@@ -283,7 +283,7 @@ function SignupFormContent() {
                 Already registered?{' '}
                 <Link
                   href="/login?role=applicant"
-                  className="font-semibold text-foreground hover:underline underline-offset-4"
+                  className="font-semibold text-[#472393] hover:text-[#3B1B7A] dark:text-foreground hover:underline underline-offset-4"
                 >
                   Sign in here
                 </Link>

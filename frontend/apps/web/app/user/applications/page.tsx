@@ -88,8 +88,8 @@ export default function UserApplicationsPage() {
               onClick={() => setStatusFilter(tab.id)}
               className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
                 statusFilter === tab.id
-                  ? 'bg-foreground text-background font-semibold shadow-xs'
-                  : 'text-foreground-muted hover:text-foreground'
+                  ? 'bg-[#472393] text-white font-semibold shadow-xs dark:bg-foreground dark:text-background'
+                  : 'text-foreground-muted hover:text-[#472393] hover:bg-[#F5F1FF] dark:hover:text-foreground dark:hover:bg-transparent'
               }`}
             >
               {tab.label}
@@ -100,7 +100,7 @@ export default function UserApplicationsPage() {
 
       {/* 3. APPLICATIONS DISPLAY */}
       {filteredApplications.length === 0 ? (
-        <Card className="p-12 text-center space-y-3 bg-surface border-border">
+        <Card className="p-12 text-center space-y-3">
           <FileText className="size-8 text-foreground-muted mx-auto" />
           <h3 className="text-base font-semibold text-foreground">No applications match your filter</h3>
           <p className="text-xs text-foreground-muted max-w-sm mx-auto">
@@ -130,7 +130,7 @@ export default function UserApplicationsPage() {
           </div>
 
           {/* Desktop Table View */}
-          <Card className="hidden sm:block overflow-hidden p-0 bg-surface border border-border rounded-2xl shadow-xs">
+          <Card className="hidden sm:block overflow-hidden p-0">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead className="bg-surface-highlight/40 border-b border-border text-foreground-muted font-medium uppercase tracking-wider text-[11px]">
@@ -206,7 +206,7 @@ export default function UserApplicationsPage() {
                           </Link>
                           {app.assessment && (
                             <Link href={`/user/results/${app.id}`}>
-                              <Button variant="outline" size="sm" className="rounded-full text-xs text-foreground border-border hover:bg-surface-highlight">
+                              <Button variant="secondary" size="sm" className="rounded-full text-xs">
                                 Report
                               </Button>
                             </Link>

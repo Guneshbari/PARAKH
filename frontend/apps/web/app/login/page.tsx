@@ -227,7 +227,7 @@ function LoginFormContent() {
       <header className="relative z-10 w-full border-b border-border bg-surface/80 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-foreground text-background font-black shadow-xs transition-transform group-hover:scale-105">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#472393] text-white dark:bg-foreground dark:text-background font-black shadow-xs transition-transform group-hover:scale-105">
               <Sparkles className="size-4" />
             </div>
             <div className="flex flex-col">
@@ -271,8 +271,8 @@ function LoginFormContent() {
               }}
               className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                 activeRole === 'applicant'
-                  ? 'bg-surface text-foreground shadow-xs border border-border'
-                  : 'text-foreground-secondary hover:text-foreground'
+                  ? 'bg-[#472393] text-white shadow-xs dark:bg-surface dark:text-foreground dark:border dark:border-border'
+                  : 'text-foreground-secondary hover:text-[#472393] hover:bg-[#F5F1FF] dark:hover:text-foreground dark:hover:bg-transparent'
               }`}
             >
               <User className="size-3.5" />
@@ -286,8 +286,8 @@ function LoginFormContent() {
               }}
               className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                 activeRole === 'reviewer'
-                  ? 'bg-surface text-foreground shadow-xs border border-border'
-                  : 'text-foreground-secondary hover:text-foreground'
+                  ? 'bg-[#472393] text-white shadow-xs dark:bg-surface dark:text-foreground dark:border dark:border-border'
+                  : 'text-foreground-secondary hover:text-[#472393] hover:bg-[#F5F1FF] dark:hover:text-foreground dark:hover:bg-transparent'
               }`}
             >
               <ShieldCheck className="size-3.5" />
@@ -431,7 +431,7 @@ function LoginFormContent() {
                   Don&apos;t have an Applicant account?{' '}
                   <Link
                     href="/signup?role=applicant"
-                    className="font-semibold text-foreground hover:underline underline-offset-4"
+                    className="font-semibold text-[#472393] hover:text-[#3B1B7A] dark:text-foreground hover:underline underline-offset-4"
                   >
                     Create Applicant Account
                   </Link>
@@ -451,7 +451,7 @@ function LoginFormContent() {
           <div className="rounded-2xl border border-border bg-surface-elevated p-4 sm:p-5 shadow-xs space-y-3 transition-colors duration-200">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="flex h-5 w-5 items-center justify-center rounded-md bg-foreground text-background text-[10px] font-black">
+                <div className="flex h-5 w-5 items-center justify-center rounded-md bg-[#472393] text-white dark:bg-foreground dark:text-background text-[10px] font-black">
                   ⚡
                 </div>
                 <h2 className="text-xs font-bold uppercase tracking-wider text-foreground">

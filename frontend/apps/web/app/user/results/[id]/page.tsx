@@ -41,9 +41,12 @@ export default function CreditAssessmentResultPage({ params }: ResultPageProps) 
               <ArrowLeft className="size-3.5" /> Back to Dashboard
             </Button>
           </Link>
-          <span className="text-xs text-foreground-muted font-mono">
-            Report Reference: {id.toUpperCase()}
-          </span>
+          <h1 className="text-xs sm:text-sm font-semibold text-foreground">
+            Credit Assessment Dossier{' '}
+            <span className="text-xs text-foreground-muted font-mono font-normal">
+              ({id.toUpperCase()})
+            </span>
+          </h1>
         </div>
 
         <div className="flex items-center gap-2">

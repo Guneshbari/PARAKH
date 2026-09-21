@@ -128,7 +128,17 @@ export default function HomePage() {
   return (
     <PageTransition className="space-y-12 sm:space-y-16 pb-12">
       {/* 1. HERO SECTION (REFERENCE-BASED FINTECH HERO WITH FLOWING SILK WAVES) */}
-      <section className="relative w-full bg-background overflow-hidden pt-2 pb-14 sm:pb-18 transition-colors">
+      <section className="relative w-full bg-[#F7F8FC] dark:bg-background overflow-hidden pt-2 pb-14 sm:pb-18 transition-colors">
+        {/* Subtle light-mode center illumination */}
+        <div
+          className="absolute inset-0 pointer-events-none -z-5 dark:hidden"
+          style={{
+            background:
+              'radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.92) 0%, rgba(247, 248, 252, 0.72) 48%, rgba(239, 243, 249, 0.92) 100%)',
+          }}
+          aria-hidden="true"
+        />
+
         {/* Animated Silk Wave System */}
         <HeroWaveSystem />
 
@@ -138,24 +148,24 @@ export default function HomePage() {
         {/* Hero Content Container */}
         <div className="relative z-10 mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center pt-5 sm:pt-8 space-y-4 sm:space-y-5">
           {/* Eyebrow Badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface-highlight border border-border text-foreground text-[11px] font-semibold tracking-wide">
-            <Sparkles className="size-3.5 text-foreground-secondary" />
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-surface-highlight border border-[rgba(15,23,42,0.08)] dark:border-border text-[#101828] dark:text-foreground text-[11px] font-semibold tracking-wide shadow-2xs">
+            <Sparkles className="size-3.5 text-[#6366F1] dark:text-foreground-secondary" />
             <span className="font-mono uppercase tracking-widest text-[10px]">
               AI-Powered Credit Assessment
             </span>
           </div>
 
           {/* Main Editorial Heading */}
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground leading-[1.1]">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-[#101828] dark:text-foreground leading-[1.1]">
             Credit assessment <br />
             for the{' '}
-            <span className="text-foreground-secondary font-semibold italic">
+            <span className="text-[#475467] dark:text-foreground-secondary font-semibold italic">
               invisible.
             </span>
           </h1>
 
           {/* Supporting Copy */}
-          <p className="text-base sm:text-lg text-foreground-secondary max-w-2xl mx-auto leading-relaxed">
+          <p className="text-base sm:text-lg text-[#475467] dark:text-foreground-secondary max-w-2xl mx-auto leading-relaxed font-normal">
             PARAKH evaluates financial behavior beyond traditional credit history, using alternative
             data and explainable AI.
           </p>
@@ -166,7 +176,7 @@ export default function HomePage() {
               <Button
                 variant="default"
                 size="lg"
-                className="gap-2 font-semibold px-7 h-11 rounded-full cursor-pointer shadow-xs"
+                className="gap-2 font-semibold px-7 h-11 rounded-full cursor-pointer shadow-sm hover:shadow-md bg-[#472393] text-white hover:bg-[#5630A3] active:bg-[#3B1D7A] hover:-translate-y-0.5 transition-all duration-200 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90"
               >
                 <span>Applicant Portal</span>
                 <ArrowRight className="size-4" />
@@ -177,9 +187,9 @@ export default function HomePage() {
               <Button
                 variant="pillOutline"
                 size="lg"
-                className="gap-2 font-semibold px-7 h-11 rounded-full cursor-pointer"
+                className="gap-2 font-semibold px-7 h-11 rounded-full cursor-pointer shadow-2xs hover:shadow-sm bg-white text-[#472393] border border-[rgba(71,35,147,0.22)] hover:bg-[#F6F2FF] hover:border-[rgba(71,35,147,0.35)] hover:-translate-y-0.5 transition-all duration-200 dark:bg-transparent dark:text-foreground dark:border-border dark:hover:bg-surface-elevated"
               >
-                <ShieldCheck className="size-4 text-foreground" />
+                <ShieldCheck className="size-4 text-[#472393] dark:text-foreground" />
                 <span>Credit Reviewer</span>
               </Button>
             </Link>
@@ -187,31 +197,31 @@ export default function HomePage() {
         </div>
 
         {/* Product / Phone Mockup with Floating Cards */}
-        <div className="relative z-10 w-full px-4 sm:px-6 lg:px-8 mt-4 sm:mt-6 flex justify-center overflow-visible">
+        <div className="relative z-10 w-full px-4 sm:px-6 lg:px-8 mt-2 sm:mt-3 flex justify-center overflow-visible">
           <HeroProductPreview />
         </div>
 
         {/* Bottom Trust Statement & Institutional Badges */}
-        <div className="relative z-10 mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-foreground-muted">
+        <div className="relative z-10 mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 border-t border-[rgba(15,23,42,0.08)] dark:border-border flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-[#64748B] dark:text-foreground-muted">
           <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center sm:text-left">
-            <span className="font-medium text-foreground">
+            <span className="font-medium text-[#0F172A] dark:text-foreground">
               Built for transparent, explainable financial assessment.
             </span>
             <div className="flex items-center gap-2 text-[11px]">
-              <span className="px-2.5 py-0.5 rounded-full bg-surface border border-border text-foreground-secondary">
+              <span className="px-2.5 py-0.5 rounded-full bg-white dark:bg-surface border border-[rgba(15,23,42,0.08)] dark:border-border text-[#475569] dark:text-foreground-secondary">
                 DPDP Act 2023
               </span>
-              <span className="px-2.5 py-0.5 rounded-full bg-surface border border-border text-foreground-secondary">
+              <span className="px-2.5 py-0.5 rounded-full bg-white dark:bg-surface border border-[rgba(15,23,42,0.08)] dark:border-border text-[#475569] dark:text-foreground-secondary">
                 RBI AA Ecosystem
               </span>
-              <span className="px-2.5 py-0.5 rounded-full bg-surface border border-border text-foreground-secondary">
+              <span className="px-2.5 py-0.5 rounded-full bg-white dark:bg-surface border border-[rgba(15,23,42,0.08)] dark:border-border text-[#475569] dark:text-foreground-secondary">
                 Fairlearn Audited
               </span>
             </div>
           </div>
 
           {/* Right pill badge */}
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-highlight border border-border text-foreground-secondary text-[11px] font-medium">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white dark:bg-surface-highlight border border-[rgba(15,23,42,0.08)] dark:border-border text-[#475569] dark:text-foreground-secondary text-[11px] font-medium shadow-2xs">
             <Sparkles className="size-3 opacity-70" />
             <span>More people. Real incomes. Better credit.</span>
           </div>
@@ -338,8 +348,8 @@ export default function HomePage() {
                 onClick={() => setSelectedProfileKey(key)}
                 className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
                   selectedProfileKey === key
-                    ? 'bg-foreground text-background font-semibold shadow-xs'
-                    : 'text-foreground-muted hover:text-foreground'
+                    ? 'bg-[#472393] text-white font-semibold shadow-xs dark:bg-foreground dark:text-background'
+                    : 'text-foreground-muted hover:text-[#472393] hover:bg-[#F5F1FF] dark:hover:text-foreground dark:hover:bg-transparent'
                 }`}
               >
                 {prof.role.split('(')[0].trim()}

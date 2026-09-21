@@ -67,7 +67,7 @@ export function ApplicationCard({
         </div>
 
         {onSelect && (
-          <div className="size-8 rounded-full bg-surface-highlight border border-border flex items-center justify-center text-foreground-muted hover:text-foreground transition-colors">
+          <div className="size-8 rounded-full bg-surface-highlight border border-border flex items-center justify-center text-foreground-muted hover:text-[#472393] hover:border-[rgba(71,35,147,0.3)] dark:hover:text-foreground dark:hover:border-border transition-colors">
             <ChevronRight className="size-4" />
           </div>
         )}

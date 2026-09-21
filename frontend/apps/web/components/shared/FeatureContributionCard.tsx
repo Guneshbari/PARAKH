@@ -56,7 +56,7 @@ export function FeatureContributionCard({
                   className={cn(
                     'h-full rounded-full transition-all duration-500',
                     isPositive
-                      ? 'bg-foreground'
+                      ? 'bg-[#472393] dark:bg-foreground'
                       : 'bg-foreground-muted/40'
                   )}
                   style={{ width: `${percentageWidth}%` }}

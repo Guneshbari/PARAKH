@@ -44,12 +44,12 @@ export function AIInsightCard({
     <>
       <div
         className={cn(
-          'rounded-2xl bg-surface border border-border p-5 text-foreground shadow-xs relative overflow-hidden transition-colors duration-150',
+          'rounded-2xl bg-surface dark:bg-surface-elevated border border-border-strong p-5 text-foreground shadow-card-elevated relative overflow-hidden transition-all duration-200',
           className
         )}
       >
         {/* Subtle accent line on top (subdued, not neon) */}
-        <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-foreground/25 via-foreground/10 to-transparent" />
+        <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-[#472393]/35 via-[#472393]/15 to-transparent dark:from-foreground/25 dark:via-foreground/10" />
 
         {/* Header with Sparkle and Dismiss */}
         <div className="flex items-center justify-between pb-2">
@@ -94,7 +94,7 @@ export function AIInsightCard({
             {detail ? (
               <button
                 onClick={() => setExpanded(!expanded)}
-                className="text-xs font-semibold text-foreground-secondary hover:text-foreground flex items-center gap-1 cursor-pointer transition-colors"
+                className="text-xs font-semibold text-foreground-secondary hover:text-[#472393] dark:hover:text-foreground flex items-center gap-1 cursor-pointer transition-colors"
               >
                 <span>{expanded ? 'Less context' : 'Why this insight?'}</span>
                 {expanded ? <ChevronUp className="size-3" /> : <ChevronDown className="size-3" />}
@@ -105,13 +105,13 @@ export function AIInsightCard({
 
             {actionLabel && (
               <Button
-                variant="outline"
+                variant="secondary"
                 size="sm"
                 onClick={handleAction}
-                className="rounded-full text-xs gap-1.5 h-7 px-3.5 cursor-pointer"
+                className="rounded-full text-xs font-semibold gap-1.5 h-7 px-3.5 cursor-pointer shadow-none"
               >
                 <span>{actionLabel}</span>
-                <ArrowRight className="size-3 text-foreground-muted" />
+                <ArrowRight className="size-3" />
               </Button>
             )}
           </div>

@@ -68,7 +68,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-background text-foreground selection:bg-foreground/10 selection:text-foreground">
         <Providers>
           <Header />
-          <main className="flex-1 pb-20 md:pb-6">{children}</main>
+          <main className="flex-1 pb-20 md:pb-0 flex flex-col min-h-0">{children}</main>
           <MobileNav />
         </Providers>
       </body>

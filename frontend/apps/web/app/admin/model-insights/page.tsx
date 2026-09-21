@@ -95,7 +95,7 @@ export default function AdminModelInsightsPage() {
 
       {/* 2. MODEL SPECIFICATION & ARCHITECTURE HERO STRIP */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="p-4 rounded-2xl bg-surface border border-border space-y-1">
+        <div className="p-4 rounded-2xl bg-surface border border-border shadow-card space-y-1">
           <div className="flex items-center gap-1.5 text-[11px] text-foreground-muted">
             <Cpu className="size-3.5 text-foreground-secondary" />
             <span>Architecture</span>
@@ -106,7 +106,7 @@ export default function AdminModelInsightsPage() {
           <span className="text-[10px] text-foreground-secondary block">Calibrated Ridge Blend</span>
         </div>
 
-        <div className="p-4 rounded-2xl bg-surface border border-border space-y-1">
+        <div className="p-4 rounded-2xl bg-surface border border-border shadow-card space-y-1">
           <div className="flex items-center gap-1.5 text-[11px] text-foreground-muted">
             <Layers className="size-3.5 text-foreground-secondary" />
             <span>Training Dataset</span>
@@ -117,7 +117,7 @@ export default function AdminModelInsightsPage() {
           <span className="text-[10px] text-foreground-muted block">Anonymized Inflow Records</span>
         </div>
 
-        <div className="p-4 rounded-2xl bg-surface border border-border space-y-1">
+        <div className="p-4 rounded-2xl bg-surface border border-border shadow-card space-y-1">
           <div className="flex items-center gap-1.5 text-[11px] text-foreground-muted">
             <Calendar className="size-3.5 text-foreground-secondary" />
             <span>Last Retrained</span>
@@ -132,7 +132,7 @@ export default function AdminModelInsightsPage() {
           <span className="text-[10px] text-foreground-secondary block">Active Production Baseline</span>
         </div>
 
-        <div className="p-4 rounded-2xl bg-surface border border-border space-y-1">
+        <div className="p-4 rounded-2xl bg-surface border border-border shadow-card space-y-1">
           <div className="flex items-center gap-1.5 text-[11px] text-foreground-muted">
             <Scale className="size-3.5 text-foreground-secondary" />
             <span>Parity Framework</span>
@@ -258,7 +258,7 @@ export default function AdminModelInsightsPage() {
                 <div className="w-full h-1.5 rounded-full bg-surface-highlight overflow-hidden">
                   <div
                     style={{ width: `${percentage}%` }}
-                    className="h-full rounded-full bg-foreground transition-all duration-500"
+                    className="h-full rounded-full bg-[#472393] dark:bg-foreground transition-all duration-500"
                   />
                 </div>
 

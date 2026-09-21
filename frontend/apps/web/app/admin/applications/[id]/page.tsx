@@ -336,7 +336,7 @@ export default function AdminApplicationDetailPage({
       )}
 
       {/* 7. HUMAN-IN-THE-LOOP UNDERWRITER CONTROL CONSOLE */}
-      <Card className="p-6 sm:p-8 bg-surface border-border shadow-sm space-y-6">
+      <Card variant="elevated" className="p-6 sm:p-8 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border">
           <div className="space-y-1">
             <h2 className="text-base font-bold text-foreground flex items-center gap-2">
@@ -382,8 +382,8 @@ export default function AdminApplicationDetailPage({
                   onClick={() => setReviewAction(btn.id as ReviewActionType)}
                   className={`p-3 rounded-2xl text-left border transition-all cursor-pointer ${
                     reviewAction === btn.id
-                      ? 'border-foreground bg-foreground text-background shadow-xs'
-                      : 'border-border bg-surface-highlight text-foreground-muted hover:text-foreground'
+                      ? 'border-[#472393] bg-[#472393] text-white shadow-xs dark:border-foreground dark:bg-foreground dark:text-background'
+                      : 'border-border bg-surface-highlight text-foreground-muted hover:text-[#472393] hover:border-[rgba(71,35,147,0.3)] dark:hover:text-foreground dark:hover:border-border'
                   }`}
                 >
                   <span className="font-semibold text-xs block">{btn.label}</span>
@@ -413,8 +413,8 @@ export default function AdminApplicationDetailPage({
                   onClick={() => setSelectedRisk(tier as RiskLevel)}
                   className={`p-2.5 rounded-xl text-xs font-medium border text-center transition-all cursor-pointer ${
                     selectedRisk === tier
-                      ? 'border-foreground bg-foreground text-background font-semibold shadow-xs'
-                      : 'border-border bg-surface-highlight text-foreground-muted hover:text-foreground'
+                      ? 'border-[#472393] bg-[#472393] text-white font-semibold shadow-xs dark:border-foreground dark:bg-foreground dark:text-background'
+                      : 'border-border bg-surface-highlight text-foreground-muted hover:text-[#472393] hover:border-[rgba(71,35,147,0.3)] dark:hover:text-foreground dark:hover:border-border'
                   }`}
                 >
                   {tier.replace(/_/g, ' ')}
@@ -446,8 +446,8 @@ export default function AdminApplicationDetailPage({
                       onClick={() => handleToggleItem(item)}
                       className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all cursor-pointer ${
                         isChecked
-                          ? 'bg-foreground text-background border-foreground font-semibold shadow-xs'
-                          : 'bg-surface text-foreground-muted border-border hover:text-foreground'
+                          ? 'bg-[#472393] text-white border-[#472393] font-semibold shadow-xs dark:bg-foreground dark:text-background dark:border-foreground'
+                          : 'bg-surface text-foreground-muted border-border hover:text-[#472393] hover:border-[rgba(71,35,147,0.3)] dark:hover:text-foreground dark:hover:border-border'
                       }`}
                     >
                       {isChecked ? '✓ ' : '+ '}
@@ -463,7 +463,7 @@ export default function AdminApplicationDetailPage({
                   value={customItem}
                   onChange={(e) => setCustomItem(e.target.value)}
                   placeholder="Specify custom verification requirement..."
-                  className="flex-1 text-xs px-3 py-1.5 rounded-full bg-surface border border-border text-foreground focus:outline-none focus:border-foreground"
+                  className="flex-1 text-xs px-3 py-1.5 rounded-full bg-surface border border-border text-foreground focus:outline-none focus:border-[#472393] focus:ring-2 focus:ring-[#472393]/20 dark:focus:border-foreground dark:focus:ring-0"
                 />
                 <Button
                   type="button"
@@ -494,7 +494,7 @@ export default function AdminApplicationDetailPage({
               value={decisionNotes}
               onChange={(e) => setDecisionNotes(e.target.value)}
               placeholder="Record detailed credit review commentary regarding income volatility rebound dynamics, alternative micro-obligations, and justifications for risk tier classification..."
-              className="w-full text-xs p-3.5 rounded-2xl bg-surface-highlight/30 border border-border text-foreground focus:outline-none focus:border-foreground leading-relaxed resize-none"
+              className="w-full text-xs p-3.5 rounded-2xl bg-surface-highlight/30 border border-border text-foreground focus:outline-none focus:border-[#472393] dark:focus:border-foreground leading-relaxed resize-none"
             />
           </div>
 

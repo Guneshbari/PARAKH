@@ -19,7 +19,8 @@ export function CreditScoreCard({
 }: CreditScoreCardProps) {
   return (
     <MotionCard
-      className={cn('space-y-6 relative overflow-hidden group bg-surface border border-border text-foreground shadow-xs', className)}
+      variant="elevated"
+      className={cn('space-y-6 relative overflow-hidden group', className)}
       onClick={onClick}
     >
       {/* Header Row */}
