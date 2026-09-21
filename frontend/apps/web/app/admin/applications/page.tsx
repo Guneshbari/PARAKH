@@ -63,17 +63,17 @@ export default function AdminApplicationsPage() {
   return (
     <PageTransition className="space-y-6 sm:space-y-8 w-full pb-16">
       {/* 1. TOP HEADER & KPI STRIP */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-white/[0.06]">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-border">
         <div className="space-y-1">
           <div className="flex flex-wrap items-center gap-2.5">
-            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-              Underwriter Review Queue & Applications
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
+              Applications for Review
             </h1>
             <Badge variant="mint" className="text-[10px] py-0.5 px-2">
               {allApps.length} Total Dossiers
             </Badge>
           </div>
-          <p className="text-xs sm:text-sm text-muted-foreground">
+          <p className="text-xs sm:text-sm text-foreground-muted">
             Priority human-in-the-loop review cases, active verification pipelines, and historical alternative credit evaluations.
           </p>
         </div>
@@ -83,12 +83,12 @@ export default function AdminApplicationsPage() {
             variant="ghost"
             size="sm"
             onClick={() => window.print()}
-            className="rounded-xl gap-1.5 text-xs text-muted-foreground hover:text-white"
+            className="rounded-full gap-1.5 text-xs text-foreground-muted hover:text-foreground"
           >
             <Printer className="size-3.5" /> Print Queue
           </Button>
           <Link href="/admin/dashboard">
-            <Button variant="outline" size="sm" className="rounded-xl gap-1.5 text-xs">
+            <Button variant="outline" size="sm" className="rounded-full gap-1.5 text-xs">
               Cockpit View
             </Button>
           </Link>
@@ -97,49 +97,49 @@ export default function AdminApplicationsPage() {
 
       {/* 2. SUMMARY STRIP */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="p-3.5 rounded-2xl bg-[#0A162E] border border-white/[0.08] space-y-1">
-          <span className="text-[11px] text-muted-foreground block">Active In Queue</span>
-          <span className="text-xl font-bold text-white font-mono">{allApps.length}</span>
-          <span className="text-[10px] text-cyan-300 block">Digital Inflow Feeds</span>
+        <div className="p-3.5 rounded-2xl bg-surface border border-border shadow-card space-y-1">
+          <span className="text-[11px] text-foreground-muted block">Active In Queue</span>
+          <span className="text-xl font-bold text-foreground font-mono">{allApps.length}</span>
+          <span className="text-[10px] text-foreground-secondary block">Digital Inflow Feeds</span>
         </div>
 
-        <div className="p-3.5 rounded-2xl bg-[#0A162E] border border-amber-500/20 space-y-1">
-          <span className="text-[11px] text-amber-300 font-semibold block">
+        <div className="p-3.5 rounded-2xl bg-surface border border-border shadow-card space-y-1">
+          <span className="text-[11px] text-foreground font-semibold block">
             Priority Review Required
           </span>
-          <span className="text-xl font-bold text-amber-300 font-mono">{pendingCount}</span>
-          <span className="text-[10px] text-muted-foreground block">Human Review Flagged</span>
+          <span className="text-xl font-bold text-foreground font-mono">{pendingCount}</span>
+          <span className="text-[10px] text-foreground-muted block">Human Review Flagged</span>
         </div>
 
-        <div className="p-3.5 rounded-2xl bg-[#0A162E] border border-white/[0.08] space-y-1">
-          <span className="text-[11px] text-muted-foreground block">In Data Validation</span>
-          <span className="text-xl font-bold text-white font-mono">{validationCount}</span>
-          <span className="text-[10px] text-muted-foreground block">KYC / AA Telemetry</span>
+        <div className="p-3.5 rounded-2xl bg-surface border border-border shadow-card space-y-1">
+          <span className="text-[11px] text-foreground-muted block">In Data Validation</span>
+          <span className="text-xl font-bold text-foreground font-mono">{validationCount}</span>
+          <span className="text-[10px] text-foreground-muted block">KYC / AA Telemetry</span>
         </div>
 
-        <div className="p-3.5 rounded-2xl bg-[#0A162E] border border-white/[0.08] space-y-1">
-          <span className="text-[11px] text-muted-foreground block">Assessed & Recorded</span>
-          <span className="text-xl font-bold text-cyan-300 font-mono">{completedCount}</span>
-          <span className="text-[10px] text-cyan-400 block">Dossiers Ready</span>
+        <div className="p-3.5 rounded-2xl bg-surface border border-border shadow-card space-y-1">
+          <span className="text-[11px] text-foreground-muted block">Assessed & Recorded</span>
+          <span className="text-xl font-bold text-foreground font-mono">{completedCount}</span>
+          <span className="text-[10px] text-foreground-secondary block">Dossiers Ready</span>
         </div>
       </div>
 
       {/* 3. SEARCH & ADVANCED FILTER BAR */}
-      <Card className="p-4 bg-[#0A162E] border-white/[0.08] space-y-3">
+      <Card className="p-4 bg-surface border-border space-y-3">
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
           {/* Search input */}
           <div className="relative flex-1">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-foreground-muted" />
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by ID, applicant name, purpose, trigger, or sector..."
-              className="pl-10 h-10 rounded-2xl bg-white/[0.03] text-xs"
+              className="pl-10 h-10 rounded-full bg-surface border-border text-xs"
             />
           </div>
 
           {/* Quick Filter Pills */}
-          <div className="flex flex-wrap items-center gap-1.5 bg-white/[0.02] p-1 rounded-2xl border border-white/[0.06]">
+          <div className="flex flex-wrap items-center gap-1.5 bg-surface-highlight p-1 rounded-full border border-border">
             {[
               { id: 'ALL', label: 'All Queue' },
               { id: 'REVIEW', label: `Priority Review (${pendingCount})` },
@@ -150,10 +150,10 @@ export default function AdminApplicationsPage() {
               <button
                 key={tab.id}
                 onClick={() => setStatusFilter(tab.id)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
                   statusFilter === tab.id
-                    ? 'bg-teal-400 text-slate-950 shadow-sm'
-                    : 'text-muted-foreground hover:text-white'
+                    ? 'bg-[#472393] text-white font-semibold shadow-xs dark:bg-foreground dark:text-background'
+                    : 'text-foreground-muted hover:text-[#472393] hover:bg-[#F5F1FF] dark:hover:text-foreground dark:hover:bg-transparent'
                 }`}
               >
                 {tab.label}
@@ -163,17 +163,17 @@ export default function AdminApplicationsPage() {
         </div>
 
         {/* Secondary Filter Row */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-white/[0.04] text-xs">
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-border text-xs">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-muted-foreground flex items-center gap-1 text-[11px] font-medium">
-              <SlidersHorizontal className="size-3 text-teal-400" /> Filter By:
+            <span className="text-foreground-muted flex items-center gap-1 text-[11px] font-medium">
+              <SlidersHorizontal className="size-3 text-foreground-secondary" /> Filter By:
             </span>
 
             {/* Risk Tier Select */}
             <select
               value={riskFilter}
               onChange={(e) => setRiskFilter(e.target.value)}
-              className="bg-white/[0.03] border border-white/[0.08] rounded-xl px-2.5 py-1 text-slate-300 text-xs focus:outline-none focus:border-teal-400"
+              className="bg-surface-highlight border border-border rounded-full px-3 py-1 text-foreground text-xs focus:outline-none focus:border-[#472393] focus:ring-2 focus:ring-[#472393]/20 dark:focus:border-foreground dark:focus:ring-0"
             >
               <option value="ALL">All Risk Tiers</option>
               <option value="LOWER_ESTIMATED RISK">Lower Estimated Risk</option>
@@ -188,7 +188,7 @@ export default function AdminApplicationsPage() {
             <select
               value={employmentFilter}
               onChange={(e) => setEmploymentFilter(e.target.value)}
-              className="bg-white/[0.03] border border-white/[0.08] rounded-xl px-2.5 py-1 text-slate-300 text-xs focus:outline-none focus:border-teal-400"
+              className="bg-surface-highlight border border-border rounded-full px-3 py-1 text-foreground text-xs focus:outline-none focus:border-[#472393] focus:ring-2 focus:ring-[#472393]/20 dark:focus:border-foreground dark:focus:ring-0"
             >
               <option value="ALL">All Employment Sectors</option>
               <option value="GIG_WORKER">Gig Economy Worker</option>
@@ -208,7 +208,7 @@ export default function AdminApplicationsPage() {
                 setRiskFilter('ALL');
                 setEmploymentFilter('ALL');
               }}
-              className="rounded-xl text-xs h-7 text-muted-foreground hover:text-white"
+              className="rounded-full text-xs h-7 text-foreground-muted hover:text-foreground"
             >
               Reset Filters
             </Button>
@@ -218,10 +218,10 @@ export default function AdminApplicationsPage() {
 
       {/* 4. APPLICATIONS TABLE / CARD DISPLAY */}
       {filteredApps.length === 0 ? (
-        <Card className="p-12 text-center space-y-3 bg-[#0A162E] border-white/[0.08]">
-          <FileText className="size-8 text-muted-foreground mx-auto" />
-          <h3 className="text-base font-bold text-white">No applications match your filter criteria</h3>
-          <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+        <Card className="p-12 text-center space-y-3 bg-surface border-border">
+          <FileText className="size-8 text-foreground-muted mx-auto" />
+          <h3 className="text-base font-semibold text-foreground">No applications match your filter criteria</h3>
+          <p className="text-xs text-foreground-muted max-w-sm mx-auto">
             Try adjusting search terms or resetting the active status and risk filters.
           </p>
           <Button
@@ -239,10 +239,10 @@ export default function AdminApplicationsPage() {
           </Button>
         </Card>
       ) : (
-        <Card className="overflow-hidden p-0 bg-[#0A162E] border-white/[0.08]">
+        <Card className="overflow-hidden p-0">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-white/[0.02] border-b border-white/[0.06] text-muted-foreground font-semibold uppercase tracking-wider text-[11px]">
+              <thead className="bg-surface-highlight/40 border-b border-border text-foreground-muted font-medium uppercase tracking-wider text-[11px]">
                 <tr>
                   <th className="py-3.5 px-5">Application ID</th>
                   <th className="py-3.5 px-5">Applicant & Sector</th>
@@ -253,21 +253,19 @@ export default function AdminApplicationsPage() {
                   <th className="py-3.5 px-5 text-right">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/[0.04]">
+              <tbody className="divide-y divide-border">
                 {filteredApps.map((app) => {
                   const isFlagged = app.status === 'MANUAL_REVIEW_REQUIRED';
 
                   return (
                     <tr
                       key={app.id}
-                      className={`hover:bg-white/[0.02] transition-colors group ${
-                        isFlagged ? 'bg-amber-500/[0.02]' : ''
-                      }`}
+                      className="hover:bg-surface-highlight/30 transition-colors group"
                     >
-                      <td className="py-4 px-5 font-mono font-bold text-teal-300">
+                      <td className="py-4 px-5 font-mono font-semibold text-foreground">
                         <Link
                           href={`/admin/applications/${app.id}`}
-                          className="hover:underline flex items-center gap-1"
+                          className="hover:underline hover:text-[#472393] dark:hover:text-foreground flex items-center gap-1"
                         >
                           {app.id}
                         </Link>
@@ -275,10 +273,10 @@ export default function AdminApplicationsPage() {
 
                       <td className="py-4 px-5">
                         <div className="space-y-0.5">
-                          <span className="font-bold text-white block">
+                          <span className="font-semibold text-foreground block">
                             {app.applicantName}
                           </span>
-                          <span className="text-muted-foreground text-[11px]">
+                          <span className="text-foreground-muted text-[11px]">
                             {app.sectorTag || app.employmentType.replace(/_/g, ' ')}
                           </span>
                         </div>
@@ -286,10 +284,10 @@ export default function AdminApplicationsPage() {
 
                       <td className="py-4 px-5">
                         <div className="space-y-0.5">
-                          <span className="font-mono font-bold text-white block">
+                          <span className="font-mono font-semibold text-foreground block">
                             {formatCurrency(app.requestedAmount)}
                           </span>
-                          <span className="text-muted-foreground text-[11px]">
+                          <span className="text-foreground-muted text-[11px]">
                             {app.purpose}
                           </span>
                         </div>
@@ -297,12 +295,12 @@ export default function AdminApplicationsPage() {
 
                       <td className="py-4 px-5 max-w-xs">
                         {app.triggerReason ? (
-                          <div className="flex items-start gap-1.5 text-slate-300 text-xs">
-                            <span className="size-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0" />
+                          <div className="flex items-start gap-1.5 text-foreground-secondary text-xs">
+                            <span className="size-1.5 rounded-full bg-foreground-secondary mt-1.5 shrink-0" />
                             <span className="line-clamp-2">{app.triggerReason}</span>
                           </div>
                         ) : (
-                          <span className="text-muted-foreground text-[11px] font-mono">
+                          <span className="text-foreground-muted text-[11px] font-mono">
                             Standard flow
                           </span>
                         )}
@@ -315,7 +313,7 @@ export default function AdminApplicationsPage() {
                       <td className="py-4 px-5">
                         {app.assessment ? (
                           <div className="space-y-1">
-                            <span className="font-mono font-bold text-white block">
+                            <span className="font-mono font-semibold text-foreground block">
                               {app.assessment.score} / 850
                             </span>
                             <RiskBadge
@@ -325,7 +323,7 @@ export default function AdminApplicationsPage() {
                             />
                           </div>
                         ) : (
-                          <span className="text-muted-foreground font-mono text-[11px]">
+                          <span className="text-foreground-muted font-mono text-[11px]">
                             Evaluating...
                           </span>
                         )}
@@ -336,9 +334,7 @@ export default function AdminApplicationsPage() {
                           <Button
                             variant={isFlagged ? 'default' : 'outline'}
                             size="sm"
-                            className={`rounded-xl text-xs h-8 px-3 font-semibold ${
-                              isFlagged ? 'shadow-sm shadow-teal-500/10' : ''
-                            }`}
+                            className="rounded-full text-xs h-8 px-3 font-semibold cursor-pointer shadow-xs"
                           >
                             <span>{isFlagged ? 'Review Dossier' : 'Inspect'}</span>
                             <ChevronRight className="size-3.5 ml-1" />
@@ -355,14 +351,14 @@ export default function AdminApplicationsPage() {
       )}
 
       {/* 5. STATUTORY GOVERNANCE FOOTNOTE */}
-      <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.05] text-[11px] text-muted-foreground flex items-start gap-3">
-        <ShieldCheck className="size-4 text-teal-400 shrink-0 mt-0.5" />
+      <div className="p-4 rounded-2xl bg-surface-highlight/30 border border-border text-[11px] text-foreground-muted flex items-start gap-3">
+        <ShieldCheck className="size-4 text-foreground-secondary shrink-0 mt-0.5" />
         <div className="space-y-0.5">
-          <span className="font-semibold text-slate-300 block">
-            Underwriting Authority & Audit Logging
+          <span className="font-semibold text-foreground block">
+            Credit Reviewer Authority & Audit Logging
           </span>
           <p>
-            All underwriter reviews, verifications, and recorded outcomes are cryptographically timestamped in accordance with statutory fair lending audit guidelines. PARAKH never performs automated loan approval or denial.
+            All credit reviewer evaluations, verifications, and recorded outcomes are cryptographically timestamped in accordance with statutory fair lending audit guidelines. PARAKH never performs automated loan approval or denial.
           </p>
         </div>
       </div>

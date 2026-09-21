@@ -167,24 +167,24 @@ export default function NewApplicationPage() {
   if (isSubmitting) {
     return (
       <PageTransition className="max-w-xl mx-auto py-24 px-4 text-center space-y-6">
-        <div className="size-16 rounded-2xl bg-teal-400/10 border border-teal-400/30 flex items-center justify-center mx-auto text-teal-300 animate-pulse shadow-xl shadow-teal-500/10">
-          <Sparkles className="size-8" />
+        <div className="size-16 rounded-2xl bg-surface-highlight border border-border flex items-center justify-center mx-auto text-foreground animate-pulse shadow-sm">
+          <Sparkles className="size-8 opacity-80" />
         </div>
 
         <div className="space-y-2">
-          <h2 className="text-2xl font-extrabold text-white tracking-tight">
+          <h2 className="text-2xl font-bold text-foreground tracking-tight">
             Synthesizing PARAKH Assessment
           </h2>
-          <p className="text-sm text-teal-300 font-mono animate-pulse">
+          <p className="text-sm text-foreground-secondary font-mono animate-pulse">
             {submissionPhase}
           </p>
         </div>
 
-        <div className="h-1.5 w-full bg-white/[0.05] rounded-full overflow-hidden max-w-sm mx-auto">
-          <div className="h-full bg-gradient-to-r from-teal-400 to-purple-400 rounded-full animate-pulse w-3/4" />
+        <div className="h-1.5 w-full bg-surface-highlight rounded-full overflow-hidden max-w-sm mx-auto">
+          <div className="h-full bg-foreground rounded-full animate-pulse w-3/4" />
         </div>
 
-        <p className="text-xs text-muted-foreground pt-4">
+        <p className="text-xs text-foreground-muted pt-4">
           Normalizing gig earning volatility • Verifying 10-day recovery dynamics
         </p>
       </PageTransition>
@@ -196,25 +196,25 @@ export default function NewApplicationPage() {
       {/* 1. EDITORIAL HEADER */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <Badge variant="lavender" className="text-xs">
-            <Sparkles className="size-3" />
+          <Badge variant="outline" className="text-xs">
+            <Sparkles className="size-3 opacity-70" />
             <span>Guided Assessment Flow</span>
           </Badge>
-          <span className="text-xs font-mono font-bold text-muted-foreground">
+          <span className="text-xs font-mono font-semibold text-foreground-muted">
             Step {currentStep} of 5
           </span>
         </div>
 
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+        <h1 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight">
           Alternative Credit Evaluation Intake
         </h1>
-        <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+        <p className="text-xs sm:text-sm text-foreground-muted leading-relaxed">
           PARAKH doesn&apos;t require traditional credit bureau history. Share your verified platform and cashflow rhythm
           to generate an explainable, volatility-aware assessment.
         </p>
       </div>
 
-      {/* 2. PROGRESS STEPPER WITH NUMBERED INDICATORS */}
+      {/* 2. PROGRESS STEPPER WITH RESTRAINED MONOCHROME INDICATORS */}
       <div className="grid grid-cols-5 gap-2 pt-2">
         {STEPS.map((s) => {
           const isActive = s.id === currentStep;
@@ -224,21 +224,21 @@ export default function NewApplicationPage() {
             <div
               key={s.id}
               onClick={() => s.id < currentStep && setCurrentStep(s.id)}
-              className={`flex flex-col items-center gap-1.5 p-2 rounded-2xl border transition-all cursor-pointer ${
+              className={`flex flex-col items-center gap-1.5 p-2.5 rounded-2xl border transition-all cursor-pointer ${
                 isActive
-                  ? 'bg-white/[0.06] border-teal-400/50 text-white'
+                  ? 'bg-[#472393] text-white border-[#472393] shadow-xs dark:bg-foreground dark:text-background dark:border-foreground'
                   : isCompleted
-                  ? 'bg-teal-500/10 border-teal-500/20 text-teal-300'
-                  : 'bg-white/[0.02] border-white/[0.05] text-muted-foreground'
+                  ? 'bg-[#F5F1FF] border-[rgba(71,35,147,0.25)] text-[#472393] dark:bg-surface-highlight dark:border-border dark:text-foreground'
+                  : 'bg-surface border-border text-foreground-muted opacity-60'
               }`}
             >
               <div
                 className={`size-6 rounded-full flex items-center justify-center font-bold text-xs ${
-                  isCompleted
-                    ? 'bg-teal-400 text-slate-950'
-                    : isActive
-                    ? 'bg-teal-400/20 text-teal-300 border border-teal-400'
-                    : 'bg-white/[0.05] text-muted-foreground'
+                  isActive
+                    ? 'bg-white text-[#472393] dark:bg-background dark:text-foreground'
+                    : isCompleted
+                    ? 'bg-[#472393] text-white dark:bg-foreground dark:text-background'
+                    : 'bg-surface-highlight text-foreground-muted'
                 }`}
               >
                 {isCompleted ? '✓' : s.id}
@@ -252,27 +252,27 @@ export default function NewApplicationPage() {
       </div>
 
       {/* 3. STEP CONTENT CARDS */}
-      <Card className="p-7 sm:p-9 space-y-6 bg-[#0A162E] border-white/[0.08]">
+      <Card className="p-7 sm:p-9 space-y-6 bg-surface border-border">
         {/* STEP 1: PERSONAL INFORMATION */}
         {currentStep === 1 && (
           <div className="space-y-5">
-            <div className="space-y-1 pb-2 border-b border-white/[0.06]">
+            <div className="space-y-1 pb-2 border-b border-border">
               <div className="flex items-center gap-2">
-                <span className="size-6 rounded-full bg-teal-400/20 text-teal-300 flex items-center justify-center text-xs font-bold">
+                <span className="size-6 rounded-full bg-surface-highlight border border-border text-foreground flex items-center justify-center text-xs font-bold">
                   1
                 </span>
-                <h2 className="text-xl font-bold text-white tracking-tight">
+                <h2 className="text-xl font-bold text-foreground tracking-tight">
                   Personal Information
                 </h2>
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-foreground-muted">
                 Your verified contact credentials used to aggregate alternative financial feeds.
               </p>
             </div>
 
             <div className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                <label className="text-xs font-semibold uppercase tracking-wider text-foreground-muted">
                   Full Legal Name
                 </label>
                 <Input
@@ -281,7 +281,7 @@ export default function NewApplicationPage() {
                   placeholder="e.g. Arjun Verma"
                 />
                 {errors.fullName && (
-                  <span className="text-xs text-red-400 flex items-center gap-1">
+                  <span className="text-xs text-red-500 flex items-center gap-1">
                     <AlertCircle className="size-3" /> {errors.fullName}
                   </span>
                 )}
@@ -289,7 +289,7 @@ export default function NewApplicationPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-foreground-muted">
                     Mobile Number (UPI Linked)
                   </label>
                   <Input
@@ -299,14 +299,14 @@ export default function NewApplicationPage() {
                     maxLength={10}
                   />
                   {errors.phone && (
-                    <span className="text-xs text-red-400 flex items-center gap-1">
+                    <span className="text-xs text-red-500 flex items-center gap-1">
                       <AlertCircle className="size-3" /> {errors.phone}
                     </span>
                   )}
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-foreground-muted">
                     Operating City
                   </label>
                   <Input
@@ -315,7 +315,7 @@ export default function NewApplicationPage() {
                     placeholder="e.g. Bengaluru, Mumbai, Delhi"
                   />
                   {errors.city && (
-                    <span className="text-xs text-red-400 flex items-center gap-1">
+                    <span className="text-xs text-red-500 flex items-center gap-1">
                       <AlertCircle className="size-3" /> {errors.city}
                     </span>
                   )}
@@ -328,23 +328,23 @@ export default function NewApplicationPage() {
         {/* STEP 2: WORK PROFILE */}
         {currentStep === 2 && (
           <div className="space-y-5">
-            <div className="space-y-1 pb-2 border-b border-white/[0.06]">
+            <div className="space-y-1 pb-2 border-b border-border">
               <div className="flex items-center gap-2">
-                <span className="size-6 rounded-full bg-teal-400/20 text-teal-300 flex items-center justify-center text-xs font-bold">
+                <span className="size-6 rounded-full bg-surface-highlight border border-border text-foreground flex items-center justify-center text-xs font-bold">
                   2
                 </span>
-                <h2 className="text-xl font-bold text-white tracking-tight">
+                <h2 className="text-xl font-bold text-foreground tracking-tight">
                   Work & Platform Profile
                 </h2>
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-foreground-muted">
                 We reward verified platform tenure rather than demanding traditional salary slips.
               </p>
             </div>
 
             <div className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                <label className="text-xs font-semibold uppercase tracking-wider text-foreground-muted">
                   Work Category
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -358,10 +358,10 @@ export default function NewApplicationPage() {
                       key={cat.id}
                       type="button"
                       onClick={() => updateField('employmentType', cat.id as ApplicationFormData['employmentType'])}
-                      className={`p-3 rounded-2xl border text-xs font-semibold text-center transition-all cursor-pointer ${
+                      className={`p-3 rounded-2xl border text-xs font-medium text-center transition-all cursor-pointer ${
                         formData.employmentType === cat.id
-                          ? 'bg-teal-400/15 border-teal-400 text-teal-300 shadow-sm'
-                          : 'bg-white/[0.03] border-white/[0.06] text-muted-foreground hover:text-white'
+                          ? 'bg-[#472393] text-white font-semibold shadow-xs border-[#472393] dark:bg-foreground dark:text-background dark:border-foreground'
+                          : 'bg-surface-highlight border-border text-foreground-muted hover:text-[#472393] hover:border-[rgba(71,35,147,0.3)] dark:hover:text-foreground dark:hover:border-border'
                       }`}
                     >
                       {cat.label}
@@ -372,7 +372,7 @@ export default function NewApplicationPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-foreground-muted">
                     Primary Platforms / Trade
                   </label>
                   <Input
@@ -381,14 +381,14 @@ export default function NewApplicationPage() {
                     placeholder="e.g. Swiggy, Zomato, Urban Company, Kirana"
                   />
                   {errors.primaryPlatform && (
-                    <span className="text-xs text-red-400 flex items-center gap-1">
+                    <span className="text-xs text-red-500 flex items-center gap-1">
                       <AlertCircle className="size-3" /> {errors.primaryPlatform}
                     </span>
                   )}
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-foreground-muted">
                     Active Duration (Months)
                   </label>
                   <Input
@@ -398,7 +398,7 @@ export default function NewApplicationPage() {
                     placeholder="e.g. 18"
                   />
                   {errors.tenureMonths && (
-                    <span className="text-xs text-red-400 flex items-center gap-1">
+                    <span className="text-xs text-red-500 flex items-center gap-1">
                       <AlertCircle className="size-3" /> {errors.tenureMonths}
                     </span>
                   )}
@@ -411,23 +411,23 @@ export default function NewApplicationPage() {
         {/* STEP 3: INCOME BEHAVIOR & VOLATILITY DYNAMICS */}
         {currentStep === 3 && (
           <div className="space-y-5">
-            <div className="space-y-1 pb-2 border-b border-white/[0.06]">
+            <div className="space-y-1 pb-2 border-b border-border">
               <div className="flex items-center gap-2">
-                <span className="size-6 rounded-full bg-teal-400/20 text-teal-300 flex items-center justify-center text-xs font-bold">
+                <span className="size-6 rounded-full bg-surface-highlight border border-border text-foreground flex items-center justify-center text-xs font-bold">
                   3
                 </span>
-                <h2 className="text-xl font-bold text-white tracking-tight">
+                <h2 className="text-xl font-bold text-foreground tracking-tight">
                   Income Inflow & Volatility Rhythm
                 </h2>
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-foreground-muted">
                 Crucial for PARAKH&apos;s volatility-aware engine. We model your natural dips alongside your rebound speed.
               </p>
             </div>
 
             <div className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                <label className="text-xs font-semibold uppercase tracking-wider text-foreground-muted">
                   Inflow Settlement Frequency
                 </label>
                 <div className="grid grid-cols-4 gap-2">
@@ -441,10 +441,10 @@ export default function NewApplicationPage() {
                       key={freq.id}
                       type="button"
                       onClick={() => updateField('incomeFrequency', freq.id as ApplicationFormData['incomeFrequency'])}
-                      className={`p-2.5 rounded-2xl border text-xs font-semibold text-center transition-all cursor-pointer ${
+                      className={`p-2.5 rounded-2xl border text-xs font-medium text-center transition-all cursor-pointer ${
                         formData.incomeFrequency === freq.id
-                          ? 'bg-teal-400/15 border-teal-400 text-teal-300'
-                          : 'bg-white/[0.03] border-white/[0.06] text-muted-foreground hover:text-white'
+                          ? 'bg-[#472393] text-white font-semibold shadow-xs border-[#472393] dark:bg-foreground dark:text-background dark:border-foreground'
+                          : 'bg-surface-highlight border-border text-foreground-muted hover:text-[#472393] hover:border-[rgba(71,35,147,0.3)] dark:hover:text-foreground dark:hover:border-border'
                       }`}
                     >
                       {freq.label}
@@ -455,7 +455,7 @@ export default function NewApplicationPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-foreground-muted">
                     Average Monthly Inflow (₹)
                   </label>
                   <Input
@@ -465,14 +465,14 @@ export default function NewApplicationPage() {
                     placeholder="e.g. 52000"
                   />
                   {errors.averageMonthlyIncome && (
-                    <span className="text-xs text-red-400 flex items-center gap-1">
+                    <span className="text-xs text-red-500 flex items-center gap-1">
                       <AlertCircle className="size-3" /> {errors.averageMonthlyIncome}
                     </span>
                   )}
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-foreground-muted">
                     Lowest Month Inflow (₹)
                   </label>
                   <Input
@@ -482,7 +482,7 @@ export default function NewApplicationPage() {
                     placeholder="e.g. 34000 (rainy season/downtime)"
                   />
                   {errors.lowestMonthIncome && (
-                    <span className="text-xs text-red-400 flex items-center gap-1">
+                    <span className="text-xs text-red-500 flex items-center gap-1">
                       <AlertCircle className="size-3" /> {errors.lowestMonthIncome}
                     </span>
                   )}
@@ -490,9 +490,9 @@ export default function NewApplicationPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
+                <label className="text-xs font-semibold uppercase tracking-wider text-foreground-muted flex items-center justify-between">
                   <span>Typical Days to Rebound to Normal Earnings</span>
-                  <span className="text-teal-300 font-mono font-bold">
+                  <span className="text-foreground font-mono font-semibold">
                     {formData.typicalRecoveryDays} Days
                   </span>
                 </label>
@@ -502,9 +502,9 @@ export default function NewApplicationPage() {
                   max={30}
                   value={formData.typicalRecoveryDays}
                   onChange={(e) => updateField('typicalRecoveryDays', parseInt(e.target.value))}
-                  className="w-full accent-teal-400 cursor-pointer"
+                  className="w-full accent-foreground cursor-pointer"
                 />
-                <div className="flex justify-between text-[11px] text-muted-foreground">
+                <div className="flex justify-between text-[11px] text-foreground-muted">
                   <span>1 day (Rapid rebound)</span>
                   <span>14 days (Standard gig cycle)</span>
                   <span>30 days (Extended)</span>
@@ -517,23 +517,23 @@ export default function NewApplicationPage() {
         {/* STEP 4: EXISTING OBLIGATIONS */}
         {currentStep === 4 && (
           <div className="space-y-5">
-            <div className="space-y-1 pb-2 border-b border-white/[0.06]">
+            <div className="space-y-1 pb-2 border-b border-border">
               <div className="flex items-center gap-2">
-                <span className="size-6 rounded-full bg-teal-400/20 text-teal-300 flex items-center justify-center text-xs font-bold">
+                <span className="size-6 rounded-full bg-surface-highlight border border-border text-foreground flex items-center justify-center text-xs font-bold">
                   4
                 </span>
-                <h2 className="text-xl font-bold text-white tracking-tight">
+                <h2 className="text-xl font-bold text-foreground tracking-tight">
                   Existing Obligations & Bill Punctuality
                 </h2>
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-foreground-muted">
                 We assess your disposable margin after mandatory living expenses and utility bills.
               </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                <label className="text-xs font-semibold uppercase tracking-wider text-foreground-muted">
                   Monthly Rent (₹)
                 </label>
                 <Input
@@ -545,7 +545,7 @@ export default function NewApplicationPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                <label className="text-xs font-semibold uppercase tracking-wider text-foreground-muted">
                   Utility Bills (₹)
                 </label>
                 <Input
@@ -557,7 +557,7 @@ export default function NewApplicationPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                <label className="text-xs font-semibold uppercase tracking-wider text-foreground-muted">
                   Existing EMIs (₹)
                 </label>
                 <Input
@@ -569,10 +569,10 @@ export default function NewApplicationPage() {
               </div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-teal-500/10 border border-teal-500/20 flex items-start gap-3">
-              <CheckCircle2 className="size-4 text-teal-300 shrink-0 mt-0.5" />
-              <p className="text-xs text-teal-200/90 leading-relaxed">
-                <strong className="text-white">Punctuality Bonus:</strong> Verified on-time payment of electricity, gas cylinders, and mobile recharges serves as primary positive credit proof in our alternative model.
+            <div className="p-4 rounded-2xl bg-surface-highlight/50 border border-border flex items-start gap-3">
+              <CheckCircle2 className="size-4 text-foreground shrink-0 mt-0.5" />
+              <p className="text-xs text-foreground-secondary leading-relaxed">
+                <strong className="text-foreground">Punctuality Bonus:</strong> Verified on-time payment of electricity, gas cylinders, and mobile recharges serves as primary positive credit proof in our alternative model.
               </p>
             </div>
           </div>
@@ -581,23 +581,23 @@ export default function NewApplicationPage() {
         {/* STEP 5: REVIEW, PURPOSE & CONSENT */}
         {currentStep === 5 && (
           <div className="space-y-6">
-            <div className="space-y-1 pb-2 border-b border-white/[0.06]">
+            <div className="space-y-1 pb-2 border-b border-border">
               <div className="flex items-center gap-2">
-                <span className="size-6 rounded-full bg-teal-400/20 text-teal-300 flex items-center justify-center text-xs font-bold">
+                <span className="size-6 rounded-full bg-surface-highlight border border-border text-foreground flex items-center justify-center text-xs font-bold">
                   5
                 </span>
-                <h2 className="text-xl font-bold text-white tracking-tight">
+                <h2 className="text-xl font-bold text-foreground tracking-tight">
                   Assessment Purpose & Applicant Consent
                 </h2>
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-foreground-muted">
                 State your intended use of funds and provide voluntary authorization for alternative evaluation.
               </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                <label className="text-xs font-semibold uppercase tracking-wider text-foreground-muted">
                   Evaluation Amount Benchmark (₹)
                 </label>
                 <Input
@@ -607,14 +607,14 @@ export default function NewApplicationPage() {
                   placeholder="e.g. 35000"
                 />
                 {errors.requestedAmount && (
-                  <span className="text-xs text-red-400 flex items-center gap-1">
+                  <span className="text-xs text-red-500 flex items-center gap-1">
                     <AlertCircle className="size-3" /> {errors.requestedAmount}
                   </span>
                 )}
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                <label className="text-xs font-semibold uppercase tracking-wider text-foreground-muted">
                   Productive Purpose
                 </label>
                 <Input
@@ -623,7 +623,7 @@ export default function NewApplicationPage() {
                   placeholder="e.g. EV Battery Swap, Inventory, Tools"
                 />
                 {errors.purpose && (
-                  <span className="text-xs text-red-400 flex items-center gap-1">
+                  <span className="text-xs text-red-500 flex items-center gap-1">
                     <AlertCircle className="size-3" /> {errors.purpose}
                   </span>
                 )}
@@ -631,43 +631,43 @@ export default function NewApplicationPage() {
             </div>
 
             {/* Summary Preview Pills */}
-            <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06] space-y-2 text-xs">
-              <span className="font-bold text-muted-foreground uppercase tracking-wider text-[11px]">
+            <div className="p-4 rounded-2xl bg-surface-highlight/40 border border-border space-y-2 text-xs">
+              <span className="font-semibold text-foreground-muted uppercase tracking-wider text-[11px]">
                 Application Summary
               </span>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-slate-300">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-foreground-secondary">
                 <div>
-                  <span className="text-muted-foreground block text-[11px]">Applicant</span>
-                  <span className="font-semibold text-white">{formData.fullName}</span>
+                  <span className="text-foreground-muted block text-[11px]">Applicant</span>
+                  <span className="font-semibold text-foreground">{formData.fullName}</span>
                 </div>
                 <div>
-                  <span className="text-muted-foreground block text-[11px]">Platforms</span>
-                  <span className="font-semibold text-white">{formData.primaryPlatform}</span>
+                  <span className="text-foreground-muted block text-[11px]">Platforms</span>
+                  <span className="font-semibold text-foreground">{formData.primaryPlatform}</span>
                 </div>
                 <div>
-                  <span className="text-muted-foreground block text-[11px]">Recovery Speed</span>
-                  <span className="font-semibold text-teal-300">{formData.typicalRecoveryDays} Days</span>
+                  <span className="text-foreground-muted block text-[11px]">Recovery Speed</span>
+                  <span className="font-semibold text-foreground">{formData.typicalRecoveryDays} Days</span>
                 </div>
               </div>
             </div>
 
             {/* Consent Checkbox */}
-            <div className="p-4 rounded-2xl bg-[#0E1F3D] border border-cyan-500/25 space-y-3">
+            <div className="p-4 rounded-2xl bg-surface-highlight/30 border border-border space-y-3">
               <label className="flex items-start gap-3 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={formData.consentGiven}
                   onChange={(e) => updateField('consentGiven', e.target.checked)}
-                  className="size-4 rounded accent-cyan-400 mt-0.5 cursor-pointer"
+                  className="size-4 rounded accent-[#472393] dark:accent-foreground mt-0.5 cursor-pointer"
                 />
-                <span className="text-xs text-slate-200 leading-relaxed">
+                <span className="text-xs text-foreground-secondary leading-relaxed">
                   I grant voluntary consent for PARAKH to evaluate my alternative cashflow frequency,
                   shock recovery metrics, and platform telemetry. I understand that PARAKH is an explainable assessment
                   intelligence prototype and does not represent an automated legal lending decision.
                 </span>
               </label>
               {errors.consentGiven && (
-                <span className="text-xs text-red-400 block pl-7">
+                <span className="text-xs text-red-500 block pl-7">
                   {errors.consentGiven}
                 </span>
               )}
@@ -676,7 +676,7 @@ export default function NewApplicationPage() {
         )}
 
         {/* NAVIGATION ACTIONS (BACK & CONTINUE) */}
-        <div className="flex items-center justify-between pt-4 border-t border-white/[0.06]">
+        <div className="flex items-center justify-between pt-4 border-t border-border">
           {currentStep > 1 ? (
             <Button
               type="button"
@@ -688,7 +688,7 @@ export default function NewApplicationPage() {
             </Button>
           ) : (
             <Link href="/user/dashboard">
-              <Button type="button" variant="ghost" className="rounded-full text-xs text-muted-foreground">
+              <Button type="button" variant="ghost" className="rounded-full text-xs text-foreground-muted hover:text-foreground">
                 Cancel
               </Button>
             </Link>
@@ -696,9 +696,9 @@ export default function NewApplicationPage() {
 
           <Button
             type="button"
-            variant="lime"
+            variant="default"
             onClick={handleNext}
-            className="rounded-full gap-2 text-xs font-bold px-6 shadow-md"
+            className="rounded-full gap-2 text-xs font-semibold px-6 shadow-xs cursor-pointer"
           >
             <span>{currentStep === 5 ? 'Submit for Assessment' : 'Continue'}</span>
             <ArrowRight className="size-3.5" />

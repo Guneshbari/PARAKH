@@ -4,36 +4,39 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
-  'group/button inline-flex shrink-0 items-center justify-center rounded-full border border-transparent bg-clip-padding text-sm font-semibold whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*=\'size-\'])]:size-4 cursor-pointer',
+  'group/button inline-flex shrink-0 items-center justify-center rounded-full border border-transparent text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-150 outline-none select-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*=\'size-\'])]:size-4 cursor-pointer',
   {
     variants: {
       variant: {
+        // Primary button: Dark = #F5F5F5 on #08090A; Light = #472393 on #FFFFFF
         default:
-          'bg-[#C8F451] text-[#07111F] hover:bg-[#B6E23B] font-bold shadow-[0_4px_16px_rgba(200,244,81,0.2)] hover:shadow-[0_6px_22px_rgba(200,244,81,0.3)] border border-transparent',
+          'bg-[#472393] text-white hover:bg-[#3B1B7A] active:bg-[#321565] focus-visible:ring-[#472393]/30 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90 shadow-sm border border-transparent font-bold',
+        // Legacy alias mapped to new primary
         lime:
-          'bg-[#C8F451] text-[#07111F] hover:bg-[#B6E23B] font-bold shadow-[0_4px_16px_rgba(200,244,81,0.2)] hover:shadow-[0_6px_22px_rgba(200,244,81,0.3)] border border-transparent',
+          'bg-[#472393] text-white hover:bg-[#3B1B7A] active:bg-[#321565] focus-visible:ring-[#472393]/30 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90 shadow-sm border border-transparent font-bold',
+        // Secondary button: Dark = charcoal/translucent + white border; Light = white surface + #472393 text & border
         secondary:
-          'bg-[#0A162E]/90 text-[#F8FAFC] hover:bg-[#14274E] hover:text-[#22D3EE] border border-cyan-500/30 shadow-sm',
+          'bg-white text-[#472393] border border-[rgba(71,35,147,0.22)] hover:bg-[#F5F1FF] hover:border-[rgba(71,35,147,0.35)] dark:bg-secondary dark:text-secondary-foreground dark:border-border dark:hover:bg-surface-elevated shadow-xs font-semibold',
         outline:
-          'border-white/[0.12] bg-[#0A162E]/60 text-[#F8FAFC] hover:bg-white/[0.06] hover:border-cyan-400/40',
+          'border border-border bg-surface text-foreground hover:bg-[#F5F1FF] hover:text-[#472393] hover:border-[rgba(71,35,147,0.35)] dark:hover:bg-surface-highlight dark:hover:text-foreground dark:hover:border-border-strong',
         pillOutline:
-          'bg-blue-500/10 hover:bg-blue-500/20 text-cyan-200 border border-cyan-400/35 hover:border-cyan-400/60 shadow-sm',
+          'border border-[rgba(71,35,147,0.22)] bg-white text-[#472393] hover:bg-[#F5F1FF] hover:border-[rgba(71,35,147,0.35)] dark:border-border-strong dark:bg-secondary dark:text-foreground dark:hover:bg-surface-highlight shadow-xs',
         ghost:
-          'hover:bg-white/[0.06] text-[#A8B7CC] hover:text-[#F8FAFC] border-transparent',
+          'hover:bg-surface-highlight text-foreground-secondary hover:text-foreground border-transparent',
         destructive:
-          'bg-red-500/15 text-red-300 hover:bg-red-500/25 border border-red-500/25',
-        link: 'text-cyan-400 underline-offset-4 hover:underline p-0 h-auto rounded-none',
+          'bg-red-500/15 text-red-400 hover:bg-red-500/25 border border-red-500/20',
+        link: 'text-foreground underline-offset-4 hover:underline p-0 h-auto rounded-none',
         mint:
-          'bg-emerald-400/15 text-emerald-300 border border-emerald-400/30 hover:bg-emerald-400/25',
+          'bg-emerald-500/10 text-emerald-500 dark:text-foreground border border-emerald-500/20 dark:border-border hover:bg-emerald-500/20',
         lavender:
-          'bg-violet-500/15 text-violet-200 border border-violet-500/30 hover:bg-violet-500/25',
+          'bg-indigo-500/10 text-indigo-500 dark:text-foreground border border-indigo-500/20 dark:border-border hover:bg-indigo-500/20',
       },
       size: {
-        default: 'h-9 gap-2 px-4',
+        default: 'h-8.5 gap-2 px-4 text-xs font-semibold',
         sm: 'h-7 gap-1.5 px-3 text-xs',
-        lg: 'h-11 gap-2.5 px-6 text-sm sm:text-base font-bold',
+        lg: 'h-10.5 gap-2.5 px-6 text-sm font-bold',
         pill: 'h-8 gap-2 px-4 text-xs font-semibold',
-        icon: 'size-9',
+        icon: 'size-8.5',
         'icon-sm': 'size-7',
       },
     },

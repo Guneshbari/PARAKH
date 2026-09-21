@@ -6,7 +6,7 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
 } from 'react-native-reanimated';
-import { MobileTheme } from '../lib/theme';
+import { useTheme } from '../lib/theme';
 import { MOBILE_SPRING_TACTILE } from '../lib/animations';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -23,6 +23,7 @@ export function FloatingBottomNav({
   activeTab,
   onTabSelect,
 }: FloatingBottomNavProps) {
+  const { colors, isDark } = useTheme();
   const centerScale = useSharedValue(1);
 
   const centerAnimatedStyle = useAnimatedStyle(() => ({
@@ -39,7 +40,16 @@ export function FloatingBottomNav({
 
   return (
     <View style={styles.container} pointerEvents="box-none">
-      <View style={styles.dock}>
+      <View
+        style={[
+          styles.dock,
+          {
+            backgroundColor: isDark ? 'rgba(18, 20, 24, 0.94)' : 'rgba(255, 255, 255, 0.95)',
+            borderColor: colors.border,
+            shadowColor: isDark ? '#000' : '#64748B',
+          },
+        ]}
+      >
         {navItems.map((item) => {
           const isActive = activeTab === item.key;
           const IconComponent = item.icon;
@@ -55,11 +65,22 @@ export function FloatingBottomNav({
                 onPressOut={() => {
                   centerScale.value = withSpring(1, MOBILE_SPRING_TACTILE);
                 }}
-                style={[styles.actionButton, centerAnimatedStyle]}
+                style={[
+                  styles.actionButton,
+                  {
+                    backgroundColor: colors.textPrimary,
+                    shadowColor: colors.textPrimary,
+                  },
+                  centerAnimatedStyle,
+                ]}
                 accessibilityRole="button"
                 accessibilityLabel={item.label}
               >
-                <IconComponent size={22} color="#1E1B2E" strokeWidth={2.5} />
+                <IconComponent
+                  size={22}
+                  color={colors.background}
+                  strokeWidth={2.5}
+                />
               </AnimatedPressable>
             );
           }
@@ -74,16 +95,14 @@ export function FloatingBottomNav({
             >
               <IconComponent
                 size={18}
-                color={isActive ? MobileTheme.colors.mint : MobileTheme.colors.textSecondary}
+                color={isActive ? colors.textPrimary : colors.textSecondary}
                 strokeWidth={isActive ? 2.5 : 2}
               />
               <Text
                 style={[
                   styles.tabLabel,
                   {
-                    color: isActive
-                      ? MobileTheme.colors.mint
-                      : MobileTheme.colors.textSecondary,
+                    color: isActive ? colors.textPrimary : colors.textSecondary,
                   },
                 ]}
               >
@@ -140,11 +159,9 @@ const styles = StyleSheet.create({
     width: 46,
     height: 46,
     borderRadius: 23,
-    backgroundColor: MobileTheme.colors.lavender,
     alignItems: 'center',
     justifyContent: 'center',
     marginHorizontal: 4,
-    shadowColor: MobileTheme.colors.lavender,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

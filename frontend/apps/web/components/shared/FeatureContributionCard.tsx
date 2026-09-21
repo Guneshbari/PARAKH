@@ -16,10 +16,10 @@ export function FeatureContributionCard({
   return (
     <Card className={cn('space-y-5', className)}>
       <div className="space-y-1">
-        <h3 className="text-lg font-bold text-white tracking-tight">
+        <h3 className="text-base sm:text-lg font-semibold text-foreground tracking-tight">
           Feature Contributions & Impact
         </h3>
-        <p className="text-xs text-muted-foreground leading-relaxed">
+        <p className="text-xs text-foreground-muted leading-relaxed">
           How alternative financial behaviors and recovery patterns influenced the evaluation.
         </p>
       </div>
@@ -32,18 +32,18 @@ export function FeatureContributionCard({
           return (
             <div key={item.featureName} className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">
-                <div className="flex items-center gap-1.5 font-medium text-slate-200">
+                <div className="flex items-center gap-1.5 font-medium text-foreground-secondary">
                   {isPositive ? (
-                    <ArrowUpRight className="size-3.5 text-emerald-400" />
+                    <ArrowUpRight className="size-3.5 text-foreground" />
                   ) : (
-                    <ArrowDownRight className="size-3.5 text-amber-400" />
+                    <ArrowDownRight className="size-3.5 text-foreground-muted" />
                   )}
                   <span>{item.displayName}</span>
                 </div>
                 <span
                   className={cn(
-                    'font-mono font-bold text-[11px]',
-                    isPositive ? 'text-emerald-400' : 'text-amber-400'
+                    'font-mono font-semibold text-[11px]',
+                    isPositive ? 'text-foreground' : 'text-foreground-muted'
                   )}
                 >
                   {isPositive ? `+${percentageWidth}%` : `-${percentageWidth}%`}
@@ -51,19 +51,19 @@ export function FeatureContributionCard({
               </div>
 
               {/* Divergence Bar */}
-              <div className="h-2 w-full bg-white/[0.05] rounded-full overflow-hidden flex">
+              <div className="h-1.5 w-full bg-surface-highlight rounded-full overflow-hidden flex">
                 <div
                   className={cn(
                     'h-full rounded-full transition-all duration-500',
                     isPositive
-                      ? 'bg-gradient-to-r from-emerald-500 to-teal-400'
-                      : 'bg-gradient-to-r from-amber-500 to-red-400'
+                      ? 'bg-[#472393] dark:bg-foreground'
+                      : 'bg-foreground-muted/40'
                   )}
                   style={{ width: `${percentageWidth}%` }}
                 />
               </div>
 
-              <p className="text-[11px] text-muted-foreground leading-tight">
+              <p className="text-[11px] text-foreground-muted leading-tight">
                 {item.explanationText}
               </p>
             </div>

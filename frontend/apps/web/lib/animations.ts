@@ -83,15 +83,11 @@ export const scaleIn: Variants = {
 export const cardHoverMotion: Variants = {
   rest: {
     y: 0,
-    scale: 1,
-    borderColor: 'rgba(255, 255, 255, 0.07)',
     transition: { duration: 0.2 },
   },
   hover: {
-    y: -3,
-    scale: 1.005,
-    borderColor: 'rgba(255, 255, 255, 0.14)',
-    transition: { duration: 0.2 },
+    y: -2,
+    transition: { duration: 0.2, ease: 'easeOut' },
   },
   tap: {
     scale: 0.995,

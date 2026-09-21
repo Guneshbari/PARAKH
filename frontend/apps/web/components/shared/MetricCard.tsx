@@ -12,7 +12,7 @@ interface MetricCardProps {
   prefix?: string;
   suffix?: string;
   pillLabel?: string;
-  pillVariant?: 'mint' | 'lavender' | 'riskLower' | 'riskModerate' | 'riskHigher' | 'outline';
+  pillVariant?: 'mint' | 'lavender' | 'riskLower' | 'riskModerate' | 'riskHigher' | 'outline' | 'secondary' | 'default';
   subtext?: string;
   icon?: LucideIcon;
   className?: string;
@@ -26,7 +26,7 @@ export function MetricCard({
   prefix = '',
   suffix = '',
   pillLabel,
-  pillVariant = 'mint',
+  pillVariant = 'secondary',
   subtext,
   icon: Icon,
   className,
@@ -39,10 +39,10 @@ export function MetricCard({
       hoverable={!!onClick}
     >
       <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        <span className="text-xs font-semibold uppercase tracking-wider text-foreground-muted">
           {title}
         </span>
-        {Icon && <Icon className="size-4 text-teal-400" />}
+        {Icon && <Icon className="size-4 text-foreground-secondary" />}
         {pillLabel && !Icon && (
           <Badge variant={pillVariant} className="text-[10px] py-0.5 px-2">
             {pillLabel}
@@ -51,7 +51,7 @@ export function MetricCard({
       </div>
 
       <div className="flex items-baseline gap-2">
-        <span className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight font-mono">
+        <span className="text-3xl sm:text-4xl font-semibold text-foreground tracking-tight font-mono">
           <AnimatedNumber
             value={value}
             format={format}
@@ -67,7 +67,7 @@ export function MetricCard({
       </div>
 
       {subtext && (
-        <div className="pt-2 border-t border-white/[0.05] flex items-center justify-between text-xs text-muted-foreground">
+        <div className="pt-2 border-t border-border flex items-center justify-between text-xs text-foreground-muted">
           <span>{subtext}</span>
         </div>
       )}

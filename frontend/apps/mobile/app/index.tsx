@@ -4,10 +4,11 @@ import {
   Text,
   StyleSheet,
   ScrollView,
+  Pressable,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Sparkles, Activity, ShieldCheck, ArrowRight } from 'lucide-react-native';
-import { MobileTheme } from '../lib/theme';
+import { Sparkles, Activity, ShieldCheck, ArrowRight, Sun, Moon } from 'lucide-react-native';
+import { useTheme } from '../lib/theme';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { Badge } from '../components/Badge';
@@ -15,11 +16,12 @@ import { FloatingBottomNav, TabKey } from '../components/FloatingBottomNav';
 
 export default function MobileHomeScreen() {
   const insets = useSafeAreaInsets();
+  const { colors, isDark, toggleTheme } = useTheme();
   const [activeTab, setActiveTab] = useState<TabKey>('home');
   const [portal, setPortal] = useState<'user' | 'admin'>('user');
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, { backgroundColor: colors.background }]}>
       <ScrollView
         contentContainerStyle={[
           styles.scrollContent,
@@ -33,77 +35,124 @@ export default function MobileHomeScreen() {
         {/* Top Header / Portal Switcher */}
         <View style={styles.headerRow}>
           <View style={styles.brandContainer}>
-            <View style={styles.brandIcon}>
-              <Sparkles size={16} color="#042F2E" />
+            <View
+              style={[
+                styles.brandIcon,
+                {
+                  backgroundColor: colors.surfaceElevated,
+                  borderColor: colors.border,
+                },
+              ]}
+            >
+              <Sparkles size={16} color={colors.textPrimary} />
             </View>
             <View>
-              <Text style={styles.brandTitle}>PARAKH</Text>
-              <Text style={styles.brandSubtitle}>Credit for the Invisible</Text>
+              <Text style={[styles.brandTitle, { color: colors.textPrimary }]}>PARAKH</Text>
+              <Text style={[styles.brandSubtitle, { color: colors.textSecondary }]}>Credit for the Invisible</Text>
             </View>
           </View>
 
-          {/* Quick Portal Switcher Pills */}
-          <View style={styles.portalToggle}>
-            <Button
-              title="Borrower"
-              size="sm"
-              variant={portal === 'user' ? 'mint' : 'outline'}
-              onPress={() => setPortal('user')}
-              style={styles.toggleButton}
-            />
-            <Button
-              title="Underwriter"
-              size="sm"
-              variant={portal === 'admin' ? 'mint' : 'outline'}
-              onPress={() => setPortal('admin')}
-              style={styles.toggleButton}
-            />
+          <View style={styles.headerActions}>
+            {/* Theme Switcher Pill */}
+            <Pressable
+              onPress={toggleTheme}
+              style={[
+                styles.themeToggleBtn,
+                {
+                  backgroundColor: colors.surfaceElevated,
+                  borderColor: colors.border,
+                },
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel={`Switch to ${isDark ? 'light' : 'dark'} mode`}
+            >
+              {isDark ? (
+                <Sun size={15} color={colors.textPrimary} />
+              ) : (
+                <Moon size={15} color={colors.textPrimary} />
+              )}
+            </Pressable>
+
+            {/* Quick Portal Switcher Pills */}
+            <View
+              style={[
+                styles.portalToggle,
+                {
+                  backgroundColor: colors.surfaceElevated,
+                  borderColor: colors.border,
+                },
+              ]}
+            >
+              <Button
+                title="Applicant"
+                size="sm"
+                variant={portal === 'user' ? 'default' : 'ghost'}
+                onPress={() => setPortal('user')}
+                style={styles.toggleButton}
+              />
+              <Button
+                title="Credit Reviewer"
+                size="sm"
+                variant={portal === 'admin' ? 'default' : 'ghost'}
+                onPress={() => setPortal('admin')}
+                style={styles.toggleButton}
+              />
+            </View>
           </View>
         </View>
 
         {/* Editorial Heading */}
         <View style={styles.editorialSection}>
           <Badge
-            label={portal === 'user' ? 'Borrower Assessment' : 'Underwriter Cockpit'}
-            variant="lavender"
-            icon={<Sparkles size={12} color={MobileTheme.colors.lavender} />}
+            label={portal === 'user' ? 'Applicant Assessment' : 'Credit Review Dashboard'}
+            variant="secondary"
+            icon={<Sparkles size={12} color={colors.textSecondary} />}
           />
-          <Text style={styles.editorialHeading}>
+          <Text style={[styles.editorialHeading, { color: colors.textPrimary }]}>
             {portal === 'user'
               ? 'Your PARAKH Assessment'
-              : 'Portfolio Risk Radar'}
+              : 'Applications for Review'}
           </Text>
-          <Text style={styles.editorialDescription}>
+          <Text style={[styles.editorialDescription, { color: colors.textSecondary }]}>
             {portal === 'user'
               ? 'Volatility-aware credit intelligence distinguishing healthy gig cycles from financial distress.'
-              : 'Algorithmic model metrics separated from human verification review outcomes.'}
+              : 'Algorithmic model metrics separated from human credit reviewer verification outcomes.'}
           </Text>
         </View>
 
         {/* Primary Benchmark Score Card */}
-        <Card interactive style={styles.benchmarkCard}>
+        <Card
+          interactive
+          style={[
+            styles.benchmarkCard,
+            {
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+            },
+          ]}
+        >
           <View style={styles.cardHeaderRow}>
-            <Text style={styles.cardSubtitle}>
+            <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
               {portal === 'user' ? 'Alternative Credit Score' : 'Cohort Benchmark'}
             </Text>
             <Badge label="LOWER ESTIMATED RISK" variant="riskLower" />
           </View>
 
           <View style={styles.scoreRow}>
-            <Text style={styles.scoreValue}>742</Text>
-            <Text style={styles.scoreMax}> / 850</Text>
+            <Text style={[styles.scoreValue, { color: colors.textPrimary }]}>742</Text>
+            <Text style={[styles.scoreMax, { color: colors.textMuted }]}> / 850</Text>
           </View>
 
-          <View style={styles.divider} />
+          <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
           <View style={styles.metaRow}>
             <View>
-              <Text style={styles.metaLabel}>Repayment Difficulty</Text>
-              <Text style={styles.metaValue}>21% (Low)</Text>
+              <Text style={[styles.metaLabel, { color: colors.textSecondary }]}>Repayment Difficulty</Text>
+              <Text style={[styles.metaValue, { color: colors.textPrimary }]}>21% (Low)</Text>
             </View>
             <View style={styles.alignRight}>
-              <Text style={styles.metaLabel}>Data Confidence</Text>
-              <Text style={[styles.metaValue, { color: MobileTheme.colors.mint }]}>
+              <Text style={[styles.metaLabel, { color: colors.textSecondary }]}>Data Confidence</Text>
+              <Text style={[styles.metaValue, { color: colors.textPrimary }]}>
                 87% High
               </Text>
             </View>
@@ -111,53 +160,70 @@ export default function MobileHomeScreen() {
         </Card>
 
         {/* Volatility Metrics Card */}
-        <Card interactive style={styles.metricCard}>
+        <Card
+          interactive
+          style={[
+            styles.metricCard,
+            {
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+            },
+          ]}
+        >
           <View style={styles.cardHeaderRow}>
-            <Text style={styles.cardSubtitle}>Volatility Resilience</Text>
-            <Activity size={16} color={MobileTheme.colors.mint} />
+            <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>Volatility Resilience</Text>
+            <Activity size={16} color={colors.textPrimary} />
           </View>
 
           <View style={styles.metricRow}>
-            <Text style={styles.metricValue}>94%</Text>
-            <Text style={styles.metricLabel}>Recovery rate after low-earning weeks</Text>
+            <Text style={[styles.metricValue, { color: colors.textPrimary }]}>94%</Text>
+            <Text style={[styles.metricLabel, { color: colors.textSecondary }]}>Recovery rate after low-earning weeks</Text>
           </View>
 
-          <View style={styles.divider} />
+          <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
           <View style={styles.metaRow}>
-            <Text style={styles.metaLabel}>Shock Cycle Count</Text>
-            <Text style={styles.metaValue}>3 Dips Fully Absorbed</Text>
+            <Text style={[styles.metaLabel, { color: colors.textSecondary }]}>Shock Cycle Count</Text>
+            <Text style={[styles.metaValue, { color: colors.textPrimary }]}>3 Dips Fully Absorbed</Text>
           </View>
         </Card>
 
-        {/* Contextual AI Insight Card (Reference Style) */}
-        <Card style={styles.aiCard}>
+        {/* Contextual AI Insight Card */}
+        <Card
+          style={[
+            styles.aiCard,
+            {
+              backgroundColor: colors.surfaceElevated,
+              borderColor: colors.border,
+            },
+          ]}
+        >
           <View style={styles.aiHeader}>
-            <Sparkles size={14} color={MobileTheme.colors.lavender} />
-            <Text style={styles.aiTitle}>PARAKH AI Insight</Text>
+            <Sparkles size={14} color={colors.textPrimary} />
+            <Text style={[styles.aiTitle, { color: colors.textPrimary }]}>PARAKH Decision Intelligence</Text>
           </View>
 
-          <Text style={styles.aiText}>
+          <Text style={[styles.aiText, { color: colors.textSecondary }]}>
             &ldquo;Weekly earning variations follow normal platform ride-hail seasonal rhythms.
             Zero missed utility payments over the past 6 shock cycles.&rdquo;
           </Text>
 
-          <View style={styles.aiFooter}>
-            <Text style={styles.aiSubtext}>Explainable Feature Signal</Text>
-            <Badge label="Validated" variant="lavender" />
+          <View style={[styles.aiFooter, { borderTopColor: colors.border }]}>
+            <Text style={[styles.aiSubtext, { color: colors.textMuted }]}>Explainable Feature Signal</Text>
+            <Badge label="Audited Metric" variant="secondary" />
           </View>
         </Card>
 
         {/* Action Button */}
         <Button
-          title={portal === 'user' ? 'Start New Assessment' : 'View Priority Queue (4)'}
+          title={portal === 'user' ? 'Start New Assessment' : 'Applications for Review (4)'}
           variant="default"
           size="default"
           icon={
             portal === 'user' ? (
-              <ArrowRight size={18} color="#042F2E" />
+              <ArrowRight size={18} color={isDark ? '#08090A' : '#FFFFFF'} />
             ) : (
-              <ShieldCheck size={18} color="#042F2E" />
+              <ShieldCheck size={18} color={isDark ? '#08090A' : '#FFFFFF'} />
             )
           }
           style={styles.primaryActionButton}
@@ -177,7 +243,6 @@ export default function MobileHomeScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: MobileTheme.colors.background,
   },
   scrollContent: {
     paddingHorizontal: 20,
@@ -188,6 +253,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 8,
+    flexWrap: 'wrap',
+    gap: 8,
   },
   brandContainer: {
     flexDirection: 'row',
@@ -197,46 +264,60 @@ const styles = StyleSheet.create({
   brandIcon: {
     width: 32,
     height: 32,
-    borderRadius: 10,
-    backgroundColor: MobileTheme.colors.mint,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
   },
   brandTitle: {
     fontSize: 16,
     fontWeight: '800',
-    color: MobileTheme.colors.textPrimary,
     letterSpacing: -0.2,
   },
   brandSubtitle: {
     fontSize: 10,
-    color: MobileTheme.colors.textSecondary,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  themeToggleBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
   },
   portalToggle: {
     flexDirection: 'row',
-    gap: 6,
+    alignItems: 'center',
+    padding: 3,
+    borderRadius: 9999,
+    borderWidth: 1,
+    gap: 4,
   },
   toggleButton: {
-    paddingVertical: 5,
+    paddingVertical: 4,
     paddingHorizontal: 10,
+    minHeight: 28,
   },
   editorialSection: {
     gap: 8,
     marginVertical: 4,
   },
   editorialHeading: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: '800',
-    color: MobileTheme.colors.textPrimary,
     letterSpacing: -0.5,
   },
   editorialDescription: {
-    fontSize: 14,
-    color: MobileTheme.colors.textSecondary,
-    lineHeight: 20,
+    fontSize: 13,
+    lineHeight: 19,
   },
   benchmarkCard: {
-    backgroundColor: MobileTheme.colors.surface,
+    borderWidth: 1,
   },
   cardHeaderRow: {
     flexDirection: 'row',
@@ -246,7 +327,6 @@ const styles = StyleSheet.create({
   },
   cardSubtitle: {
     fontSize: 13,
-    color: MobileTheme.colors.textSecondary,
     fontWeight: '500',
   },
   scoreRow: {
@@ -257,17 +337,14 @@ const styles = StyleSheet.create({
   scoreValue: {
     fontSize: 48,
     fontWeight: '900',
-    color: MobileTheme.colors.textPrimary,
     letterSpacing: -1,
   },
   scoreMax: {
     fontSize: 20,
-    color: MobileTheme.colors.textSecondary,
     fontWeight: '600',
   },
   divider: {
     height: 1,
-    backgroundColor: MobileTheme.colors.border,
     marginVertical: 12,
   },
   metaRow: {
@@ -280,16 +357,14 @@ const styles = StyleSheet.create({
   },
   metaLabel: {
     fontSize: 11,
-    color: MobileTheme.colors.textSecondary,
   },
   metaValue: {
     fontSize: 13,
     fontWeight: '700',
-    color: MobileTheme.colors.textPrimary,
     marginTop: 2,
   },
   metricCard: {
-    backgroundColor: MobileTheme.colors.surface,
+    borderWidth: 1,
   },
   metricRow: {
     marginVertical: 4,
@@ -297,16 +372,13 @@ const styles = StyleSheet.create({
   metricValue: {
     fontSize: 36,
     fontWeight: '800',
-    color: MobileTheme.colors.textPrimary,
   },
   metricLabel: {
     fontSize: 12,
-    color: MobileTheme.colors.textSecondary,
     marginTop: 2,
   },
   aiCard: {
-    backgroundColor: '#1E1B2E',
-    borderColor: 'rgba(196, 181, 253, 0.2)',
+    borderWidth: 1,
   },
   aiHeader: {
     flexDirection: 'row',
@@ -317,11 +389,9 @@ const styles = StyleSheet.create({
   aiTitle: {
     fontSize: 12,
     fontWeight: '700',
-    color: MobileTheme.colors.lavender,
   },
   aiText: {
     fontSize: 13,
-    color: '#DDD6FE',
     lineHeight: 19,
   },
   aiFooter: {
@@ -331,11 +401,9 @@ const styles = StyleSheet.create({
     marginTop: 10,
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(196, 181, 253, 0.1)',
   },
   aiSubtext: {
     fontSize: 11,
-    color: 'rgba(196, 181, 253, 0.6)',
   },
   primaryActionButton: {
     marginVertical: 8,
