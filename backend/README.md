@@ -55,11 +55,11 @@ HTTP Response
 5. **Migrations (`alembic/`)**:
    Managed schema evolution using Alembic revisions tied to `Base.metadata`.
 6. **Services (`app/services/`)**:
-   Business logic and orchestration layer. Will house workflows for credit assessment calculations, consent handling, and external integrations.
+   Business logic and orchestration layer encapsulating domain workflows, validations, and transaction boundaries.
 7. **Repositories (`app/repositories/`)**:
    Data access abstraction isolating database queries and persistence mechanisms from business logic.
 
-> **Note**: `services/` represents an architectural boundary prepared for upcoming tasks. The repository layer is fully implemented and tested. Authentication (JWT) and ML scoring logic will be introduced in subsequent tasks.
+> **Note**: Both the repository and service layers are fully implemented and tested. Authentication (JWT), ML scoring algorithms, and domain API routers will be introduced in subsequent tasks.
 
 ---
 
@@ -178,11 +178,79 @@ Repositories support flexible session binding:
 
 ### Decoupling from Business Logic
 - Repositories perform database access only.
-- Repositories **do not** make scoring decisions, calculate financial risk, enforce consent policy, hash passwords, or generate audit events. Orchestration and domain decisions remain strictly in the upcoming Service Layer.
+- Repositories **do not** make scoring decisions, calculate financial risk, enforce consent policy, hash passwords, or generate audit events. Orchestration and domain decisions remain strictly in the Service Layer.
 
 ---
 
-## 8. Local Setup & Configuration
+## 8. Service Layer (`app/services/`)
+
+The service layer is responsible for business logic, validation rules, workflow state machines, and transaction boundaries across the application:
+
+```
+HTTP Request / FastAPI
+       ↓
+ Service Layer (`app/services/`)
+       ↓
+Repository Layer (`app/repositories/`)
+       ↓
+SQLAlchemy Models (`app/models/`)
+       ↓
+PostgreSQL Database
+```
+
+### Domain Services & Responsibilities
+- **`UserService`**:
+  - Normalizes email addresses (lowercase, trimmed).
+  - Enforces email uniqueness via `DuplicateEntityError`.
+  - Dispatches entity creation and updates through `UserRepository`.
+  - Shields sensitive credential attributes from leaking.
+- **`ApplicantService`**:
+  - Manages gig worker profile creation and updates.
+  - Verifies existence of the associated `User` account.
+  - Enforces one-to-one constraint between User and `ApplicantProfile`.
+- **`ApplicationService`**:
+  - Manages alternative credit assessment applications.
+  - Validates applicant existence and verifies `requested_loan_amount > 0`.
+  - Implements a strict status transition state machine:
+    - `DRAFT → SUBMITTED`
+    - `SUBMITTED → UNDER_REVIEW`
+    - `UNDER_REVIEW → ASSESSED` or `MANUAL_REVIEW`
+    - `MANUAL_REVIEW → ASSESSED`
+    - `ASSESSED → COMPLETED`
+    - Rejects invalid or backward status transitions with `InvalidStateTransitionError`.
+- **`ConsentService`**:
+  - Records explicit applicant data access permissions by data category.
+  - Validates purpose strings and application/profile linkages.
+  - Queries active (unrevoked) consents and handles revocation timestamps.
+- **`FinancialSignalService`**:
+  - Persists aggregated and derived platform metrics (`average_income`, `payment_regularity`, `volatility`).
+  - Enforces strict data-minimization rules: immediately rejects raw transaction logs, bank account numbers, UPI IDs, merchant names, GPS coordinates, and contact lists with `ValidationError`.
+- **`AssessmentService`**:
+  - Manages credit evaluation output persistence and history.
+  - Validates application and model version linkages.
+  - Enforces strict bounds on `risk_probability` (0.0 to 1.0) and `confidence` (0.0 to 1.0).
+- **`ModelVersionService`**:
+  - Manages algorithmic model registry and metadata.
+  - Provides active scoring model resolution and provenance tracking.
+- **`ReviewService`**:
+  - Captures human credit officer adjudication decisions and notes.
+  - Validates reviewer user existence and application association.
+
+### Domain Exception Architecture
+Defined in `app/services/exceptions.py`, domain-level exceptions decouple raw database/driver errors from API consumers:
+- `ServiceError`: Base application service error.
+- `EntityNotFoundError`: Raised when an entity is missing.
+- `DuplicateEntityError`: Raised on uniqueness violations (e.g. duplicate email, duplicate profile).
+- `InvalidStateTransitionError`: Raised when an illegal lifecycle status change is requested.
+- `ValidationError`: Raised on business logic constraint failures.
+
+### Transaction Boundaries & Rollback
+- Repositories default to `flush()` without auto-committing.
+- Services define the transaction unit of work boundary: executing repository changes, committing on success, and executing `self.db.rollback()` upon unexpected failures before propagating errors.
+
+---
+
+## 9. Local Setup & Configuration
 
 ### Prerequisites
 - Python 3.10+ (tested on Python 3.12)
@@ -236,7 +304,7 @@ Repositories support flexible session binding:
 
 ---
 
-## 9. Database Migrations (Alembic)
+## 10. Database Migrations (Alembic)
 
 Schema migrations are managed with Alembic. The database connection URL is dynamically read from `app.core.config.settings.DATABASE_URL` without hardcoding credentials into source files.
 
@@ -280,7 +348,7 @@ Schema migrations are managed with Alembic. The database connection URL is dynam
 
 ---
 
-## 10. Endpoints
+## 11. Endpoints
 
 | Method | Endpoint | Description | Sample Response (Success) |
 |---|---|---|---|
@@ -306,19 +374,19 @@ curl -s http://127.0.0.1:8000/api/v1/database/health
 
 ---
 
-## 11. Running Tests
+## 12. Running Tests
 
 Run the full unit and integration test suite:
 ```bash
 python -m unittest discover -s tests -p "test_*.py" -v
 ```
 
-- **Unit tests**: Validate configuration, SQLAlchemy engine creation, DeclarativeBase inheritance, `get_db()` lifecycle, domain model relationships, constraints, data minimization, Alembic configuration/offline migrations, Pydantic schema validation/ORM compatibility, and repository CRUD/specialized query behavior.
-- **Integration tests**: Automatically attempt live `SELECT 1` and repository queries against PostgreSQL if available. If PostgreSQL is offline locally, integration tests skip gracefully without failing the build.
+- **Unit tests**: Validate configuration, SQLAlchemy engine creation, DeclarativeBase inheritance, `get_db()` lifecycle, domain model relationships, constraints, data minimization, Alembic configuration/offline migrations, Pydantic schema validation/ORM compatibility, repository CRUD/specialized query behavior, and service business rules/validations/state machines.
+- **Integration tests**: Automatically execute live `SELECT 1`, repository queries, and service transactional workflows against PostgreSQL if available. If PostgreSQL is offline locally, integration tests skip gracefully without failing the build.
 
 ---
 
-## 12. Project Structure
+## 13. Project Structure
 ```
 backend/
 ├── alembic.ini               # Alembic CLI configuration (credentials omitted)
@@ -375,7 +443,16 @@ backend/
 │   │   ├── review.py        # ReviewRepository & ReviewOutcomeRepository
 │   │   └── audit.py         # AuditRepository & AuditLogRepository
 │   └── services/
-│       └── __init__.py      # Business logic orchestration (placeholder)
+│       ├── __init__.py      # Exports all domain services and exceptions
+│       ├── exceptions.py    # Domain service exceptions (EntityNotFoundError, etc.)
+│       ├── user.py          # UserService
+│       ├── applicant.py     # ApplicantService
+│       ├── application.py   # ApplicationService
+│       ├── consent.py       # ConsentService
+│       ├── financial_signal.py # FinancialSignalService
+│       ├── assessment.py    # AssessmentService
+│       ├── model_version.py # ModelVersionService
+│       └── review.py        # ReviewService
 │
 ├── tests/
 │   ├── __init__.py
@@ -384,7 +461,8 @@ backend/
 │   ├── test_models.py       # Domain model structure, relationship, and constraint tests
 │   ├── test_migrations.py   # Alembic configuration and migration generation tests
 │   ├── test_schemas.py      # Pydantic request/response schema validation & ORM tests
-│   └── test_repositories.py # Repository CRUD and specialized query unit/integration tests
+│   ├── test_repositories.py # Repository CRUD and specialized query tests
+│   └── test_services.py     # Service layer business logic, validation, and workflow tests
 │
 ├── .env.example             # Example configuration template with DATABASE_URL
 ├── .gitignore               # Ignored files (.env, .venv, caches)
