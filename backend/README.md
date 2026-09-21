@@ -255,7 +255,84 @@ Defined in `app/services/exceptions.py`, domain-level exceptions decouple raw da
 
 ---
 
-## 9. Local Setup & Configuration
+## 9. Assessment Engine Interface (`app/assessment/`)
+
+The assessment engine interface establishes a framework-independent, decoupled contract defining how alternative credit scoring mechanisms ingest applicant and financial features and produce credit decisions.
+
+### Architecture & Decoupling
+```
+Application / Financial Signals / Applicant Profile
+                       ↓
+         AssessmentInput (Adapter / Contract)
+                       ↓
+          AssessmentEngine (Abstract ABC)
+       ┌───────────────┴───────────────┐
+       ↓                               ↓
+TASK 10 Mock Engine         Future ML / XGBoost Model
+       └───────────────┬───────────────┘
+                       ↓
+         AssessmentResult (Standardized Output)
+                       ↓
+   CreditAssessment (Persistence / Domain Model)
+```
+
+### Core Interface Components
+1. **`AssessmentEngine` (`app/assessment/base.py`)**:
+   - Abstract Base Class (`abc.ABC`) defining the scoring contract.
+   - Requires concrete engines to implement `assess(input_data: AssessmentInput) -> AssessmentResult`.
+   - Exposes model provenance properties (`engine_name`, `engine_version`).
+   - Completely independent from SQLAlchemy sessions, repositories, FastAPI routes, and external ML frameworks.
+
+2. **`AssessmentInput` (`app/assessment/schemas.py`)**:
+   - Strict Pydantic contract encapsulating only the aggregate features required for assessment:
+     - Application identifiers and loan terms (`requested_loan_amount`, `loan_tenure_months`, `loan_purpose`).
+     - Gig work profile indicators (`gig_work_type`, `years_working`, `average_working_days`).
+     - Derived, aggregated financial metrics (`average_income`, `payment_regularity`, `volatility`, `cashflow_buffer`, `existing_obligation`, `platform_rating`).
+     - Sanitized custom derived features dictionary (`derived_features`).
+   - Features adapter method `AssessmentInput.from_domain_objects(...)` to build inputs directly from application, profile, and signal models.
+
+3. **`AssessmentResult` (`app/assessment/schemas.py`)**:
+   - Standardized evaluation output containing:
+     - `score`: Alternative credit score bounded `[0, 1000]` (nullable for cold-start / insufficient evidence).
+     - `risk_probability`: Estimated probability of default bounded `[0, 1]`.
+     - `confidence`: Model confidence level bounded `[0, 1]`.
+     - `risk_level`: Categorical risk tier strictly reusing the domain `RiskLevel` enum (`LOWER`, `MODERATE`, `HIGHER`, `INSUFFICIENT`).
+     - Model provenance (`model_name`, `model_version`).
+     - Key driving factors and explainability metadata (`key_factors`, `explanation`).
+   - Features adapter method `to_credit_assessment_create(...)` to seamlessly bridge output into the `CreditAssessmentCreate` schema.
+
+4. **Engine Exceptions (`app/assessment/exceptions.py`)**:
+   - `AssessmentEngineError`: Base exception for engine failures.
+   - `AssessmentInputError`: Raised when input data is malformed, missing required fields, or violates privacy policies.
+   - `AssessmentNotImplementedError`: Raised when a requested scoring algorithm or mode is unsupported.
+   - `AssessmentOutputError`: Raised when an engine returns unexpected or invalid output.
+
+### Privacy & Data Minimization Boundary
+The assessment contract strictly enforces PARAKH's data-minimization architecture:
+- Declares `model_config = ConfigDict(extra="forbid")` on `AssessmentInput` to prevent unapproved fields.
+- Implements recursive validator `validate_privacy_and_prohibited_fields` rejecting any raw or privacy-invasive attributes:
+  - Raw bank transactions, statements, or ledger rows
+  - Raw UPI logs, transaction IDs, or VPA handles
+  - Merchant names, descriptions, or transaction details
+  - GPS coordinates, location traces, or travel history
+  - Phone contacts or address book entries
+  - Bank credentials, passwords, or authentication secrets
+
+### Service Integration & Dependency Injection
+`AssessmentService` accepts an optional engine dependency:
+```python
+service = AssessmentService(db=session, engine=my_engine)
+assessment = service.assess_application(application_id=app_id)
+```
+- Decoupled execution: `AssessmentService` builds `AssessmentInput`, invokes `engine.assess()`, validates output types, and persists the resulting `CreditAssessment` record through standard transactional unit-of-work semantics.
+
+### Distinction: TASK 09 Interface vs. TASK 10 Mock Engine
+- **TASK 09 (This Task)**: Defines the framework-agnostic **interface contract**, abstract base class, data-minimization schemas, exception hierarchy, and service dependency-injection hooks. No concrete scoring logic is implemented.
+- **TASK 10 (Next Task)**: Will provide the **concrete mock scoring engine** (`MockAssessmentEngine`) implementing the `AssessmentEngine` contract with deterministic scoring rules, risk band assignments, and simulated explainability factors.
+
+---
+
+## 10. Local Setup & Configuration
 
 ### Prerequisites
 - Python 3.10+ (tested on Python 3.12)
@@ -309,7 +386,7 @@ Defined in `app/services/exceptions.py`, domain-level exceptions decouple raw da
 
 ---
 
-## 10. Database Migrations (Alembic)
+## 11. Database Migrations (Alembic)
 
 Schema migrations are managed with Alembic. The database connection URL is dynamically read from `app.core.config.settings.DATABASE_URL` without hardcoding credentials into source files.
 
@@ -353,7 +430,7 @@ Schema migrations are managed with Alembic. The database connection URL is dynam
 
 ---
 
-## 11. Endpoints
+## 12. Endpoints
 
 | Method | Endpoint | Description | Sample Response (Success) |
 |---|---|---|---|
@@ -379,19 +456,19 @@ curl -s http://127.0.0.1:8000/api/v1/database/health
 
 ---
 
-## 12. Running Tests
+## 13. Running Tests
 
 Run the full unit and integration test suite:
 ```bash
 python -m unittest discover -s tests -p "test_*.py" -v
 ```
 
-- **Unit tests**: Validate configuration, SQLAlchemy engine creation, DeclarativeBase inheritance, `get_db()` lifecycle, domain model relationships, constraints, data minimization, Alembic configuration/offline migrations, Pydantic schema validation/ORM compatibility, repository CRUD/specialized query behavior, service business rules/validations/state machines, and consent/privacy authorization enforcement.
-- **Integration tests**: Automatically execute live `SELECT 1`, repository queries, service transactional workflows, and end-to-end consent lifecycle/revocation checks against PostgreSQL if available. If PostgreSQL is offline locally, integration tests skip gracefully without failing the build.
+- **Unit tests**: Validate configuration, SQLAlchemy engine creation, DeclarativeBase inheritance, `get_db()` lifecycle, domain model relationships, constraints, data minimization, Alembic configuration/offline migrations, Pydantic schema validation/ORM compatibility, repository CRUD/specialized query behavior, service business rules/validations/state machines, consent/privacy authorization enforcement, and assessment engine contracts/validation.
+- **Integration tests**: Automatically execute live `SELECT 1`, repository queries, service transactional workflows, end-to-end consent lifecycle/revocation checks, and assessment engine execution/persistence against PostgreSQL if available. If PostgreSQL is offline locally, integration tests skip gracefully without failing the build.
 
 ---
 
-## 13. Project Structure
+## 14. Project Structure
 ```
 backend/
 ├── alembic.ini               # Alembic CLI configuration (credentials omitted)
@@ -411,6 +488,11 @@ backend/
 │   │   ├── __init__.py
 │   │   ├── config.py        # Pydantic Settings (APP_NAME, DATABASE_URL, etc.)
 │   │   └── database.py      # Engine, SessionLocal, get_db session dependency
+│   ├── assessment/
+│   │   ├── __init__.py      # Exports AssessmentEngine, contracts, and exceptions
+│   │   ├── base.py          # Abstract Base Class AssessmentEngine
+│   │   ├── schemas.py       # AssessmentInput, AssessmentResult, data minimization
+│   │   └── exceptions.py    # AssessmentEngineError, AssessmentInputError, etc.
 │   ├── schemas/
 │   │   ├── __init__.py      # Exports all public request/response schemas
 │   │   ├── common.py        # StatusResponse and DatabaseHealthResponse schemas
@@ -468,7 +550,8 @@ backend/
 │   ├── test_schemas.py      # Pydantic request/response schema validation & ORM tests
 │   ├── test_repositories.py # Repository CRUD and specialized query tests
 │   ├── test_services.py     # Service layer business logic, validation, and workflow tests
-│   └── test_consent_privacy.py # Consent authorization, independent sources & privacy tests
+│   ├── test_consent_privacy.py # Consent authorization, independent sources & privacy tests
+│   └── test_assessment_engine.py # Assessment engine interface, contracts, & privacy tests
 │
 ├── .env.example             # Example configuration template with DATABASE_URL
 ├── .gitignore               # Ignored files (.env, .venv, caches)
