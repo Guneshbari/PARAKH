@@ -1,0 +1,10 @@
+{
+  "name": "@parakh/validation",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "dependencies": {
+    "zod": "^3.24.2 || ^4.0.0"
+  }
+}
