@@ -11,6 +11,7 @@ This directory (`PARAKH/backend/`) contains the **FastAPI** backend service resp
 - **Framework**: [FastAPI](https://fastapi.tiangolo.com/) (Python web framework for high-performance APIs)
 - **ASGI Server**: [Uvicorn](https://www.uvicorn.org/)
 - **Database ORM**: [SQLAlchemy 2.0](https://www.sqlalchemy.org/) (SQL toolkit and Object Relational Mapper)
+- **Database Migrations**: [Alembic](https://alembic.sqlalchemy.org/) (Schema migration environment)
 - **Database Driver**: [psycopg (v3)](https://www.psycopg.org/) (High-performance PostgreSQL adapter)
 - **Relational Database**: [PostgreSQL](https://www.postgresql.org/)
 - **Configuration & Validation**: [Pydantic](https://docs.pydantic.dev/) and [pydantic-settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/)
@@ -45,12 +46,14 @@ PostgreSQL Database
    Pydantic models defining input validation rules and output response serialization contracts (`StatusResponse`, `DatabaseHealthResponse`).
 4. **Models (`app/models/`)**:
    SQLAlchemy 2.0 domain entities and DeclarativeBase providing the data model for accounts, profiles, applications, consents, signals, and assessments.
-5. **Services (`app/services/`)**:
+5. **Migrations (`alembic/`)**:
+   Managed schema evolution using Alembic revisions tied to `Base.metadata`.
+6. **Services (`app/services/`)**:
    Business logic and orchestration layer. Will house workflows for credit assessment calculations, consent handling, and external integrations.
-6. **Repositories (`app/repositories/`)**:
+7. **Repositories (`app/repositories/`)**:
    Data access abstraction isolating database queries and persistence mechanisms from business logic.
 
-> **Note**: `services/` and `repositories/` represent architectural boundaries prepared for future implementation. Database migrations (Alembic), authentication (JWT), and ML scoring logic will be introduced in subsequent tasks.
+> **Note**: `services/` and `repositories/` represent architectural boundaries prepared for future implementation. Authentication (JWT) and ML scoring logic will be introduced in subsequent tasks.
 
 ---
 
@@ -61,6 +64,7 @@ PostgreSQL Database
 - **Driver**: `psycopg` (v3 with binary extensions) serves as the modern DBAPI driver.
 - **Declarative Base**: Defined in `app/models/base.py` with common mixins for UUID primary keys and timezone-aware timestamps.
 - **Session Lifecycle**: The `get_db()` dependency yields a scoped SQLAlchemy `Session` per request and ensures it is reliably closed upon completion.
+- **Schema Migrations**: Schema evolution is strictly managed via Alembic (never `Base.metadata.create_all()`).
 
 ---
 
@@ -99,19 +103,13 @@ AuditLog
 8. **ReviewOutcome (`review_outcomes`)**: Decision support record capturing human reviewer evaluation (`REVIEWED`, `ESCALATED`, `ADDITIONAL_INFORMATION_REQUIRED`) with notes.
 9. **AuditLog (`audit_logs`)**: Immutable audit trail of system and user events with JSONB metadata. Foreign keys use `ON DELETE SET NULL` to preserve historical integrity.
 
-### Data Model Conventions:
-- **Primary Keys**: Universal `UUID` strategy across all entities.
-- **Timestamps**: Timezone-aware UTC `DateTime(timezone=True)` with server defaults.
-- **Monetary Fields**: Fixed-precision `Numeric(12, 2)` preventing floating-point rounding errors.
-- **Constraints**: Non-negative monetary check constraints, risk probability bounds [0, 1], and email uniqueness.
-
 ---
 
 ## 6. Local Setup & Configuration
 
 ### Prerequisites
 - Python 3.10+ (tested on Python 3.12)
-- PostgreSQL 14+ installed and running locally (optional for initial mock/unit testing)
+- PostgreSQL 14+ installed and running locally (optional for offline testing and SQL generation)
 
 ### Step-by-Step Instructions (Linux / macOS)
 
@@ -161,7 +159,58 @@ AuditLog
 
 ---
 
-## 7. Endpoints
+## 7. Database Migrations (Alembic)
+
+Schema migrations are managed with Alembic. The database connection URL is dynamically read from `app.core.config.settings.DATABASE_URL` without hardcoding credentials into source files.
+
+### Common Migration Commands
+
+1. **Activate the virtual environment**:
+   ```bash
+   cd backend
+   source .venv/bin/activate
+   ```
+
+2. **Check current applied revision**:
+   ```bash
+   alembic current
+   ```
+
+3. **View revision history**:
+   ```bash
+   alembic history --verbose
+   ```
+
+4. **Apply migrations to latest version (when PostgreSQL is active)**:
+   ```bash
+   alembic upgrade head
+   ```
+
+5. **Generate future migrations automatically from models**:
+   ```bash
+   alembic revision --autogenerate -m "description_of_changes"
+   ```
+
+6. **Generate SQL offline (without connecting to PostgreSQL)**:
+   ```bash
+   alembic upgrade base:head --sql
+   ```
+
+7. **Revert the last migration**:
+   ```bash
+   alembic downgrade -1
+   ```
+
+> **Note on Local PostgreSQL Availability**:
+> If PostgreSQL is currently offline, live `alembic upgrade head` cannot connect to apply migrations directly. You can inspect and verify migrations offline using `alembic upgrade base:head --sql`.
+> Once PostgreSQL is running and `.env` is configured, run:
+> ```bash
+> alembic upgrade head
+> ```
+
+---
+
+## 8. Endpoints
 
 | Method | Endpoint | Description | Sample Response (Success) |
 |---|---|---|---|
@@ -188,25 +237,30 @@ curl -s http://127.0.0.1:8000/api/v1/database/health
 > **Database Health Check Behavior**:
 > - If PostgreSQL is connected: returns `HTTP 200` with `{"status": "healthy", "database": "connected"}`.
 > - If PostgreSQL is unavailable: returns `HTTP 503` with `{"status": "unhealthy", "database": "disconnected"}` without leaking internal credentials, host details, or tracebacks.
-> - Note: This endpoint only verifies raw database connectivity. Business tables do not exist yet.
 
 ---
 
-## 8. Running Tests
+## 9. Running Tests
 
 Run the full unit and integration test suite:
 ```bash
 python -m unittest discover -s tests -p "test_*.py" -v
 ```
 
-- **Unit tests**: Validate configuration, SQLAlchemy engine creation, DeclarativeBase inheritance, `get_db()` lifecycle, domain model relationships, constraints, and data minimization.
+- **Unit tests**: Validate configuration, SQLAlchemy engine creation, DeclarativeBase inheritance, `get_db()` lifecycle, domain model relationships, constraints, data minimization, and Alembic configuration / offline migration generation.
 - **Integration tests**: Automatically attempt live `SELECT 1` queries against PostgreSQL if available. If PostgreSQL is offline locally, integration tests skip gracefully without failing the build.
 
 ---
 
-## 9. Project Structure
+## 10. Project Structure
 ```
 backend/
+├── alembic.ini               # Alembic CLI configuration (credentials omitted)
+├── alembic/
+│   ├── env.py                # Migration runtime environment configured with Base.metadata
+│   ├── script.py.mako        # Migration script generation template
+│   └── versions/
+│       └── fd385d59e799_initial_schema.py  # Initial PARAKH schema migration
 ├── app/
 │   ├── __init__.py
 │   ├── main.py              # FastAPI application entrypoint
@@ -242,7 +296,8 @@ backend/
 │   ├── __init__.py
 │   ├── test_health.py       # API endpoints and database health tests
 │   ├── test_database.py     # Database engine, session, and unit/integration tests
-│   └── test_models.py       # Domain model structure, relationship, and constraint tests
+│   ├── test_models.py       # Domain model structure, relationship, and constraint tests
+│   └── test_migrations.py   # Alembic configuration and migration generation tests
 │
 ├── .env.example             # Example configuration template with DATABASE_URL
 ├── .gitignore               # Ignored files (.env, .venv, caches)
