@@ -1079,6 +1079,7 @@ class TestAuditPostgresLiveIntegration(unittest.TestCase):
             for pid in created_profile_ids:
                 self.session.execute(text("DELETE FROM applicant_profiles WHERE id = :id"), {"id": pid})
             for mvid in created_model_version_ids:
+                self.session.execute(text("DELETE FROM audit_logs WHERE entity_id = :id"), {"id": str(mvid)})
                 self.session.execute(text("DELETE FROM model_versions WHERE id = :id"), {"id": mvid})
             for uid in created_user_ids:
                 self.session.execute(text("DELETE FROM audit_logs WHERE user_id = :id"), {"id": uid})

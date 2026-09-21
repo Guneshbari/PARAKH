@@ -897,3 +897,100 @@ A comprehensive 35-test suite in `backend/tests/test_audit_logging.py` validates
 - Admin-only retrieval endpoint security.
 - Live PostgreSQL integration lifecycle and end-to-end audit trails with complete database cleanup.
 
+---
+
+## 15. Testing & Quality Assurance (TASK 14)
+
+### 15.1 Testing Architecture & Test Organization
+The PARAKH backend employs a multi-tiered testing strategy structured under `backend/tests/`:
+
+```
+backend/tests/
+├── __init__.py
+├── helpers.py                       # Reusable factories, token generators, and DB cleanup utilities
+├── test_models.py                   # SQLAlchemy model definitions, relations, constraints, nullability, defaults
+├── test_schemas.py                  # Pydantic request/response validation, bounds, forbidden sensitive fields
+├── test_repositories.py             # Repository CRUD, filtering, pagination, model association, isolation
+├── test_services.py                 # Domain services, state transitions, domain exceptions, rollback
+├── test_authentication.py           # Bcrypt password hashing, JWT lifecycle, RBAC, ownership enforcement
+├── test_consent_privacy.py          # Consent gates, independent categories, soft revocation, data minimization
+├── test_assessment_engine.py        # AssessmentEngine interface contracts, ABC compliance, bounds validation
+├── test_mock_assessment_engine.py   # Deterministic scoring, explainability factors, insufficient evidence handling
+├── test_api_routes.py               # FastAPI routers, exception handlers (400, 401, 403, 404, 409, 422, 500, 501)
+├── test_audit_logging.py            # Audit event tracking, recursive privacy sanitization, admin endpoints
+├── test_integration.py              # End-to-end authenticated workflows (PostgreSQL & SQLite in-memory)
+├── test_database.py                 # Database connectivity, pool configuration, engine health
+├── test_health.py                   # Service health check endpoints (/health, /api/v1/status)
+└── test_migrations.py               # Alembic migration status, schema integrity, version tracking
+```
+
+### 15.2 Test Categories & Isolation Strategy
+1. **Isolated Unit Tests (In-Memory)**:
+   - Evaluates business rules, services, repositories, and schemas without network or disk dependencies using isolated SQLite in-memory databases (`StaticPool`).
+   - Mock sessions are used where needed to verify SQL method invocation and rollback behavior.
+2. **PostgreSQL Integration Tests (Live Database)**:
+   - Executes live SQL statements, migrations, foreign key cascading, and database transaction rollbacks against real PostgreSQL (`parakh_db`).
+   - Strict teardown routines clean up child and parent records in reverse dependency order, ensuring 0 test artifacts remain in any table.
+3. **End-to-End Authenticated Workflow Testing**:
+   - `test_integration.py` runs a complete 18-step authenticated workflow:
+     1. User account registration (`POST /api/v1/users`)
+     2. Authenticated login and token generation (`POST /api/v1/auth/login`)
+     3. Identity and role verification (`GET /api/v1/auth/me`)
+     4. Applicant gig profile creation (`POST /api/v1/applicants`)
+     5. Application initiation in DRAFT state (`POST /api/v1/applications`)
+     6. Transition to SUBMITTED state (`PATCH /api/v1/applications/{id}/status`)
+     7. Explicit applicant consent grant (`POST /api/v1/consents`)
+     8. Ingestion of aggregated financial indicators (`POST /api/v1/applications/{id}/financial-signals`)
+     9. Scoring model version registration by Admin (`POST /api/v1/model-versions`)
+     10. Algorithmic credit assessment evaluation (`POST /api/v1/applications/{id}/assess`)
+     11. Assessment retrieval and verification (`GET /api/v1/assessments/{id}`)
+     12. Pipeline progression to MANUAL_REVIEW via Reviewer
+     13. Reviewer authentication and role check
+     14. Submission of human review outcome (`POST /api/v1/applications/{id}/reviews`)
+     15. Final progression to COMPLETED status
+     16. Administrative audit trail retrieval (`GET /api/v1/audit-logs`)
+     17. Verification of audit events and absolute privacy sanitization
+     18. Cross-applicant isolation (rejecting unauthorized tenant access with HTTP 403)
+     19. Full PostgreSQL database cleanup leaving zero rows behind
+
+### 15.3 Security, Privacy & RBAC Verification
+- **Authentication**: Validates bcrypt password hashing, signature verification, token expiration, forged signatures, and missing Authorization headers.
+- **RBAC**: Validates three distinct roles: `APPLICANT`, `REVIEWER`, `ADMIN`.
+- **Ownership Isolation**: Verifies applicants cannot view, modify, or assess applications or profiles owned by other gig workers.
+- **Privacy & Data Minimization**: Prohibits raw bank transactions, credentials, UPI IDs, merchant details, GPS coordinates, and contact lists across schemas, models, and audit logs.
+
+### 15.4 Executing the Test Suite
+
+Run the complete backend test suite using Python's standard `unittest` runner:
+```bash
+cd backend
+python3 -m unittest discover -s tests -p "test_*.py" -v
+```
+
+Run specific test modules:
+```bash
+# Run integration tests
+python3 -m unittest discover -s tests -p "test_integration.py" -v
+
+# Run authentication and RBAC tests
+python3 -m unittest discover -s tests -p "test_authentication.py" -v
+
+# Run API router tests
+python3 -m unittest discover -s tests -p "test_api_routes.py" -v
+
+# Run audit logging and privacy tests
+python3 -m unittest discover -s tests -p "test_audit_logging.py" -v
+```
+
+### 15.5 Verified Test Results
+- **Test Command**: `python3 -m unittest discover -s tests -p "test_*.py"`
+- **Total Tests**: 200
+- **Passed**: 200
+- **Failed**: 0
+- **Errors**: 0
+- **Skipped**: 0
+- **Runtime**: ~20.4 seconds
+- **Regression Status**: Zero regressions across TASKS 01–13.
+- **PostgreSQL Residual State**: 0 rows across all tables (`users`, `applicant_profiles`, `applications`, `consents`, `financial_signals`, `model_versions`, `credit_assessments`, `review_outcomes`, `audit_logs`).
+
+

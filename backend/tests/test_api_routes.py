@@ -117,6 +117,11 @@ class TestApiRoutesWithLivePostgres(unittest.TestCase):
         with SessionLocal() as db:
             for entity_type, entity_id in reversed(self.cleanup_items):
                 try:
+                    raw_uuid = entity_id if isinstance(entity_id, uuid.UUID) else uuid.UUID(str(entity_id))
+                    db.execute(
+                        text("DELETE FROM audit_logs WHERE entity_id = :str_id OR application_id = :uuid_id OR user_id = :uuid_id"),
+                        {"str_id": str(raw_uuid), "uuid_id": raw_uuid},
+                    )
                     if entity_type == "review":
                         db.execute(text("DELETE FROM review_outcomes WHERE id = :id"), {"id": str(entity_id)})
                     elif entity_type == "assessment":
@@ -916,6 +921,11 @@ class TestApiLivePostgreSqlPipeline(unittest.TestCase):
             with SessionLocal() as db:
                 for entity_type, entity_id in reversed(cleanup_stack):
                     try:
+                        raw_uuid = entity_id if isinstance(entity_id, uuid.UUID) else uuid.UUID(str(entity_id))
+                        db.execute(
+                            text("DELETE FROM audit_logs WHERE entity_id = :str_id OR application_id = :uuid_id OR user_id = :uuid_id"),
+                            {"str_id": str(raw_uuid), "uuid_id": raw_uuid},
+                        )
                         if entity_type == "assessment":
                             db.execute(text("DELETE FROM credit_assessments WHERE id = :id"), {"id": str(entity_id)})
                         elif entity_type == "financial_signal":

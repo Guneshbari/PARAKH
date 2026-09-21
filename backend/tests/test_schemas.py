@@ -331,5 +331,87 @@ class TestPydanticSchemas(unittest.TestCase):
         self.assertEqual(resp.metadata["channel"], "api")
 
 
+class TestSchemaEdgeCasesAndValidation(unittest.TestCase):
+    """Explicit tests for missing fields, invalid types, invalid UUIDs, and prohibited data."""
+
+    def test_missing_required_fields_raises_validation_error(self) -> None:
+        """Verify ValidationError is raised when required schema fields are missing."""
+        # UserCreate missing email
+        with self.assertRaises(ValidationError):
+            UserCreate.model_validate({"password": "Password123!"})
+
+        # UserCreate missing password
+        with self.assertRaises(ValidationError):
+            UserCreate.model_validate({"email": "test@example.com"})
+
+        # ApplicationCreate missing requested_loan_amount
+        with self.assertRaises(ValidationError):
+            ApplicationCreate.model_validate({"applicant_profile_id": str(uuid.uuid4())})
+
+        # ConsentCreate missing purpose
+        with self.assertRaises(ValidationError):
+            ConsentCreate.model_validate({
+                "application_id": str(uuid.uuid4()),
+                "data_source": ConsentDataSource.PLATFORM,
+            })
+
+    def test_invalid_uuid_strings_raise_validation_error(self) -> None:
+        """Verify invalid non-UUID strings are rejected by Pydantic."""
+        with self.assertRaises(ValidationError):
+            ApplicationCreate(
+                applicant_profile_id="not-a-valid-uuid",  # type: ignore
+                requested_loan_amount=Decimal("10000.00"),
+            )
+
+        with self.assertRaises(ValidationError):
+            CreditAssessmentCreate(
+                application_id="invalid-uuid-string",  # type: ignore
+                model_version_id=uuid.uuid4(),
+                risk_level=RiskLevel.LOWER,
+            )
+
+    def test_invalid_enum_values_raise_validation_error(self) -> None:
+        """Verify invalid enum strings are rejected."""
+        with self.assertRaises(ValidationError):
+            CreditAssessmentCreate(
+                application_id=uuid.uuid4(),
+                model_version_id=uuid.uuid4(),
+                risk_level="EXTREME_RISK",  # Not in RiskLevel enum
+            )
+
+        with self.assertRaises(ValidationError):
+            ReviewOutcomeCreate(
+                application_id=uuid.uuid4(),
+                reviewer_id=uuid.uuid4(),
+                outcome="INVALID_OUTCOME",  # Not in ReviewOutcomeType
+            )
+
+    def test_prohibited_privacy_fields_not_in_any_schema(self) -> None:
+        """Verify privacy-prohibited sensitive fields do not exist on any schema."""
+        forbidden = ["password_hash", "gps", "location", "contact", "bank_statement", "upi_raw"]
+        schemas_to_check = [
+            ApplicantProfileCreate,
+            ApplicantProfileResponse,
+            ApplicationCreate,
+            ApplicationResponse,
+            ConsentCreate,
+            ConsentResponse,
+            FinancialSignalCreate,
+            FinancialSignalResponse,
+            CreditAssessmentCreate,
+            CreditAssessmentResponse,
+            UserResponse,
+        ]
+        for schema in schemas_to_check:
+            for field in schema.model_fields:
+                for bad in forbidden:
+                    self.assertNotIn(
+                        bad,
+                        field.lower(),
+                        f"Prohibited field '{field}' in schema '{schema.__name__}'",
+                    )
+
+
 if __name__ == "__main__":
     unittest.main()
+

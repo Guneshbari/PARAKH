@@ -115,7 +115,9 @@ class TestPasswordSecurity(unittest.TestCase):
                 self.assertTrue(verify_password(plain_password, stored_hash))
         finally:
             with SessionLocal() as db:
-                db.execute(text("DELETE FROM users WHERE id = :id"), {"id": user_id})
+                raw_uuid = uuid.UUID(user_id)
+                db.execute(text("DELETE FROM audit_logs WHERE user_id = :u OR entity_id = :s"), {"u": raw_uuid, "s": user_id})
+                db.execute(text("DELETE FROM users WHERE id = :id"), {"id": raw_uuid})
                 db.commit()
 
     def test_05_password_hash_never_exposed_in_api_response(self):
@@ -156,7 +158,9 @@ class TestPasswordSecurity(unittest.TestCase):
             self.assertNotIn("password_hash", me_data)
         finally:
             with SessionLocal() as db:
-                db.execute(text("DELETE FROM users WHERE id = :id"), {"id": user_id})
+                raw_uuid = uuid.UUID(user_id)
+                db.execute(text("DELETE FROM audit_logs WHERE user_id = :u OR entity_id = :s"), {"u": raw_uuid, "s": user_id})
+                db.execute(text("DELETE FROM users WHERE id = :id"), {"id": raw_uuid})
                 db.commit()
 
 
@@ -237,8 +241,20 @@ class TestAuthenticationEndpoints(unittest.TestCase):
 
     def tearDown(self):
         with SessionLocal() as db:
-            db.execute(text("DELETE FROM users WHERE id = :id"), {"id": self.user_id})
-            db.commit()
+            try:
+                raw_uuid = uuid.UUID(self.user_id)
+                db.execute(
+                    text("DELETE FROM audit_logs WHERE user_id = :uuid_id OR entity_id = :str_id"),
+                    {"uuid_id": raw_uuid, "str_id": self.user_id},
+                )
+                db.execute(
+                    text("DELETE FROM audit_logs WHERE metadata->>'attempted_email' = :email OR metadata->>'attempted_email' = 'nonexistent@example.com'"),
+                    {"email": self.test_email},
+                )
+                db.execute(text("DELETE FROM users WHERE id = :id"), {"id": raw_uuid})
+                db.commit()
+            except Exception:
+                db.rollback()
 
     def test_06_successful_login(self):
         """Verify successful login returns 200 with JWT access token and metadata."""
@@ -319,25 +335,35 @@ class TestRoleBasedAuthorizationAndOwnership(unittest.TestCase):
         with SessionLocal() as db:
             for entity_type, entity_id in reversed(self.cleanup_items):
                 try:
+                    raw_uuid = entity_id if isinstance(entity_id, uuid.UUID) else uuid.UUID(str(entity_id))
+                    db.execute(
+                        text("DELETE FROM audit_logs WHERE entity_id = :str_id OR application_id = :uuid_id OR user_id = :uuid_id"),
+                        {"str_id": str(raw_uuid), "uuid_id": raw_uuid},
+                    )
                     if entity_type == "review":
-                        db.execute(text("DELETE FROM review_outcomes WHERE id = :id"), {"id": str(entity_id)})
+                        db.execute(text("DELETE FROM review_outcomes WHERE id = :id"), {"id": raw_uuid})
                     elif entity_type == "assessment":
-                        db.execute(text("DELETE FROM credit_assessments WHERE id = :id"), {"id": str(entity_id)})
+                        db.execute(text("DELETE FROM credit_assessments WHERE id = :id"), {"id": raw_uuid})
                     elif entity_type == "financial_signal":
-                        db.execute(text("DELETE FROM financial_signals WHERE id = :id"), {"id": str(entity_id)})
+                        db.execute(text("DELETE FROM financial_signals WHERE id = :id"), {"id": raw_uuid})
                     elif entity_type == "consent":
-                        db.execute(text("DELETE FROM consents WHERE id = :id"), {"id": str(entity_id)})
+                        db.execute(text("DELETE FROM consents WHERE id = :id"), {"id": raw_uuid})
                     elif entity_type == "application":
-                        db.execute(text("DELETE FROM applications WHERE id = :id"), {"id": str(entity_id)})
+                        db.execute(text("DELETE FROM applications WHERE id = :id"), {"id": raw_uuid})
                     elif entity_type == "applicant":
-                        db.execute(text("DELETE FROM applicant_profiles WHERE id = :id"), {"id": str(entity_id)})
+                        db.execute(text("DELETE FROM applicant_profiles WHERE id = :id"), {"id": raw_uuid})
                     elif entity_type == "model_version":
-                        db.execute(text("DELETE FROM model_versions WHERE id = :id"), {"id": str(entity_id)})
+                        db.execute(text("DELETE FROM model_versions WHERE id = :id"), {"id": raw_uuid})
                     elif entity_type == "user":
-                        db.execute(text("DELETE FROM users WHERE id = :id"), {"id": str(entity_id)})
+                        db.execute(text("DELETE FROM users WHERE id = :id"), {"id": raw_uuid})
                     db.commit()
                 except Exception:
                     db.rollback()
+            try:
+                db.execute(text("DELETE FROM audit_logs WHERE entity_type = 'Security'"))
+                db.commit()
+            except Exception:
+                db.rollback()
 
     def create_user_with_role(self, role: str) -> tuple:
         email = f"user_{role.lower()}_{uuid.uuid4().hex[:8]}@example.com"

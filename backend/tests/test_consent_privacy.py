@@ -518,6 +518,8 @@ class TestConsentPrivacyPostgresIntegration(unittest.TestCase):
             self.assertFalse(consent_service.has_active_consent(app.id, ConsentDataSource.PLATFORM))
 
             # Clean up test rows
+            from sqlalchemy import text
+            db.execute(text("DELETE FROM audit_logs WHERE entity_id = :s OR application_id = :u OR user_id = :u"), {"s": str(consent.id), "u": app.id})
             db.delete(consent)
             db.delete(app)
             db.delete(profile)

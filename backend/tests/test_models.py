@@ -206,5 +206,59 @@ class TestDomainModelStructure(unittest.TestCase):
                     )
 
 
+class TestModelFieldConstraintsAndDefaults(unittest.TestCase):
+    """Test suite validating column nullability and column defaults on domain models."""
+
+    def test_non_nullable_critical_columns(self) -> None:
+        """Verify critical columns cannot be null across domain models."""
+        user_cols = sa_inspect(User).columns
+        self.assertFalse(user_cols["email"].nullable)
+        self.assertFalse(user_cols["role"].nullable)
+
+        app_cols = sa_inspect(Application).columns
+        self.assertFalse(app_cols["applicant_profile_id"].nullable)
+        self.assertFalse(app_cols["requested_loan_amount"].nullable)
+        self.assertFalse(app_cols["status"].nullable)
+
+        consent_cols = sa_inspect(Consent).columns
+        self.assertFalse(consent_cols["data_source"].nullable)
+        self.assertFalse(consent_cols["granted"].nullable)
+
+        signal_cols = sa_inspect(FinancialSignal).columns
+        self.assertFalse(signal_cols["application_id"].nullable)
+        self.assertFalse(signal_cols["source"].nullable)
+
+        audit_cols = sa_inspect(AuditLog).columns
+        self.assertFalse(audit_cols["action"].nullable)
+        self.assertFalse(audit_cols["entity_type"].nullable)
+
+    def test_model_defaults_on_persistence(self) -> None:
+        """Verify domain models apply correct default values when persisted."""
+        from sqlalchemy import create_engine
+        from sqlalchemy.orm import sessionmaker
+        engine_mem = create_engine("sqlite:///:memory:")
+        Base.metadata.create_all(engine_mem)
+        SessionTest = sessionmaker(bind=engine_mem)
+
+        with SessionTest() as db:
+            user = User(email="default_test@example.com", password_hash="hashed")
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+            self.assertTrue(user.is_active)
+            self.assertEqual(user.role, UserRole.APPLICANT)
+
+            model_ver = ModelVersion(model_name="default_model", version="1.0.0")
+            db.add(model_ver)
+            db.commit()
+            db.refresh(model_ver)
+            self.assertTrue(model_ver.is_active)
+
+        Base.metadata.drop_all(engine_mem)
+        engine_mem.dispose()
+
+
 if __name__ == "__main__":
     unittest.main()
+
+

@@ -548,6 +548,8 @@ class TestServicesPostgresIntegration(unittest.TestCase):
             self.assertIsNotNone(profile.id)
 
             # Clean up test records immediately
+            from sqlalchemy import text
+            db.execute(text("DELETE FROM audit_logs WHERE user_id = :u OR entity_id = :u_str OR entity_id = :p_str"), {"u": user.id, "u_str": str(user.id), "p_str": str(profile.id)})
             db.delete(profile)
             db.delete(user)
             db.commit()
