@@ -1,4 +1,3 @@
-"""PARAKH assessment engine interface package."""
 from app.assessment.base import AssessmentEngine
 from app.assessment.exceptions import (
     AssessmentEngineError,
@@ -6,6 +5,7 @@ from app.assessment.exceptions import (
     AssessmentNotImplementedError,
     AssessmentOutputError,
 )
+from app.assessment.mock import MockAssessmentEngine
 from app.assessment.schemas import (
     PROHIBITED_FIELDS,
     AssessmentInput,
@@ -14,6 +14,7 @@ from app.assessment.schemas import (
 
 __all__ = [
     "AssessmentEngine",
+    "MockAssessmentEngine",
     "AssessmentInput",
     "AssessmentResult",
     "AssessmentEngineError",
@@ -22,3 +23,4 @@ __all__ = [
     "AssessmentOutputError",
     "PROHIBITED_FIELDS",
 ]
+

@@ -326,9 +326,34 @@ assessment = service.assess_application(application_id=app_id)
 ```
 - Decoupled execution: `AssessmentService` builds `AssessmentInput`, invokes `engine.assess()`, validates output types, and persists the resulting `CreditAssessment` record through standard transactional unit-of-work semantics.
 
-### Distinction: TASK 09 Interface vs. TASK 10 Mock Engine
-- **TASK 09 (This Task)**: Defines the framework-agnostic **interface contract**, abstract base class, data-minimization schemas, exception hierarchy, and service dependency-injection hooks. No concrete scoring logic is implemented.
-- **TASK 10 (Next Task)**: Will provide the **concrete mock scoring engine** (`MockAssessmentEngine`) implementing the `AssessmentEngine` contract with deterministic scoring rules, risk band assignments, and simulated explainability factors.
+### Mock Assessment Engine (`app/assessment/mock.py`)
+Introduced in **TASK 10**, `MockAssessmentEngine` is a concrete, deterministic implementation of `AssessmentEngine`. It provides a predictable rule-based scoring engine for development, integration testing, and UI validation before real machine learning models (TASK 14) are deployed.
+
+> [!WARNING]
+> **DEVELOPMENT / DEMO ENGINE ONLY**: The scores and risk probabilities computed by `MockAssessmentEngine` are deterministic rule-based heuristics designed for system verification. They do **NOT** represent actual creditworthiness evaluations or statistical model predictions.
+
+#### Deterministic Scoring Formula & Weights
+The engine constructs six normalized component indices `[0.0, 1.0]` using explicit, transparent weights:
+- **Income Stability (25%)**: Evaluates monthly income benchmark (40,000 INR baseline), deducted for earnings volatility, and adjusted for income trajectory (growing/stable/declining).
+- **Payment Reliability (25%)**: Evaluates gig platform payout regularity and historical platform repayment consistency.
+- **Work Stability (15%)**: Evaluates gig economy tenure (4-year benchmark) and active working days per month (26-day benchmark).
+- **Cashflow Strength (15%)**: Evaluates cash buffer reserves relative to requested loan principal.
+- **Obligation Burden (10%)**: Evaluates debt-to-income (DTI) ratio; lower existing debt yields higher score.
+- **Platform Reliability (10%)**: Evaluates composite customer service rating (scaled above 3.0 stars).
+
+#### Score & Risk Mappings
+- **Composite Score**: `score = int(300 + composite_index * 550)`, bounded strictly within `[300, 850]` (or `None` if evidence is insufficient).
+- **Risk Probability**: Deterministically derived as `1.0 - (composite_index * 0.90 + 0.05)`, bounded within `[0.01, 0.99]`.
+- **Risk Level**:
+  - `score >= 700`: `RiskLevel.LOWER`
+  - `550 <= score < 700`: `RiskLevel.MODERATE`
+  - `score < 550`: `RiskLevel.HIGHER`
+  - Insufficient data: `RiskLevel.INSUFFICIENT`
+- **Confidence**: Evidence completeness metric `[0.20, 0.95]` based on the proportion of populated approved signals.
+- **Insufficient Evidence Handling**: If fewer than 2 independent signal categories are populated, the engine returns `score = None`, `risk_level = RiskLevel.INSUFFICIENT`, a baseline neutral probability (`0.5000`), and explanatory factors requesting additional data connections.
+- **Explainability Output**:
+  - `key_factors`: Deterministic human-readable bullet points highlighting driving indicators (e.g. *"Strong platform payout regularity"*, *"Elevated debt-to-income ratio"*).
+  - `explanation`: Detailed dictionary containing raw components, weights, and engine metadata.
 
 ---
 
@@ -489,8 +514,9 @@ backend/
 │   │   ├── config.py        # Pydantic Settings (APP_NAME, DATABASE_URL, etc.)
 │   │   └── database.py      # Engine, SessionLocal, get_db session dependency
 │   ├── assessment/
-│   │   ├── __init__.py      # Exports AssessmentEngine, contracts, and exceptions
+│   │   ├── __init__.py      # Exports AssessmentEngine, MockAssessmentEngine, contracts
 │   │   ├── base.py          # Abstract Base Class AssessmentEngine
+│   │   ├── mock.py          # MockAssessmentEngine deterministic rule scoring implementation
 │   │   ├── schemas.py       # AssessmentInput, AssessmentResult, data minimization
 │   │   └── exceptions.py    # AssessmentEngineError, AssessmentInputError, etc.
 │   ├── schemas/
@@ -551,7 +577,8 @@ backend/
 │   ├── test_repositories.py # Repository CRUD and specialized query tests
 │   ├── test_services.py     # Service layer business logic, validation, and workflow tests
 │   ├── test_consent_privacy.py # Consent authorization, independent sources & privacy tests
-│   └── test_assessment_engine.py # Assessment engine interface, contracts, & privacy tests
+│   ├── test_assessment_engine.py # Assessment engine interface, contracts, & privacy tests
+│   └── test_mock_assessment_engine.py # Mock assessment engine deterministic scoring tests
 │
 ├── .env.example             # Example configuration template with DATABASE_URL
 ├── .gitignore               # Ignored files (.env, .venv, caches)
