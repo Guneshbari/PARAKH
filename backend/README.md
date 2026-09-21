@@ -15,14 +15,35 @@ This directory (`PARAKH/backend/`) contains the **FastAPI** backend service resp
 
 ---
 
-## 3. Current Scope (Task 1 — Backend Project Setup)
-Task 1 establishes the initial backend foundation and minimal skeleton:
-- FastAPI application initialization with metadata and OpenAPI documentation.
-- Environment-based configuration with Pydantic Settings.
-- Standard health check (`/health`) and root (`/`) endpoints.
-- Isolated project structure and dependency specifications.
+## 3. Backend Architecture & Layers
 
-> **Note**: Database (PostgreSQL/SQLAlchemy/Alembic), Authentication (JWT), ML scoring models (LightGBM/XGBoost/SHAP), and background workers are deferred to subsequent implementation tasks.
+The backend follows a layered architecture to keep concerns cleanly decoupled as features are introduced:
+
+```
+HTTP Request
+    ↓
+API Layer (app/api/)
+    ↓
+Service Layer (app/services/)
+    ↓
+Repository Layer (app/repositories/)
+    ↓
+Database / External Sources (app/models/)
+```
+
+### Architectural Components:
+1. **API Layer (`app/api/`)**:
+   Exposes HTTP routes via FastAPI routers. The central router (`api/router.py`) prefixes versioned endpoints (default `/api/v1`) and will aggregate future domain-specific subrouters (e.g., auth, applicants, applications, assessments).
+2. **Schemas (`app/schemas/`)**:
+   Pydantic models defining input validation rules and output response serialization contracts (e.g., `StatusResponse`).
+3. **Services (`app/services/`)**:
+   Business logic and orchestration layer. Will house workflows for credit assessment calculations, consent handling, and external integrations.
+4. **Repositories (`app/repositories/`)**:
+   Data access abstraction isolating database queries and persistence mechanisms from business logic.
+5. **Models (`app/models/`)**:
+   Domain models and database entity definitions.
+
+> **Note**: `services/`, `repositories/`, and `models/` currently represent architectural boundaries prepared for future implementation. Database (PostgreSQL/SQLAlchemy), authentication (JWT), and ML scoring logic do not exist yet and will be added in subsequent tasks.
 
 ---
 
@@ -83,8 +104,9 @@ The application will be accessible at:
 
 | Method | Endpoint | Description | Sample Response |
 |---|---|---|---|
-| `GET` | `/` | API status and greeting | `{"message": "PARAKH API is running"}` |
+| `GET` | `/` | API root message | `{"message": "PARAKH API is running"}` |
 | `GET` | `/health` | Health check endpoint | `{"status": "healthy"}` |
+| `GET` | `/api/v1/status` | Versioned API service status | `{"status": "ok", "service": "PARAKH API", "version": "0.1.0"}` |
 
 ### Testing with curl
 ```bash
@@ -93,6 +115,9 @@ curl -s http://127.0.0.1:8000/
 
 # Check health endpoint
 curl -s http://127.0.0.1:8000/health
+
+# Check versioned API status endpoint
+curl -s http://127.0.0.1:8000/api/v1/status
 ```
 
 ---
@@ -102,17 +127,29 @@ curl -s http://127.0.0.1:8000/health
 backend/
 ├── app/
 │   ├── __init__.py
-│   ├── main.py              # FastAPI app instance and route definitions
-│   └── core/
-│       ├── __init__.py
-│       └── config.py        # Settings management with pydantic-settings
+│   ├── main.py              # FastAPI app instance and router registration
+│   ├── api/
+│   │   ├── __init__.py
+│   │   └── router.py        # Central API router with versioned routes
+│   ├── core/
+│   │   ├── __init__.py
+│   │   └── config.py        # Configuration management with pydantic-settings
+│   ├── schemas/
+│   │   ├── __init__.py
+│   │   └── common.py        # Common Pydantic response/request models
+│   ├── services/
+│   │   └── __init__.py      # Business logic orchestration (placeholder)
+│   ├── repositories/
+│   │   └── __init__.py      # Data access layer (placeholder)
+│   └── models/
+│       └── __init__.py      # Database entities (placeholder)
 │
 ├── tests/
 │   ├── __init__.py
-│   └── test_health.py       # Basic API endpoint tests
+│   └── test_health.py       # API endpoint test suite
 │
 ├── .env.example             # Example environment configuration
 ├── .gitignore               # Backend-specific ignore patterns
 ├── requirements.txt         # Current backend dependencies
-└── README.md                # Documentation and setup instructions
+└── README.md                # Documentation and architecture guide
 ```

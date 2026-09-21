@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     APP_ENV: str = "development"
     DEBUG: bool = True
     API_V1_PREFIX: str = "/api/v1"
+    VERSION: str = "0.1.0"
 
 
 settings = Settings()

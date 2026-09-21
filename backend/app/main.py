@@ -1,9 +1,10 @@
 from fastapi import FastAPI
+from app.api.router import api_router
 from app.core.config import settings
 
 app = FastAPI(
     title=settings.APP_NAME,
-    version="0.1.0",
+    version=settings.VERSION,
     description="Backend API for the PARAKH alternative credit-assessment prototype for gig workers.",
     debug=settings.DEBUG,
     docs_url="/docs",
@@ -12,13 +13,17 @@ app = FastAPI(
 )
 
 
-@app.get("/")
+@app.get("/", summary="Root Status")
 def read_root() -> dict:
     """Root endpoint returning basic service status."""
     return {"message": "PARAKH API is running"}
 
 
-@app.get("/health")
+@app.get("/health", summary="Health Check")
 def health_check() -> dict:
     """Health check endpoint for service monitoring."""
     return {"status": "healthy"}
+
+
+# Mount the central API router with configured prefix (default: /api/v1)
+app.include_router(api_router, prefix=settings.API_V1_PREFIX)
