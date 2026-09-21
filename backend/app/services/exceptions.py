@@ -41,3 +41,16 @@ class ConsentRequiredError(ServiceError):
 
     pass
 
+
+class AuthenticationError(ServiceError):
+    """Raised when user authentication fails due to invalid or missing credentials."""
+
+    pass
+
+
+class AuthorizationError(ServiceError):
+    """Raised when an authenticated user has insufficient permissions or role."""
+
+    pass
+
+

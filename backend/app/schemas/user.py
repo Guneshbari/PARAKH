@@ -47,6 +47,8 @@ class UserUpdate(BaseModel):
 
     email: Optional[str] = Field(None, max_length=255)
     is_active: Optional[bool] = None
+    role: Optional[UserRole] = None
+    password: Optional[str] = Field(None, min_length=8)
 
     @field_validator("email")
     @classmethod

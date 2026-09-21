@@ -2,7 +2,12 @@
 from typing import List, Optional
 from uuid import UUID
 from fastapi import APIRouter, Depends, Query, status
-from app.api.deps import get_financial_signal_service
+from app.api.deps import (
+    check_application_ownership,
+    get_financial_signal_service,
+    get_current_active_user,
+)
+from app.models.user import User
 from app.schemas.financial_signal import (
     FinancialSignalCreate,
     FinancialSignalResponse,
@@ -31,9 +36,16 @@ def create_financial_signal(
         None,
         description="Alias for enforce_consent",
     ),
+    current_user: User = Depends(get_current_active_user),
     signal_service: FinancialSignalService = Depends(get_financial_signal_service),
 ) -> FinancialSignalResponse:
-    """Ingest aggregated financial indicators."""
+    """Ingest aggregated financial indicators with ownership enforcement."""
+    check_application_ownership(
+        signal_service.db,
+        application_id,
+        current_user,
+        allow_reviewers=False,
+    )
     check_consent = bool(enforce_consent or require_consent)
     data = signal_in.model_dump()
     data["application_id"] = application_id
@@ -50,9 +62,16 @@ def create_financial_signal(
 )
 def get_application_signals(
     application_id: UUID,
+    current_user: User = Depends(get_current_active_user),
     signal_service: FinancialSignalService = Depends(get_financial_signal_service),
 ) -> List[FinancialSignalResponse]:
-    """List financial signals for an application."""
+    """List financial signals for an application with role/ownership enforcement."""
+    check_application_ownership(
+        signal_service.db,
+        application_id,
+        current_user,
+        allow_reviewers=True,
+    )
     signals = signal_service.get_application_signals(application_id)
     return [FinancialSignalResponse.model_validate(s) for s in signals]
 
@@ -66,12 +85,20 @@ def get_application_signals(
 )
 def get_latest_financial_signal(
     application_id: UUID,
+    current_user: User = Depends(get_current_active_user),
     signal_service: FinancialSignalService = Depends(get_financial_signal_service),
 ) -> FinancialSignalResponse:
-    """Retrieve the latest financial signal for an application."""
+    """Retrieve the latest financial signal for an application with role/ownership enforcement."""
+    check_application_ownership(
+        signal_service.db,
+        application_id,
+        current_user,
+        allow_reviewers=True,
+    )
     signal = signal_service.get_latest_signal(application_id)
     if not signal:
         raise EntityNotFoundError(
             f"No financial signals found for application '{application_id}'."
         )
     return FinancialSignalResponse.model_validate(signal)
+

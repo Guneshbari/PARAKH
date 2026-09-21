@@ -16,6 +16,7 @@ class UserRole(str, enum.Enum):
 
     APPLICANT = "APPLICANT"
     REVIEWER = "REVIEWER"
+    ADMIN = "ADMIN"
 
 
 class User(Base, UUIDPrimaryKeyMixin, TimestampMixin):

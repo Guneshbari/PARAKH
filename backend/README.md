@@ -624,11 +624,13 @@ backend/
 │   │       ├── financial_signals.py # Data-minimized signal ingestion
 │   │       ├── assessments.py # Assessment execution & retrieval
 │   │       ├── model_versions.py # Model provenance & registry
-│   │       └── reviews.py   # Human review outcomes
+│   │       ├── reviews.py   # Human review outcomes
+│   │       └── auth.py      # Authentication (login, me)
 │   ├── core/
 │   │   ├── __init__.py
-│   │   ├── config.py        # Pydantic Settings (APP_NAME, DATABASE_URL, etc.)
-│   │   └── database.py      # Engine, SessionLocal, get_db session dependency
+│   │   ├── config.py        # Pydantic Settings (APP_NAME, DATABASE_URL, SECRET_KEY, etc.)
+│   │   ├── database.py      # Engine, SessionLocal, get_db session dependency
+│   │   └── security.py      # Password hashing (bcrypt), JWT generation/validation
 │   ├── assessment/
 │   │   ├── __init__.py      # Exports AssessmentEngine, MockAssessmentEngine, contracts
 │   │   ├── base.py          # Abstract Base Class AssessmentEngine
@@ -637,6 +639,7 @@ backend/
 │   │   └── exceptions.py    # AssessmentEngineError, AssessmentInputError, etc.
 │   ├── schemas/
 │   │   ├── __init__.py      # Exports all public request/response schemas
+│   │   ├── auth.py          # LoginRequest, TokenResponse, TokenPayload
 │   │   ├── common.py        # StatusResponse and DatabaseHealthResponse schemas
 │   │   ├── user.py          # UserCreate, UserResponse, UserSummary, UserUpdate
 │   │   ├── applicant.py     # ApplicantProfileCreate, ApplicantProfileResponse, etc.
@@ -650,7 +653,7 @@ backend/
 │   ├── models/
 │   │   ├── __init__.py      # Exports all domain models and enums
 │   │   ├── base.py          # DeclarativeBase, UUIDPrimaryKeyMixin, TimestampMixin
-│   │   ├── user.py          # User account entity
+│   │   ├── user.py          # User account entity & UserRole (APPLICANT, REVIEWER, ADMIN)
 │   │   ├── applicant.py     # ApplicantProfile entity
 │   │   ├── application.py   # Application entity
 │   │   ├── consent.py       # Consent entity
@@ -673,8 +676,8 @@ backend/
 │   │   └── audit.py         # AuditRepository & AuditLogRepository
 │   └── services/
 │       ├── __init__.py      # Exports all domain services and exceptions
-│       ├── exceptions.py    # Domain service exceptions (EntityNotFoundError, ConsentRequiredError, etc.)
-│       ├── user.py          # UserService
+│       ├── exceptions.py    # Domain service exceptions (EntityNotFoundError, AuthenticationError, etc.)
+│       ├── user.py          # UserService with password hashing and authentication
 │       ├── applicant.py     # ApplicantService
 │       ├── application.py   # ApplicationService
 │       ├── consent.py       # ConsentService
@@ -695,11 +698,126 @@ backend/
 │   ├── test_consent_privacy.py # Consent authorization, independent sources & privacy tests
 │   ├── test_assessment_engine.py # Assessment engine interface, contracts, & privacy tests
 │   ├── test_mock_assessment_engine.py # Mock assessment engine deterministic scoring tests
-│   └── test_api_routes.py   # FastAPI routes, exception mapping, & HTTP-to-PostgreSQL pipeline tests
+│   ├── test_api_routes.py   # FastAPI routes, exception mapping, & HTTP-to-PostgreSQL pipeline tests
+│   └── test_authentication.py # Authentication, JWT, roles, ownership, & RBAC tests
 │
-├── .env.example             # Example configuration template with DATABASE_URL
+├── .env.example             # Example configuration template with DATABASE_URL & JWT settings
 ├── .gitignore               # Ignored files (.env, .venv, caches)
 ├── requirements.txt         # Current backend dependencies
 └── README.md                # Comprehensive documentation & architecture guide
 ```
+
+---
+
+## 13. Authentication & Role-Based Access Control (TASK 12)
+
+PARAKH implements secure, stateless authentication using JSON Web Tokens (JWT) combined with strong `bcrypt` password hashing and domain-level role-based authorization (RBAC).
+
+### 13.1 Authentication Architecture
+The authentication lifecycle flows through the standard layered architecture:
+```
+Client Request (POST /api/v1/auth/login)
+    ↓
+Auth Router (app/api/v1/auth.py)
+    ↓
+UserService (app/services/user.py)
+    ↓  verify_password(plain_password, password_hash)
+UserRepository (app/repositories/user.py)
+    ↓  User located by normalized email
+create_access_token(subject=user.id, role=user.role)
+    ↓
+TokenResponse (access_token, token_type, role, expires_in)
+```
+
+Protected routes use FastAPI's dependency injection (`Depends(get_current_active_user)` and `Depends(require_role(...))`) to extract, verify, and resolve authenticated users from incoming HTTP `Authorization: Bearer <token>` headers.
+
+### 13.2 Password Security
+- **Algorithm**: `bcrypt` (12 rounds of salt generation).
+- **Zero Plaintext Persistence**: Passwords are never saved in plaintext; only salted bcrypt hashes (`VARCHAR(255)`) are persisted to PostgreSQL.
+- **Secrecy Guarantee**: Neither `password` nor `password_hash` is ever returned in API response models. `UserResponse` and `TokenResponse` Pydantic schemas omit sensitive credentials.
+
+### 13.3 JWT Configuration & Token Lifecycle
+JWT access tokens are cryptographically signed using HMAC SHA-256 (`HS256`).
+- **Required Claims**:
+  - `sub`: Subject identifier (string representation of the authenticated user's primary key UUID).
+  - `role`: Primary actor role (`APPLICANT`, `REVIEWER`, `ADMIN`).
+  - `exp`: UTC expiration timestamp.
+  - `iat`: UTC issued-at timestamp.
+  - `type`: Token type (`access`).
+- **Configuration Parameters** (configured in `app/core/config.py` via environment variables):
+  - `SECRET_KEY`: High-entropy cryptographic signing key.
+  - `JWT_ALGORITHM`: Signature algorithm (default: `HS256`).
+  - `ACCESS_TOKEN_EXPIRE_MINUTES`: Token validity duration (default: `1440` minutes / 24 hours).
+
+### 13.4 Domain User Roles & Actor Permissions
+PARAKH recognizes three primary actors defined in `app.models.user.UserRole`:
+
+| Actor / Role | Description |
+| :--- | :--- |
+| `APPLICANT` | Gig worker applying for credit assessment. Restricted strictly to their own data. |
+| `REVIEWER` | Human credit officer adjudicating applications and recording credit reviews. |
+| `ADMIN` | System administrator managing model versions, auditing, and operational configuration. |
+
+### 13.5 Role Permission Matrix
+
+| Resource & Operation | Endpoint | APPLICANT | REVIEWER | ADMIN | Public |
+| :--- | :--- | :---: | :---: | :---: | :---: |
+| **System Root** | `GET /` | Yes | Yes | Yes | Yes |
+| **System Health** | `GET /health` | Yes | Yes | Yes | Yes |
+| **V1 Status** | `GET /api/v1/status` | Yes | Yes | Yes | Yes |
+| **DB Health** | `GET /api/v1/database/health` | Yes | Yes | Yes | Yes |
+| **Swagger Docs** | `GET /docs`, `GET /redoc` | Yes | Yes | Yes | Yes |
+| **User Login** | `POST /api/v1/auth/login` | Yes | Yes | Yes | Yes |
+| **Self-Registration** | `POST /api/v1/users` (role=APPLICANT) | Yes | Yes | Yes | Yes |
+| **Privileged Registration** | `POST /api/v1/users` (role=REVIEWER/ADMIN)| No | No | Yes | No |
+| **User Retrieval** | `GET /api/v1/users/{id}`, `by-email/` | Own only | No | Any | No |
+| **User Update** | `PATCH /api/v1/users/{id}` | Own only | No | Any | No |
+| **Current User Info** | `GET /api/v1/auth/me` | Own | Own | Own | No |
+| **Profile Create** | `POST /api/v1/applicants` | Own only | No | Any | No |
+| **Profile Read** | `GET /api/v1/applicants/{id}` | Own only | Any | Any | No |
+| **Profile Update** | `PATCH /api/v1/applicants/{id}` | Own only | No | Any | No |
+| **Application Create** | `POST /api/v1/applications` | Own only | No | Any | No |
+| **Application Read** | `GET /api/v1/applications/{id}` | Own only | Any | Any | No |
+| **Application Update** | `PATCH /api/v1/applications/{id}` | Own only | No | Any | No |
+| **Submit Application** | `PATCH /applications/{id}/status` (SUBMITTED) | Own only | Yes | Yes | No |
+| **Review Transitions** | `PATCH /applications/{id}/status` (UNDER_REVIEW, etc.) | No | Yes | Yes | No |
+| **Record Consent** | `POST /api/v1/consents` | Own application | No | Any | No |
+| **Read Consents** | `GET /applications/{id}/consents` | Own application | Any | Any | No |
+| **Revoke Consent** | `POST /api/v1/consents/{id}/revoke` | Own application | No | Any | No |
+| **Ingest Signal** | `POST /applications/{id}/financial-signals` | Own application | No | Any | No |
+| **Read Signals** | `GET /applications/{id}/financial-signals` | Own application | Any | Any | No |
+| **Trigger Assessment**| `POST /applications/{id}/assess` | Own application | Any | Any | No |
+| **Read Assessment** | `GET /assessments/{id}` | Own application | Any | Any | No |
+| **Register Model** | `POST /api/v1/model-versions` | No | No | Yes | No |
+| **Read Model Versions**| `GET /api/v1/model-versions` | Any authenticated | Any authenticated | Any authenticated | No |
+| **Submit Review** | `POST /applications/{id}/reviews` | No | Own reviewer ID | Any | No |
+| **Read Application Reviews** | `GET /applications/{id}/reviews` | Own application | Any | Any | No |
+| **Read Reviewer History** | `GET /reviewers/{id}/reviews` | No | Own ID only | Any | No |
+
+### 13.6 Ownership Enforcement
+Authentication alone is insufficient for multi-tenant data privacy. PARAKH enforces cross-tenant isolation:
+- An applicant user attempting to access another applicant's profile or applications via ID substitution is rejected with `HTTP 403 Forbidden` (`Access denied: cannot view another applicant's data`).
+- Financial signals, consent records, and credit assessments are validated against the parent application's applicant profile owner.
+- Reviewers are prevented from forging submissions or inspecting another officer's private adjudication log.
+
+### 13.7 Exception Handling & HTTP Status Mappings
+All authentication and authorization exceptions integrate with the centralized handler in `app/api/errors.py`:
+- `401 Unauthorized`: Missing `Authorization` header, expired JWT token, invalid/tampered token, or invalid email/password credentials.
+- `403 Forbidden`: Authenticated user with insufficient role permissions, or attempt to access another user's private application data.
+- `404 Not Found`: Non-existent entity requested by an authorized user.
+- `409 Conflict`: Duplicate entity creation (e.g. duplicate email, duplicate applicant profile, invalid lifecycle transition).
+- `422 Unprocessable Entity`: Malformed request payloads failing Pydantic validation.
+
+### 13.8 Database Schema & Migrations
+- The PostgreSQL `users` table already incorporates `password_hash VARCHAR(255) NOT NULL` and `role VARCHAR(50) NOT NULL` from the initial Alembic migration `fd385d59e799`.
+- The column stores roles as standard strings (`VARCHAR(50)`) without a hardcoded database-level enum type constraint.
+- Adding `ADMIN = "ADMIN"` to Python's `UserRole` enum maintains full backward and forward compatibility with existing PostgreSQL schemas, requiring no destructive DDL modifications.
+
+### 13.9 Swagger Authentication Workflow
+1. Navigate to `/docs` in your web browser.
+2. Register a new user via `POST /api/v1/users` or use an existing account.
+3. Authenticate via `POST /api/v1/auth/login` to obtain an `access_token`.
+4. Click the **Authorize** button (lock icon) at the top right of the Swagger UI.
+5. Enter the `access_token` into the `Value` field and click **Authorize**.
+6. All subsequent requests in the Swagger UI will automatically include the `Authorization: Bearer <token>` header.
 

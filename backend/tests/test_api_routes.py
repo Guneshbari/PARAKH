@@ -91,13 +91,34 @@ class TestApiRoutesWithLivePostgres(unittest.TestCase):
         self.test_suffix = uuid.uuid4().hex[:8]
         self.cleanup_items = []
 
+    def get_auth_header(self, user_id: str, role: str = "APPLICANT") -> dict:
+        from app.core.security import create_access_token
+        token = create_access_token(subject=str(user_id), role=str(role))
+        return {"Authorization": f"Bearer {token}"}
+
+    def create_user_and_headers(self, role: str = "APPLICANT", email: str = None) -> tuple:
+        from app.repositories.user import UserRepository
+        from app.core.security import hash_password
+        if not email:
+            email = f"u_{role.lower()}_{uuid.uuid4().hex[:8]}@example.com"
+        with SessionLocal() as db:
+            user = UserRepository(db=db).create({
+                "email": email,
+                "password_hash": hash_password("Password123!"),
+                "role": UserRole(role),
+                "is_active": True,
+            }, commit=True)
+            user_id = str(user.id)
+        self.cleanup_items.append(("user", user_id))
+        return user_id, self.get_auth_header(user_id, role)
+
     def tearDown(self):
         # Clean up created resources in reverse order directly via db session
         with SessionLocal() as db:
             for entity_type, entity_id in reversed(self.cleanup_items):
                 try:
                     if entity_type == "review":
-                        db.execute(text("DELETE FROM reviews WHERE id = :id"), {"id": str(entity_id)})
+                        db.execute(text("DELETE FROM review_outcomes WHERE id = :id"), {"id": str(entity_id)})
                     elif entity_type == "assessment":
                         db.execute(text("DELETE FROM credit_assessments WHERE id = :id"), {"id": str(entity_id)})
                     elif entity_type == "financial_signal":
@@ -132,6 +153,7 @@ class TestApiRoutesWithLivePostgres(unittest.TestCase):
         user_data = resp.json()
         user_id = user_data["id"]
         self.cleanup_items.append(("user", user_id))
+        headers = self.get_auth_header(user_id, "APPLICANT")
 
         # Verification: password and password_hash must NOT be in response
         self.assertNotIn("password", user_data)
@@ -140,14 +162,14 @@ class TestApiRoutesWithLivePostgres(unittest.TestCase):
         self.assertEqual(user_data["role"], "APPLICANT")
 
         # GET by ID
-        get_resp = self.client.get(f"/api/v1/users/{user_id}")
+        get_resp = self.client.get(f"/api/v1/users/{user_id}", headers=headers)
         self.assertEqual(get_resp.status_code, 200)
         self.assertEqual(get_resp.json()["id"], user_id)
         self.assertNotIn("password", get_resp.json())
         self.assertNotIn("password_hash", get_resp.json())
 
         # GET by email
-        email_resp = self.client.get(f"/api/v1/users/by-email/{email}")
+        email_resp = self.client.get(f"/api/v1/users/by-email/{email}", headers=headers)
         self.assertEqual(email_resp.status_code, 200)
         self.assertEqual(email_resp.json()["id"], user_id)
 
@@ -155,6 +177,7 @@ class TestApiRoutesWithLivePostgres(unittest.TestCase):
         patch_resp = self.client.patch(
             f"/api/v1/users/{user_id}",
             json={"is_active": False},
+            headers=headers,
         )
         self.assertEqual(patch_resp.status_code, 200)
         self.assertFalse(patch_resp.json()["is_active"])
@@ -166,9 +189,11 @@ class TestApiRoutesWithLivePostgres(unittest.TestCase):
         )
         self.assertEqual(dup_resp.status_code, 409)
 
-        # Non-existent user -> 404
-        nf_resp = self.client.get(f"/api/v1/users/{uuid.uuid4()}")
+        # Non-existent user -> 404 (with admin headers)
+        admin_id, admin_headers = self.create_user_and_headers(role="ADMIN")
+        nf_resp = self.client.get(f"/api/v1/users/{uuid.uuid4()}", headers=admin_headers)
         self.assertEqual(nf_resp.status_code, 404)
+
 
     # --- 2. APPLICANT ROUTES ---
     def test_applicant_crud_and_validations(self):
@@ -180,6 +205,7 @@ class TestApiRoutesWithLivePostgres(unittest.TestCase):
         )
         user_id = u_resp.json()["id"]
         self.cleanup_items.append(("user", user_id))
+        headers = self.get_auth_header(user_id, "APPLICANT")
 
         # Create profile
         p_resp = self.client.post(
@@ -192,6 +218,7 @@ class TestApiRoutesWithLivePostgres(unittest.TestCase):
                 "primary_platform": "Uber",
                 "tenure_months": 24,
             },
+            headers=headers,
         )
         self.assertEqual(p_resp.status_code, 201)
         prof_data = p_resp.json()
@@ -201,12 +228,12 @@ class TestApiRoutesWithLivePostgres(unittest.TestCase):
         self.assertEqual(prof_data["gig_work_type"], "Ride Hailing")
 
         # GET by ID
-        get_p = self.client.get(f"/api/v1/applicants/{prof_id}")
+        get_p = self.client.get(f"/api/v1/applicants/{prof_id}", headers=headers)
         self.assertEqual(get_p.status_code, 200)
         self.assertEqual(get_p.json()["id"], prof_id)
 
         # GET by user_id
-        get_u = self.client.get(f"/api/v1/applicants/user/{user_id}")
+        get_u = self.client.get(f"/api/v1/applicants/user/{user_id}", headers=headers)
         self.assertEqual(get_u.status_code, 200)
         self.assertEqual(get_u.json()["id"], prof_id)
 
@@ -214,6 +241,7 @@ class TestApiRoutesWithLivePostgres(unittest.TestCase):
         patch_p = self.client.patch(
             f"/api/v1/applicants/{prof_id}",
             json={"years_working": 3.0},
+            headers=headers,
         )
         self.assertEqual(patch_p.status_code, 200)
         self.assertEqual(float(patch_p.json()["years_working"]), 3.0)
@@ -222,13 +250,16 @@ class TestApiRoutesWithLivePostgres(unittest.TestCase):
         dup_p = self.client.post(
             "/api/v1/applicants",
             json={"user_id": user_id, "gig_work_type": "Food Delivery"},
+            headers=headers,
         )
         self.assertEqual(dup_p.status_code, 409)
 
-        # Profile for nonexistent user -> 404
+        # Profile for nonexistent user -> 404 (with admin headers)
+        admin_id, admin_headers = self.create_user_and_headers(role="ADMIN")
         nf_user_p = self.client.post(
             "/api/v1/applicants",
             json={"user_id": str(uuid.uuid4()), "gig_work_type": "Courier"},
+            headers=admin_headers,
         )
         self.assertEqual(nf_user_p.status_code, 404)
 
@@ -242,10 +273,12 @@ class TestApiRoutesWithLivePostgres(unittest.TestCase):
         )
         user_id = u_resp.json()["id"]
         self.cleanup_items.append(("user", user_id))
+        headers = self.get_auth_header(user_id, "APPLICANT")
 
         p_resp = self.client.post(
             "/api/v1/applicants",
             json={"user_id": user_id, "gig_work_type": "Quick Commerce"},
+            headers=headers,
         )
         prof_id = p_resp.json()["id"]
         self.cleanup_items.append(("applicant", prof_id))
@@ -258,6 +291,7 @@ class TestApiRoutesWithLivePostgres(unittest.TestCase):
                 "requested_loan_amount": 35000.0,
                 "loan_purpose": "Vehicle Battery Upgrade",
             },
+            headers=headers,
         )
         self.assertEqual(app_resp.status_code, 201)
         app_data = app_resp.json()
@@ -266,12 +300,12 @@ class TestApiRoutesWithLivePostgres(unittest.TestCase):
         self.assertEqual(app_data["status"], "DRAFT")
 
         # GET application
-        get_app = self.client.get(f"/api/v1/applications/{app_id}")
+        get_app = self.client.get(f"/api/v1/applications/{app_id}", headers=headers)
         self.assertEqual(get_app.status_code, 200)
         self.assertEqual(get_app.json()["id"], app_id)
 
         # List by applicant
-        list_app = self.client.get(f"/api/v1/applications/applicant/{prof_id}")
+        list_app = self.client.get(f"/api/v1/applications/applicant/{prof_id}", headers=headers)
         self.assertEqual(list_app.status_code, 200)
         self.assertIsInstance(list_app.json(), list)
         self.assertTrue(any(a["id"] == app_id for a in list_app.json()))
@@ -280,30 +314,35 @@ class TestApiRoutesWithLivePostgres(unittest.TestCase):
         patch_app = self.client.patch(
             f"/api/v1/applications/{app_id}",
             json={"loan_purpose": "Vehicle Motor Servicing"},
+            headers=headers,
         )
         self.assertEqual(patch_app.status_code, 200)
         self.assertEqual(patch_app.json()["loan_purpose"], "Vehicle Motor Servicing")
 
-        # Valid status transition: DRAFT -> SUBMITTED
+        # Valid status transition: DRAFT -> SUBMITTED (applicant)
         st_resp = self.client.patch(
             f"/api/v1/applications/{app_id}/status",
             json={"status": "SUBMITTED"},
+            headers=headers,
         )
         self.assertEqual(st_resp.status_code, 200)
         self.assertEqual(st_resp.json()["status"], "SUBMITTED")
 
-        # Valid transition: SUBMITTED -> UNDER_REVIEW
+        # Valid transition: SUBMITTED -> UNDER_REVIEW (reviewer / admin)
+        admin_id, admin_headers = self.create_user_and_headers(role="ADMIN")
         st_resp2 = self.client.patch(
             f"/api/v1/applications/{app_id}/status",
             json={"status": "UNDER_REVIEW"},
+            headers=admin_headers,
         )
         self.assertEqual(st_resp2.status_code, 200)
         self.assertEqual(st_resp2.json()["status"], "UNDER_REVIEW")
 
-        # Valid transition: UNDER_REVIEW -> ASSESSED
+        # Valid transition: UNDER_REVIEW -> ASSESSED (reviewer / admin)
         st_resp3 = self.client.patch(
             f"/api/v1/applications/{app_id}/status",
             json={"status": "ASSESSED"},
+            headers=admin_headers,
         )
         self.assertEqual(st_resp3.status_code, 200)
         self.assertEqual(st_resp3.json()["status"], "ASSESSED")
@@ -312,6 +351,7 @@ class TestApiRoutesWithLivePostgres(unittest.TestCase):
         invalid_st = self.client.patch(
             f"/api/v1/applications/{app_id}/status",
             json={"status": "DRAFT"},
+            headers=admin_headers,
         )
         self.assertEqual(invalid_st.status_code, 409)
 
@@ -325,10 +365,12 @@ class TestApiRoutesWithLivePostgres(unittest.TestCase):
         )
         user_id = u_resp.json()["id"]
         self.cleanup_items.append(("user", user_id))
+        headers = self.get_auth_header(user_id, "APPLICANT")
 
         p_resp = self.client.post(
             "/api/v1/applicants",
             json={"user_id": user_id, "gig_work_type": "Freelance"},
+            headers=headers,
         )
         prof_id = p_resp.json()["id"]
         self.cleanup_items.append(("applicant", prof_id))
@@ -336,6 +378,7 @@ class TestApiRoutesWithLivePostgres(unittest.TestCase):
         app_resp = self.client.post(
             "/api/v1/applications",
             json={"applicant_profile_id": prof_id, "requested_loan_amount": 10000.0},
+            headers=headers,
         )
         app_id = app_resp.json()["id"]
         self.cleanup_items.append(("application", app_id))
@@ -350,6 +393,7 @@ class TestApiRoutesWithLivePostgres(unittest.TestCase):
                 "purpose": "CREDIT_ASSESSMENT",
                 "granted": True,
             },
+            headers=headers,
         )
         self.assertEqual(c_resp.status_code, 201)
         consent_data = c_resp.json()
@@ -368,26 +412,27 @@ class TestApiRoutesWithLivePostgres(unittest.TestCase):
                 "purpose": "CREDIT_ASSESSMENT",
                 "granted": False,
             },
+            headers=headers,
         )
         self.assertEqual(inv_c.status_code, 400)
 
         # GET application consents
-        all_c = self.client.get(f"/api/v1/applications/{app_id}/consents")
+        all_c = self.client.get(f"/api/v1/applications/{app_id}/consents", headers=headers)
         self.assertEqual(all_c.status_code, 200)
         self.assertEqual(len(all_c.json()), 1)
 
         # GET active consents
-        act_c = self.client.get(f"/api/v1/applications/{app_id}/consents/active")
+        act_c = self.client.get(f"/api/v1/applications/{app_id}/consents/active", headers=headers)
         self.assertEqual(act_c.status_code, 200)
         self.assertEqual(len(act_c.json()), 1)
 
         # Revoke consent
-        rev_resp = self.client.post(f"/api/v1/consents/{consent_id}/revoke")
+        rev_resp = self.client.post(f"/api/v1/consents/{consent_id}/revoke", headers=headers)
         self.assertEqual(rev_resp.status_code, 200)
         self.assertIsNotNone(rev_resp.json()["revoked_at"])
 
         # Active consents list should now be empty
-        act_c_after = self.client.get(f"/api/v1/applications/{app_id}/consents/active")
+        act_c_after = self.client.get(f"/api/v1/applications/{app_id}/consents/active", headers=headers)
         self.assertEqual(act_c_after.status_code, 200)
         self.assertEqual(len(act_c_after.json()), 0)
 
@@ -401,10 +446,12 @@ class TestApiRoutesWithLivePostgres(unittest.TestCase):
         )
         user_id = u_resp.json()["id"]
         self.cleanup_items.append(("user", user_id))
+        headers = self.get_auth_header(user_id, "APPLICANT")
 
         p_resp = self.client.post(
             "/api/v1/applicants",
             json={"user_id": user_id, "gig_work_type": "Delivery"},
+            headers=headers,
         )
         prof_id = p_resp.json()["id"]
         self.cleanup_items.append(("applicant", prof_id))
@@ -412,6 +459,7 @@ class TestApiRoutesWithLivePostgres(unittest.TestCase):
         app_resp = self.client.post(
             "/api/v1/applications",
             json={"applicant_profile_id": prof_id, "requested_loan_amount": 20000.0},
+            headers=headers,
         )
         app_id = app_resp.json()["id"]
         self.cleanup_items.append(("application", app_id))
@@ -424,6 +472,7 @@ class TestApiRoutesWithLivePostgres(unittest.TestCase):
                 "average_income": 30000.0,
                 "cashflow_buffer": 15000.0,
             },
+            headers=headers,
         )
         self.assertEqual(no_consent_resp.status_code, 403)
 
@@ -437,6 +486,7 @@ class TestApiRoutesWithLivePostgres(unittest.TestCase):
                 "purpose": "CREDIT_ASSESSMENT",
                 "granted": True,
             },
+            headers=headers,
         )
         self.cleanup_items.append(("consent", c_resp.json()["id"]))
 
@@ -448,6 +498,7 @@ class TestApiRoutesWithLivePostgres(unittest.TestCase):
                 "average_income": 30000.0,
                 "raw_transactions": [{"txn_id": "123", "amount": 100}],
             },
+            headers=headers,
         )
         self.assertEqual(prohibited_resp.status_code, 400)
 
@@ -462,6 +513,7 @@ class TestApiRoutesWithLivePostgres(unittest.TestCase):
                 "payment_regularity": 0.95,
                 "repayment_reliability": 0.90,
             },
+            headers=headers,
         )
         self.assertEqual(sig_resp.status_code, 201)
         sig_data = sig_resp.json()
@@ -470,18 +522,19 @@ class TestApiRoutesWithLivePostgres(unittest.TestCase):
         self.assertEqual(float(sig_data["average_income"]), 32000.0)
 
         # GET signals
-        list_sig = self.client.get(f"/api/v1/applications/{app_id}/financial-signals")
+        list_sig = self.client.get(f"/api/v1/applications/{app_id}/financial-signals", headers=headers)
         self.assertEqual(list_sig.status_code, 200)
         self.assertEqual(len(list_sig.json()), 1)
 
         # GET latest signal
-        latest_sig = self.client.get(f"/api/v1/applications/{app_id}/financial-signals/latest")
+        latest_sig = self.client.get(f"/api/v1/applications/{app_id}/financial-signals/latest", headers=headers)
         self.assertEqual(latest_sig.status_code, 200)
         self.assertEqual(latest_sig.json()["id"], sig_id)
 
     # --- 6. MODEL VERSION ROUTES ---
     def test_model_version_routes(self):
         """Test model version registration, retrieval, listing, and active lookup."""
+        admin_id, admin_headers = self.create_user_and_headers(role="ADMIN")
         mv_version = f"1.0.{self.test_suffix}"
         mv_resp = self.client.post(
             "/api/v1/model-versions",
@@ -491,6 +544,7 @@ class TestApiRoutesWithLivePostgres(unittest.TestCase):
                 "description": "Deterministic mock scoring rules engine",
                 "is_active": True,
             },
+            headers=admin_headers,
         )
         self.assertEqual(mv_resp.status_code, 201)
         mv_data = mv_resp.json()
@@ -500,17 +554,17 @@ class TestApiRoutesWithLivePostgres(unittest.TestCase):
         self.assertTrue(mv_data["is_active"])
 
         # GET by ID
-        get_mv = self.client.get(f"/api/v1/model-versions/{mv_id}")
+        get_mv = self.client.get(f"/api/v1/model-versions/{mv_id}", headers=admin_headers)
         self.assertEqual(get_mv.status_code, 200)
         self.assertEqual(get_mv.json()["id"], mv_id)
 
         # List model versions
-        list_mv = self.client.get("/api/v1/model-versions")
+        list_mv = self.client.get("/api/v1/model-versions", headers=admin_headers)
         self.assertEqual(list_mv.status_code, 200)
         self.assertTrue(any(m["id"] == mv_id for m in list_mv.json()))
 
         # GET active by model name
-        act_mv = self.client.get("/api/v1/model-versions/active/mock_rules_v1")
+        act_mv = self.client.get("/api/v1/model-versions/active/mock_rules_v1", headers=admin_headers)
         self.assertEqual(act_mv.status_code, 200)
         self.assertEqual(act_mv.json()["model_name"], "mock_rules_v1")
 
@@ -524,10 +578,12 @@ class TestApiRoutesWithLivePostgres(unittest.TestCase):
         )
         user_id = u_resp.json()["id"]
         self.cleanup_items.append(("user", user_id))
+        headers = self.get_auth_header(user_id, "APPLICANT")
 
         p_resp = self.client.post(
             "/api/v1/applicants",
             json={"user_id": user_id, "gig_work_type": "Ride Hailing", "tenure_months": 24},
+            headers=headers,
         )
         prof_id = p_resp.json()["id"]
         self.cleanup_items.append(("applicant", prof_id))
@@ -535,6 +591,7 @@ class TestApiRoutesWithLivePostgres(unittest.TestCase):
         app_resp = self.client.post(
             "/api/v1/applications",
             json={"applicant_profile_id": prof_id, "requested_loan_amount": 25000.0},
+            headers=headers,
         )
         app_id = app_resp.json()["id"]
         self.cleanup_items.append(("application", app_id))
@@ -548,6 +605,7 @@ class TestApiRoutesWithLivePostgres(unittest.TestCase):
                 "purpose": "CREDIT_ASSESSMENT",
                 "granted": True,
             },
+            headers=headers,
         )
         self.cleanup_items.append(("consent", c_resp.json()["id"]))
 
@@ -561,10 +619,12 @@ class TestApiRoutesWithLivePostgres(unittest.TestCase):
                 "payment_regularity": 0.92,
                 "repayment_reliability": 0.88,
             },
+            headers=headers,
         )
         self.cleanup_items.append(("financial_signal", sig_resp.json()["id"]))
 
         # Register active model version
+        admin_id, admin_headers = self.create_user_and_headers(role="ADMIN")
         mv_resp = self.client.post(
             "/api/v1/model-versions",
             json={
@@ -573,12 +633,13 @@ class TestApiRoutesWithLivePostgres(unittest.TestCase):
                 "description": "Mock Scoring Engine",
                 "is_active": True,
             },
+            headers=admin_headers,
         )
         mv_id = mv_resp.json()["id"]
         self.cleanup_items.append(("model_version", mv_id))
 
         # Execute Assessment: POST /api/v1/applications/{application_id}/assess
-        assess_resp = self.client.post(f"/api/v1/applications/{app_id}/assess")
+        assess_resp = self.client.post(f"/api/v1/applications/{app_id}/assess", headers=headers)
         self.assertEqual(assess_resp.status_code, 201)
         assess_data = assess_resp.json()
         assess_id = assess_data["id"]
@@ -598,17 +659,17 @@ class TestApiRoutesWithLivePostgres(unittest.TestCase):
         self.assertEqual(assess_data["model_name"], "parakh-mock-engine")
 
         # GET by ID: /api/v1/assessments/{assessment_id}
-        get_assess = self.client.get(f"/api/v1/assessments/{assess_id}")
+        get_assess = self.client.get(f"/api/v1/assessments/{assess_id}", headers=headers)
         self.assertEqual(get_assess.status_code, 200)
         self.assertEqual(get_assess.json()["id"], assess_id)
 
         # GET application assessments: /api/v1/applications/{application_id}/assessments
-        list_assess = self.client.get(f"/api/v1/applications/{app_id}/assessments")
+        list_assess = self.client.get(f"/api/v1/applications/{app_id}/assessments", headers=headers)
         self.assertEqual(list_assess.status_code, 200)
         self.assertEqual(len(list_assess.json()), 1)
 
         # GET latest: /api/v1/applications/{application_id}/assessments/latest
-        latest_assess = self.client.get(f"/api/v1/applications/{app_id}/assessments/latest")
+        latest_assess = self.client.get(f"/api/v1/applications/{app_id}/assessments/latest", headers=headers)
         self.assertEqual(latest_assess.status_code, 200)
         self.assertEqual(latest_assess.json()["id"], assess_id)
 
@@ -622,10 +683,12 @@ class TestApiRoutesWithLivePostgres(unittest.TestCase):
         )
         applicant_user_id = u_resp.json()["id"]
         self.cleanup_items.append(("user", applicant_user_id))
+        app_headers = self.get_auth_header(applicant_user_id, "APPLICANT")
 
         p_resp = self.client.post(
             "/api/v1/applicants",
             json={"user_id": applicant_user_id, "gig_work_type": "Freelancer"},
+            headers=app_headers,
         )
         prof_id = p_resp.json()["id"]
         self.cleanup_items.append(("applicant", prof_id))
@@ -633,17 +696,13 @@ class TestApiRoutesWithLivePostgres(unittest.TestCase):
         app_resp = self.client.post(
             "/api/v1/applications",
             json={"applicant_profile_id": prof_id, "requested_loan_amount": 15000.0},
+            headers=app_headers,
         )
         app_id = app_resp.json()["id"]
         self.cleanup_items.append(("application", app_id))
 
         # Create Reviewer User
-        r_resp = self.client.post(
-            "/api/v1/users",
-            json={"email": f"reviewer_{self.test_suffix}@example.com", "role": "REVIEWER", "password": "Password123!"},
-        )
-        reviewer_id = r_resp.json()["id"]
-        self.cleanup_items.append(("user", reviewer_id))
+        reviewer_id, rev_headers = self.create_user_and_headers(role="REVIEWER")
 
         # Create Review: POST /api/v1/applications/{application_id}/reviews
         rev_resp = self.client.post(
@@ -654,6 +713,7 @@ class TestApiRoutesWithLivePostgres(unittest.TestCase):
                 "outcome": "REVIEWED",
                 "notes": "Verified applicant identity and platform delivery history.",
             },
+            headers=rev_headers,
         )
         self.assertEqual(rev_resp.status_code, 201)
         rev_data = rev_resp.json()
@@ -662,13 +722,13 @@ class TestApiRoutesWithLivePostgres(unittest.TestCase):
         self.assertEqual(rev_data["outcome"], "REVIEWED")
 
         # GET application reviews: /api/v1/applications/{application_id}/reviews
-        app_revs = self.client.get(f"/api/v1/applications/{app_id}/reviews")
+        app_revs = self.client.get(f"/api/v1/applications/{app_id}/reviews", headers=rev_headers)
         self.assertEqual(app_revs.status_code, 200)
         self.assertEqual(len(app_revs.json()), 1)
         self.assertEqual(app_revs.json()[0]["id"], rev_id)
 
         # GET reviewer reviews: /api/v1/reviewers/{reviewer_id}/reviews
-        user_revs = self.client.get(f"/api/v1/reviewers/{reviewer_id}/reviews")
+        user_revs = self.client.get(f"/api/v1/reviewers/{reviewer_id}/reviews", headers=rev_headers)
         self.assertEqual(user_revs.status_code, 200)
         self.assertEqual(len(user_revs.json()), 1)
         self.assertEqual(user_revs.json()[0]["id"], rev_id)
@@ -701,6 +761,9 @@ class TestApiLivePostgreSqlPipeline(unittest.TestCase):
             self.assertEqual(u_res.status_code, 201)
             user_id = u_res.json()["id"]
             cleanup_stack.append(("user", user_id))
+            from app.core.security import create_access_token
+            token = create_access_token(subject=str(user_id), role="APPLICANT")
+            headers = {"Authorization": f"Bearer {token}"}
 
             # 2. POST applicant profile
             p_res = client.post(
@@ -713,6 +776,7 @@ class TestApiLivePostgreSqlPipeline(unittest.TestCase):
                     "primary_platform": "Porter",
                     "tenure_months": 18,
                 },
+                headers=headers,
             )
             self.assertEqual(p_res.status_code, 201)
             profile_id = p_res.json()["id"]
@@ -726,6 +790,7 @@ class TestApiLivePostgreSqlPipeline(unittest.TestCase):
                     "requested_loan_amount": 50000.0,
                     "loan_purpose": "Vehicle Insurance & Gear",
                 },
+                headers=headers,
             )
             self.assertEqual(a_res.status_code, 201)
             application_id = a_res.json()["id"]
@@ -741,6 +806,7 @@ class TestApiLivePostgreSqlPipeline(unittest.TestCase):
                     "purpose": "CREDIT_ASSESSMENT",
                     "granted": True,
                 },
+                headers=headers,
             )
             self.assertEqual(c_res.status_code, 201)
             consent_id = c_res.json()["id"]
@@ -757,12 +823,28 @@ class TestApiLivePostgreSqlPipeline(unittest.TestCase):
                     "payment_regularity": 0.85,
                     "repayment_reliability": 0.82,
                 },
+                headers=headers,
             )
             self.assertEqual(s_res.status_code, 201)
             signal_id = s_res.json()["id"]
             cleanup_stack.append(("financial_signal", signal_id))
 
             # 6. Ensure active model version exists
+            with SessionLocal() as db:
+                from app.repositories.user import UserRepository
+                from app.core.security import hash_password
+                from app.models.user import UserRole
+                pipe_admin = UserRepository(db=db).create({
+                    "email": f"pipe_admin_{test_id}@example.com",
+                    "password_hash": hash_password("Password123!"),
+                    "role": UserRole.ADMIN,
+                    "is_active": True,
+                }, commit=True)
+                pipe_admin_id = str(pipe_admin.id)
+            cleanup_stack.append(("user", pipe_admin_id))
+            admin_token = create_access_token(subject=pipe_admin_id, role="ADMIN")
+            admin_headers = {"Authorization": f"Bearer {admin_token}"}
+
             mv_res = client.post(
                 "/api/v1/model-versions",
                 json={
@@ -771,13 +853,14 @@ class TestApiLivePostgreSqlPipeline(unittest.TestCase):
                     "description": "Mock Engine for Pipeline Test",
                     "is_active": True,
                 },
+                headers=admin_headers,
             )
             self.assertEqual(mv_res.status_code, 201)
             mv_id = mv_res.json()["id"]
             cleanup_stack.append(("model_version", mv_id))
 
             # 7. POST assessment
-            assess_res = client.post(f"/api/v1/applications/{application_id}/assess")
+            assess_res = client.post(f"/api/v1/applications/{application_id}/assess", headers=headers)
             self.assertEqual(assess_res.status_code, 201)
             assessment_id = assess_res.json()["id"]
             cleanup_stack.append(("assessment", assessment_id))
@@ -857,6 +940,10 @@ class TestApiExceptionHandlers(unittest.TestCase):
 
     def setUp(self):
         self.client = TestClient(app)
+        from app.models.user import User, UserRole
+        from app.api.deps import get_current_active_user
+        mock_user = User(id=uuid.uuid4(), email="admin_ex@parakh.com", role=UserRole.ADMIN, is_active=True)
+        app.dependency_overrides[get_current_active_user] = lambda: mock_user
 
     def tearDown(self):
         app.dependency_overrides.clear()
@@ -886,6 +973,7 @@ class TestApiExceptionHandlers(unittest.TestCase):
 
         # 1. Test AssessmentInputError -> 400
         mock_svc_400 = MagicMock(spec=AssessmentService)
+        mock_svc_400.db = MagicMock()
         mock_svc_400.assess_application.side_effect = AssessmentInputError("Invalid input features")
         app.dependency_overrides[get_assessment_service] = lambda: mock_svc_400
         res = self.client.post(f"/api/v1/applications/{uuid.uuid4()}/assess")
@@ -894,6 +982,7 @@ class TestApiExceptionHandlers(unittest.TestCase):
 
         # 2. Test AssessmentOutputError -> 500
         mock_svc_500 = MagicMock(spec=AssessmentService)
+        mock_svc_500.db = MagicMock()
         mock_svc_500.assess_application.side_effect = AssessmentOutputError("Engine produced corrupted output")
         app.dependency_overrides[get_assessment_service] = lambda: mock_svc_500
         res = self.client.post(f"/api/v1/applications/{uuid.uuid4()}/assess")
@@ -902,6 +991,7 @@ class TestApiExceptionHandlers(unittest.TestCase):
 
         # 3. Test AssessmentNotImplementedError -> 501
         mock_svc_501 = MagicMock(spec=AssessmentService)
+        mock_svc_501.db = MagicMock()
         mock_svc_501.assess_application.side_effect = AssessmentNotImplementedError("Scoring model not implemented")
         app.dependency_overrides[get_assessment_service] = lambda: mock_svc_501
         res = self.client.post(f"/api/v1/applications/{uuid.uuid4()}/assess")

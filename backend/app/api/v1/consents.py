@@ -1,10 +1,18 @@
 """Applicant consent and privacy authorization API routes."""
 from typing import List, Optional
 from uuid import UUID
-from fastapi import APIRouter, Depends, Query, status
-from app.api.deps import get_consent_service
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from app.api.deps import (
+    check_application_ownership,
+    get_application_service,
+    get_consent_service,
+    get_current_active_user,
+)
 from app.models.consent import ConsentDataSource
+from app.models.user import User, UserRole
 from app.schemas.consent import ConsentCreate, ConsentResponse
+from app.services.applicant import ApplicantService
+from app.services.application import ApplicationService
 from app.services.consent import ConsentService
 
 router = APIRouter(tags=["consents"])
@@ -19,9 +27,16 @@ router = APIRouter(tags=["consents"])
 )
 def create_consent(
     consent_in: ConsentCreate,
+    current_user: User = Depends(get_current_active_user),
     consent_service: ConsentService = Depends(get_consent_service),
 ) -> ConsentResponse:
-    """Record explicit applicant consent."""
+    """Record explicit applicant consent with ownership enforcement."""
+    check_application_ownership(
+        consent_service.db,
+        consent_in.application_id,
+        current_user,
+        allow_reviewers=False,
+    )
     consent = consent_service.create_consent(consent_in)
     return ConsentResponse.model_validate(consent)
 
@@ -35,9 +50,16 @@ def create_consent(
 )
 def get_application_consents(
     application_id: UUID,
+    current_user: User = Depends(get_current_active_user),
     consent_service: ConsentService = Depends(get_consent_service),
 ) -> List[ConsentResponse]:
-    """List all consent records for an application."""
+    """List all consent records for an application with role/ownership enforcement."""
+    check_application_ownership(
+        consent_service.db,
+        application_id,
+        current_user,
+        allow_reviewers=True,
+    )
     consents = consent_service.get_application_consents(application_id)
     return [ConsentResponse.model_validate(c) for c in consents]
 
@@ -55,9 +77,16 @@ def get_active_application_consents(
         None,
         description="Optional filter by data category (PLATFORM, FINANCIAL_ACTIVITY, UTILITY)",
     ),
+    current_user: User = Depends(get_current_active_user),
     consent_service: ConsentService = Depends(get_consent_service),
 ) -> List[ConsentResponse]:
-    """List active consents for an application."""
+    """List active consents for an application with role/ownership enforcement."""
+    check_application_ownership(
+        consent_service.db,
+        application_id,
+        current_user,
+        allow_reviewers=True,
+    )
     consents = consent_service.get_active_consents(
         application_id=application_id, data_source=data_source
     )
@@ -73,8 +102,23 @@ def get_active_application_consents(
 )
 def revoke_consent(
     consent_id: UUID,
+    current_user: User = Depends(get_current_active_user),
     consent_service: ConsentService = Depends(get_consent_service),
 ) -> ConsentResponse:
-    """Revoke a previously granted consent."""
+    """Revoke a previously granted consent with ownership enforcement."""
+    # Find consent to verify ownership before revoking
+    consent_repo = consent_service.consent_repo
+    consent = consent_repo.get_by_id(consent_id)
+    if not consent:
+        from app.services.exceptions import EntityNotFoundError
+        raise EntityNotFoundError(f"Consent '{consent_id}' not found.")
+
+    check_application_ownership(
+        consent_service.db,
+        consent.application_id,
+        current_user,
+        allow_reviewers=False,
+    )
     revoked = consent_service.revoke_consent(consent_id)
     return ConsentResponse.model_validate(revoked)
+

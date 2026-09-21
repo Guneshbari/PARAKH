@@ -10,6 +10,8 @@ from app.assessment.exceptions import (
     AssessmentOutputError,
 )
 from app.services.exceptions import (
+    AuthenticationError,
+    AuthorizationError,
     ConsentRequiredError,
     DuplicateEntityError,
     EntityNotFoundError,
@@ -95,3 +97,25 @@ def register_exception_handlers(app: FastAPI) -> None:
             status_code=status.HTTP_501_NOT_IMPLEMENTED,
             content={"detail": exc.message},
         )
+
+    @app.exception_handler(AuthenticationError)
+    async def handle_authentication_error(
+        request: Request, exc: AuthenticationError
+    ) -> JSONResponse:
+        logger.info(f"Authentication error: {exc.message}")
+        return JSONResponse(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            content={"detail": exc.message},
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    @app.exception_handler(AuthorizationError)
+    async def handle_authorization_error(
+        request: Request, exc: AuthorizationError
+    ) -> JSONResponse:
+        logger.warning(f"Authorization error: {exc.message}")
+        return JSONResponse(
+            status_code=status.HTTP_403_FORBIDDEN,
+            content={"detail": exc.message},
+        )
+

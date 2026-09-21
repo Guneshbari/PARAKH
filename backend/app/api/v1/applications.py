@@ -1,14 +1,17 @@
 """Alternative credit assessment application API routes."""
 from typing import List
 from uuid import UUID
-from fastapi import APIRouter, Depends, Query, status
-from app.api.deps import get_application_service
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from app.api.deps import get_application_service, get_current_active_user
+from app.models.application import ApplicationStatus
+from app.models.user import User, UserRole
 from app.schemas.application import (
     ApplicationCreate,
     ApplicationResponse,
     ApplicationStatusUpdate,
     ApplicationUpdate,
 )
+from app.services.applicant import ApplicantService
 from app.services.application import ApplicationService
 
 router = APIRouter(prefix="/applications", tags=["applications"])
@@ -23,9 +26,19 @@ router = APIRouter(prefix="/applications", tags=["applications"])
 )
 def create_application(
     application_in: ApplicationCreate,
+    current_user: User = Depends(get_current_active_user),
     application_service: ApplicationService = Depends(get_application_service),
 ) -> ApplicationResponse:
-    """Create a new credit application."""
+    """Create a new credit application with profile ownership enforcement."""
+    if current_user.role == UserRole.APPLICANT:
+        applicant_service = ApplicantService(db=application_service.db)
+        profile = applicant_service.get_profile(application_in.applicant_profile_id)
+        if profile.user_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access denied: cannot submit an application for another applicant profile.",
+            )
+
     app = application_service.create_application(application_in)
     return ApplicationResponse.model_validate(app)
 
@@ -39,10 +52,19 @@ def create_application(
 )
 def get_application(
     application_id: UUID,
+    current_user: User = Depends(get_current_active_user),
     application_service: ApplicationService = Depends(get_application_service),
 ) -> ApplicationResponse:
-    """Retrieve application by ID."""
+    """Retrieve application by ID with ownership enforcement."""
     app = application_service.get_application(application_id)
+    if current_user.role == UserRole.APPLICANT:
+        applicant_service = ApplicantService(db=application_service.db)
+        profile = applicant_service.get_profile(app.applicant_profile_id)
+        if profile.user_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access denied: cannot view another applicant's application.",
+            )
     return ApplicationResponse.model_validate(app)
 
 
@@ -57,9 +79,19 @@ def list_applicant_applications(
     applicant_profile_id: UUID,
     skip: int = Query(0, ge=0, description="Pagination offset"),
     limit: int = Query(100, ge=1, le=500, description="Max items to return"),
+    current_user: User = Depends(get_current_active_user),
     application_service: ApplicationService = Depends(get_application_service),
 ) -> List[ApplicationResponse]:
-    """List applications for an applicant profile."""
+    """List applications for an applicant profile with ownership enforcement."""
+    if current_user.role == UserRole.APPLICANT:
+        applicant_service = ApplicantService(db=application_service.db)
+        profile = applicant_service.get_profile(applicant_profile_id)
+        if profile.user_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access denied: cannot view another applicant's applications.",
+            )
+
     apps = application_service.list_applications(
         applicant_profile_id=applicant_profile_id, skip=skip, limit=limit
     )
@@ -76,9 +108,19 @@ def list_applicant_applications(
 def update_application(
     application_id: UUID,
     app_update: ApplicationUpdate,
+    current_user: User = Depends(get_current_active_user),
     application_service: ApplicationService = Depends(get_application_service),
 ) -> ApplicationResponse:
-    """Update application details."""
+    """Update application details with ownership enforcement."""
+    app = application_service.get_application(application_id)
+    if current_user.role != UserRole.ADMIN:
+        applicant_service = ApplicantService(db=application_service.db)
+        profile = applicant_service.get_profile(app.applicant_profile_id)
+        if profile.user_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access denied: cannot modify another applicant's application.",
+            )
     updated = application_service.update_application(application_id, app_update)
     return ApplicationResponse.model_validate(updated)
 
@@ -93,8 +135,31 @@ def update_application(
 def update_application_status(
     application_id: UUID,
     status_in: ApplicationStatusUpdate,
+    current_user: User = Depends(get_current_active_user),
     application_service: ApplicationService = Depends(get_application_service),
 ) -> ApplicationResponse:
-    """Transition application lifecycle status."""
+    """Transition application lifecycle status with role authorization."""
+    app = application_service.get_application(application_id)
+    if current_user.role in (UserRole.REVIEWER, UserRole.ADMIN):
+        pass  # Reviewers and admins can perform transitions
+    elif current_user.role == UserRole.APPLICANT:
+        applicant_service = ApplicantService(db=application_service.db)
+        profile = applicant_service.get_profile(app.applicant_profile_id)
+        if profile.user_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access denied: cannot transition another applicant's application.",
+            )
+        if app.status != ApplicationStatus.DRAFT or status_in.status != ApplicationStatus.SUBMITTED:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Applicants may only submit draft applications.",
+            )
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Operation not permitted for current user role.",
+        )
+
     updated = application_service.update_status(application_id, status_in.status)
     return ApplicationResponse.model_validate(updated)

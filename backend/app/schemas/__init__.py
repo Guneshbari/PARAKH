@@ -16,6 +16,11 @@ from app.schemas.assessment import (
     CreditAssessmentResponse,
 )
 from app.schemas.audit import AuditLogResponse
+from app.schemas.auth import (
+    LoginRequest,
+    TokenPayload,
+    TokenResponse,
+)
 from app.schemas.common import DatabaseHealthResponse, StatusResponse
 from app.schemas.consent import ConsentCreate, ConsentResponse
 from app.schemas.financial_signal import (
@@ -41,6 +46,10 @@ __all__ = [
     # Common
     "StatusResponse",
     "DatabaseHealthResponse",
+    # Auth
+    "LoginRequest",
+    "TokenResponse",
+    "TokenPayload",
     # User
     "UserCreate",
     "UserUpdate",

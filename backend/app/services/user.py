@@ -2,6 +2,7 @@
 import uuid
 from typing import Any, Dict, Optional, Union
 from sqlalchemy.orm import Session
+from app.core.security import hash_password, verify_password
 from app.models.user import User
 from app.repositories.user import UserRepository
 from app.schemas.user import UserCreate, UserUpdate
@@ -58,8 +59,9 @@ class UserService:
             raise DuplicateEntityError(f"User with email '{normalized_email}' already exists.")
 
         data["email"] = normalized_email
-        # Remove plaintext password before persisting to User model (auth/hashing belongs to later task)
-        data.pop("password", None)
+        raw_password = data.pop("password", None)
+        if raw_password:
+            data["password_hash"] = hash_password(str(raw_password))
 
         try:
             user = self.user_repo.create(data, commit=False, db=self.db)
@@ -140,6 +142,11 @@ class UserService:
                     )
             data["email"] = normalized_email
 
+        if "password" in data:
+            raw_password = data.pop("password", None)
+            if raw_password:
+                data["password_hash"] = hash_password(str(raw_password))
+
         try:
             updated_user = self.user_repo.update(user, data, commit=False, db=self.db)
             if auto_commit:
@@ -150,3 +157,27 @@ class UserService:
             if auto_commit:
                 self.db.rollback()
             raise
+
+    def authenticate_user(
+        self,
+        email: str,
+        password: str,
+    ) -> Optional[User]:
+        """Authenticate user credentials against stored bcrypt password hash.
+
+        Args:
+            email: Raw user email address.
+            password: Provided plaintext password.
+
+        Returns:
+            Optional[User]: Matching authenticated User if valid, else None.
+        """
+        if not email or not password:
+            return None
+        normalized_email = str(email).lower().strip()
+        user = self.user_repo.get_by_email(normalized_email, db=self.db)
+        if not user or not user.password_hash:
+            return None
+        if not verify_password(password, user.password_hash):
+            return None
+        return user

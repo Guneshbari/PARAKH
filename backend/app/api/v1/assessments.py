@@ -2,7 +2,12 @@
 from typing import List, Optional
 from uuid import UUID
 from fastapi import APIRouter, Depends, Query, status
-from app.api.deps import get_assessment_service
+from app.api.deps import (
+    check_application_ownership,
+    get_assessment_service,
+    get_current_active_user,
+)
+from app.models.user import User
 from app.schemas.assessment import CreditAssessmentResponse
 from app.services.assessment import AssessmentService
 from app.services.exceptions import EntityNotFoundError
@@ -26,9 +31,16 @@ def assess_application(
         None,
         description="Optional model version ID override. If omitted, uses active model version.",
     ),
+    current_user: User = Depends(get_current_active_user),
     assessment_service: AssessmentService = Depends(get_assessment_service),
 ) -> CreditAssessmentResponse:
-    """Execute credit assessment evaluation."""
+    """Execute credit assessment evaluation with role/ownership enforcement."""
+    check_application_ownership(
+        assessment_service.db,
+        application_id,
+        current_user,
+        allow_reviewers=True,
+    )
     assessment = assessment_service.assess_application(
         application_id=application_id,
         model_version_id=model_version_id,
@@ -45,10 +57,17 @@ def assess_application(
 )
 def get_assessment(
     assessment_id: UUID,
+    current_user: User = Depends(get_current_active_user),
     assessment_service: AssessmentService = Depends(get_assessment_service),
 ) -> CreditAssessmentResponse:
-    """Retrieve credit assessment by ID."""
+    """Retrieve credit assessment by ID with ownership enforcement."""
     assessment = assessment_service.get_assessment(assessment_id)
+    check_application_ownership(
+        assessment_service.db,
+        assessment.application_id,
+        current_user,
+        allow_reviewers=True,
+    )
     return CreditAssessmentResponse.model_validate(assessment)
 
 
@@ -61,9 +80,16 @@ def get_assessment(
 )
 def get_application_assessments(
     application_id: UUID,
+    current_user: User = Depends(get_current_active_user),
     assessment_service: AssessmentService = Depends(get_assessment_service),
 ) -> List[CreditAssessmentResponse]:
-    """List all assessments for an application."""
+    """List all assessments for an application with role/ownership enforcement."""
+    check_application_ownership(
+        assessment_service.db,
+        application_id,
+        current_user,
+        allow_reviewers=True,
+    )
     assessments = assessment_service.get_application_assessments(application_id)
     return [CreditAssessmentResponse.model_validate(a) for a in assessments]
 
@@ -77,12 +103,20 @@ def get_application_assessments(
 )
 def get_latest_assessment(
     application_id: UUID,
+    current_user: User = Depends(get_current_active_user),
     assessment_service: AssessmentService = Depends(get_assessment_service),
 ) -> CreditAssessmentResponse:
-    """Retrieve the latest assessment for an application."""
+    """Retrieve the latest assessment for an application with role/ownership enforcement."""
+    check_application_ownership(
+        assessment_service.db,
+        application_id,
+        current_user,
+        allow_reviewers=True,
+    )
     assessment = assessment_service.get_latest_assessment(application_id)
     if not assessment:
         raise EntityNotFoundError(
             f"No credit assessments found for application '{application_id}'."
         )
     return CreditAssessmentResponse.model_validate(assessment)
+
