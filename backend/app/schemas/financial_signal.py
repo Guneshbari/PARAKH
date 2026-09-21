@@ -30,7 +30,9 @@ class FinancialSignalBase(BaseModel):
 class FinancialSignalCreate(FinancialSignalBase):
     """Schema for ingesting aggregated signals for an application."""
 
-    application_id: UUID
+    model_config = ConfigDict(extra="allow")
+
+    application_id: Optional[UUID] = None
     applicant_profile_id: Optional[UUID] = None
 
 

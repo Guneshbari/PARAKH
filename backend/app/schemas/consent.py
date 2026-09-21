@@ -13,6 +13,7 @@ class ConsentCreate(BaseModel):
     purpose: str = Field(..., min_length=3, max_length=255, description="Purpose of data access")
     application_id: Optional[UUID] = None
     applicant_profile_id: Optional[UUID] = None
+    granted: bool = Field(default=True, description="Explicit grant indicator (must be true)")
 
 
 class ConsentResponse(BaseModel):

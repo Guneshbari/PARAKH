@@ -481,19 +481,122 @@ curl -s http://127.0.0.1:8000/api/v1/database/health
 
 ---
 
-## 13. Running Tests
+## 13. TASK 11 — FastAPI Routes & HTTP Layer
+
+The HTTP/API layer is implemented using modular FastAPI routers exposing all business capabilities under the versioned prefix `/api/v1/`.
+
+### Architectural Flow:
+```
+HTTP Request
+    ↓
+FastAPI Router (app/api/v1/)
+    ↓
+Pydantic Request Schema (app/schemas/)
+    ↓
+Service Layer (app/services/)
+    ↓
+Repository Layer (app/repositories/)
+    ↓
+SQLAlchemy ORM (app/models/)
+    ↓
+PostgreSQL Database
+```
+
+For Credit Assessment:
+```
+POST /api/v1/applications/{application_id}/assess
+    ↓
+Assessment Router (app/api/v1/assessments.py)
+    ↓
+AssessmentService.assess_application()
+    ↓
+AssessmentInput Adapter
+    ↓
+MockAssessmentEngine.assess()
+    ↓
+AssessmentResult
+    ↓
+CreditAssessment ORM Entity Persisted to PostgreSQL
+    ↓
+CreditAssessmentResponse (score, risk_level, confidence, key_factors, explanation)
+```
+
+### Available Endpoint Groups:
+
+| Group | Method | Endpoint | Description |
+|---|---|---|---|
+| **System** | `GET` | `/` | Root service message |
+| | `GET` | `/health` | Application health check |
+| | `GET` | `/api/v1/status` | Operational service status & version |
+| | `GET` | `/api/v1/database/health` | PostgreSQL live connectivity verification |
+| **Users** | `POST` | `/api/v1/users` | Register new user account (password hashed/never exposed) |
+| | `GET` | `/api/v1/users/{user_id}` | Retrieve user by UUID |
+| | `GET` | `/api/v1/users/by-email/{email}` | Retrieve user by normalized email |
+| | `PATCH` | `/api/v1/users/{user_id}` | Update user attributes |
+| **Applicants** | `POST` | `/api/v1/applicants` | Create gig worker applicant profile |
+| | `GET` | `/api/v1/applicants/{profile_id}` | Retrieve profile by UUID |
+| | `GET` | `/api/v1/applicants/user/{user_id}` | Retrieve profile by user account ID |
+| | `PATCH` | `/api/v1/applicants/{profile_id}` | Update profile information |
+| **Applications** | `POST` | `/api/v1/applications` | Create credit assessment application |
+| | `GET` | `/api/v1/applications/{application_id}` | Retrieve application details |
+| | `GET` | `/api/v1/applications/applicant/{profile_id}` | List applications for applicant profile |
+| | `PATCH` | `/api/v1/applications/{application_id}` | Update application details |
+| | `PATCH` | `/api/v1/applications/{application_id}/status` | Transition application lifecycle status |
+| **Consents** | `POST` | `/api/v1/consents` | Record explicit applicant data access consent |
+| | `GET` | `/api/v1/applications/{application_id}/consents` | List all consents for application |
+| | `GET` | `/api/v1/applications/{application_id}/consents/active` | List active (unrevoked) consents |
+| | `POST` | `/api/v1/consents/{consent_id}/revoke` | Revoke a previously granted consent |
+| **Financial Signals** | `POST` | `/api/v1/applications/{application_id}/financial-signals` | Ingest aggregated financial indicators (data-minimized) |
+| | `GET` | `/api/v1/applications/{application_id}/financial-signals` | List recorded financial signals |
+| | `GET` | `/api/v1/applications/{application_id}/financial-signals/latest` | Retrieve latest recorded financial signal |
+| **Assessments** | `POST` | `/api/v1/applications/{application_id}/assess` | Execute credit assessment engine & persist result |
+| | `GET` | `/api/v1/assessments/{assessment_id}` | Retrieve credit assessment by UUID |
+| | `GET` | `/api/v1/applications/{application_id}/assessments` | List assessments for application |
+| | `GET` | `/api/v1/applications/{application_id}/assessments/latest` | Retrieve latest assessment for application |
+| **Model Versions** | `POST` | `/api/v1/model-versions` | Register new credit assessment model version |
+| | `GET` | `/api/v1/model-versions/{model_version_id}` | Retrieve model version by UUID |
+| | `GET` | `/api/v1/model-versions` | List registered model versions |
+| | `GET` | `/api/v1/model-versions/active/{model_name}` | Retrieve active model version for an engine |
+| **Reviews** | `POST` | `/api/v1/applications/{application_id}/reviews` | Record human review outcome |
+| | `GET` | `/api/v1/applications/{application_id}/reviews` | List reviews for application |
+| | `GET` | `/api/v1/reviewers/{reviewer_id}/reviews` | List reviews conducted by reviewer |
+
+### Exception → HTTP Mapping:
+
+All domain exceptions from the service and assessment layers are handled centrally in `app/api/errors.py`:
+
+| Domain Exception | HTTP Status | Description |
+|---|---|---|
+| `EntityNotFoundError` | `404 Not Found` | Requested entity does not exist |
+| `DuplicateEntityError` | `409 Conflict` | Unique constraint conflict (e.g. duplicate email, profile) |
+| `InvalidStateTransitionError` | `409 Conflict` | Illegal application lifecycle transition |
+| `ConsentRequiredError` | `403 Forbidden` | Access to external data source lacks active applicant consent |
+| `ValidationError` | `400 Bad Request` | Service validation or privacy rule failure |
+| `AssessmentInputError` | `400 Bad Request` | Invalid/insufficient input features for assessment |
+| `AssessmentOutputError` | `500 Internal Server Error` | Corrupted or malformed engine evaluation result |
+| `AssessmentNotImplementedError` | `501 Not Implemented` | Requested model version or feature not implemented |
+| Pydantic Schema Validation | `422 Unprocessable Entity` | Malformed request body, invalid types or bounds |
+
+### Response Safety & Privacy:
+- Never exposes internal password hashes, credentials, or session traces.
+- Enforces strict data-minimization boundaries: rejects raw transaction payloads, GPS traces, contact lists, and merchant descriptions.
+- Assessment results expose standardized, explainable metrics (credit score, risk tier, confidence, key driving factors, and explanation metadata) without leaking internal model objects.
+
+---
+
+## 14. Running Tests
 
 Run the full unit and integration test suite:
 ```bash
 python -m unittest discover -s tests -p "test_*.py" -v
 ```
 
-- **Unit tests**: Validate configuration, SQLAlchemy engine creation, DeclarativeBase inheritance, `get_db()` lifecycle, domain model relationships, constraints, data minimization, Alembic configuration/offline migrations, Pydantic schema validation/ORM compatibility, repository CRUD/specialized query behavior, service business rules/validations/state machines, consent/privacy authorization enforcement, and assessment engine contracts/validation.
-- **Integration tests**: Automatically execute live `SELECT 1`, repository queries, service transactional workflows, end-to-end consent lifecycle/revocation checks, and assessment engine execution/persistence against PostgreSQL if available. If PostgreSQL is offline locally, integration tests skip gracefully without failing the build.
+- **Unit tests**: Validate configuration, SQLAlchemy engine creation, DeclarativeBase inheritance, `get_db()` lifecycle, domain model relationships, constraints, data minimization, Alembic configuration/offline migrations, Pydantic schema validation/ORM compatibility, repository CRUD/specialized query behavior, service business rules/validations/state machines, consent/privacy authorization enforcement, assessment engine contracts/validation, and FastAPI router endpoints.
+- **Integration tests**: Automatically execute live `SELECT 1`, repository queries, service transactional workflows, end-to-end consent lifecycle/revocation checks, full HTTP-to-PostgreSQL pipeline execution, and assessment engine execution/persistence against live PostgreSQL. If PostgreSQL is offline locally, integration tests skip gracefully without failing the build.
 
 ---
 
-## 14. Project Structure
+## 15. Project Structure
 ```
 backend/
 ├── alembic.ini               # Alembic CLI configuration (credentials omitted)
@@ -504,11 +607,24 @@ backend/
 │       └── fd385d59e799_initial_schema.py  # Initial PARAKH schema migration
 ├── app/
 │   ├── __init__.py
-│   ├── main.py              # FastAPI application entrypoint
+│   ├── main.py              # FastAPI application entrypoint with central routes & docs
 │   ├── api/
-│   │   ├── __init__.py
-│   │   ├── router.py        # Central API router aggregating subrouters
-│   │   └── database.py      # Database health check router
+│   │   ├── __init__.py      # Exports api_router
+│   │   ├── deps.py          # FastAPI dependencies (get_db, services, assessment engine)
+│   │   ├── errors.py        # Centralized domain exception to HTTP response handlers
+│   │   ├── router.py        # Central API router aggregating /api/v1 routes
+│   │   ├── database.py      # Database health check router (/api/v1/database/health)
+│   │   └── v1/
+│   │       ├── __init__.py  # Exports v1_router
+│   │       ├── router.py    # Aggregates all v1 domain routers
+│   │       ├── users.py     # User registration, retrieval, and updates
+│   │       ├── applicants.py # Applicant profile management
+│   │       ├── applications.py # Loan application lifecycle & state machine
+│   │       ├── consents.py  # Consent authorization & revocation
+│   │       ├── financial_signals.py # Data-minimized signal ingestion
+│   │       ├── assessments.py # Assessment execution & retrieval
+│   │       ├── model_versions.py # Model provenance & registry
+│   │       └── reviews.py   # Human review outcomes
 │   ├── core/
 │   │   ├── __init__.py
 │   │   ├── config.py        # Pydantic Settings (APP_NAME, DATABASE_URL, etc.)
@@ -524,7 +640,7 @@ backend/
 │   │   ├── common.py        # StatusResponse and DatabaseHealthResponse schemas
 │   │   ├── user.py          # UserCreate, UserResponse, UserSummary, UserUpdate
 │   │   ├── applicant.py     # ApplicantProfileCreate, ApplicantProfileResponse, etc.
-│   │   ├── application.py   # ApplicationCreate, ApplicationResponse, etc.
+│   │   ├── application.py   # ApplicationCreate, ApplicationResponse, ApplicationStatusUpdate
 │   │   ├── consent.py       # ConsentCreate, ConsentResponse
 │   │   ├── financial_signal.py # FinancialSignalCreate, FinancialSignalResponse
 │   │   ├── assessment.py    # CreditAssessmentCreate, CreditAssessmentResponse
@@ -578,7 +694,8 @@ backend/
 │   ├── test_services.py     # Service layer business logic, validation, and workflow tests
 │   ├── test_consent_privacy.py # Consent authorization, independent sources & privacy tests
 │   ├── test_assessment_engine.py # Assessment engine interface, contracts, & privacy tests
-│   └── test_mock_assessment_engine.py # Mock assessment engine deterministic scoring tests
+│   ├── test_mock_assessment_engine.py # Mock assessment engine deterministic scoring tests
+│   └── test_api_routes.py   # FastAPI routes, exception mapping, & HTTP-to-PostgreSQL pipeline tests
 │
 ├── .env.example             # Example configuration template with DATABASE_URL
 ├── .gitignore               # Ignored files (.env, .venv, caches)

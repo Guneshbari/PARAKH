@@ -43,6 +43,15 @@ class ApplicationUpdate(BaseModel):
     status: Optional[ApplicationStatus] = None
 
 
+class ApplicationStatusUpdate(BaseModel):
+    """Schema for advancing application lifecycle status."""
+
+    status: ApplicationStatus = Field(
+        ...,
+        description="Target lifecycle status (e.g. SUBMITTED, UNDER_REVIEW)",
+    )
+
+
 class ApplicationSummary(BaseModel):
     """Lightweight summary schema for listing applications."""
 

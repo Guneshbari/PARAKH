@@ -1,9 +1,9 @@
 """Pydantic schemas for CreditAssessment entity."""
 from datetime import datetime
 from decimal import Decimal
-from typing import Optional
+from typing import Any, Dict, List, Optional
 from uuid import UUID
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from app.models.assessment import RiskLevel
 
 
@@ -69,5 +69,53 @@ class CreditAssessmentResponse(CreditAssessmentBase):
     id: UUID
     application_id: UUID
     model_version_id: UUID
+    score: Optional[int] = Field(None, description="Alternative credit score (alias for credit_score)")
+    model_name: Optional[str] = Field(None, description="Scoring algorithm or engine identifier")
+    model_version: Optional[str] = Field(None, description="Model semantic version string")
+    key_factors: List[str] = Field(default_factory=list, description="Primary driving indicators")
+    explanation: Dict[str, Any] = Field(default_factory=dict, description="Structured explanation metadata")
     assessed_at: datetime
     created_at: datetime
+
+    @model_validator(mode="before")
+    @classmethod
+    def prepare_data(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            if "score" not in data or data["score"] is None:
+                data["score"] = data.get("credit_score")
+            return data
+
+        mv_rel = getattr(data, "model_version", None)
+        mv_version_str = getattr(data, "_transient_model_version", None)
+        mv_name_str = getattr(data, "_transient_model_name", None)
+        if mv_rel is not None and hasattr(mv_rel, "version"):
+            if not mv_version_str:
+                mv_version_str = mv_rel.version
+            if not mv_name_str:
+                mv_name_str = getattr(mv_rel, "model_name", None)
+
+        score_val = getattr(data, "score", None)
+        if score_val is None:
+            score_val = getattr(data, "credit_score", None)
+
+        return {
+            "id": getattr(data, "id", None),
+            "application_id": getattr(data, "application_id", None),
+            "model_version_id": getattr(data, "model_version_id", None),
+            "credit_score": getattr(data, "credit_score", None),
+            "score": score_val,
+            "risk_probability": getattr(data, "risk_probability", None),
+            "risk_level": getattr(data, "risk_level", None),
+            "confidence": getattr(data, "confidence", None),
+            "debt_to_income": getattr(data, "debt_to_income", None),
+            "utilization": getattr(data, "utilization", None),
+            "income_stability": getattr(data, "income_stability", None),
+            "repayment_reliability": getattr(data, "repayment_reliability", None),
+            "assessment_status": getattr(data, "assessment_status", "COMPLETED"),
+            "model_name": mv_name_str or getattr(data, "model_name", None),
+            "model_version": mv_version_str,
+            "key_factors": getattr(data, "_transient_key_factors", None) or getattr(data, "key_factors", []),
+            "explanation": getattr(data, "_transient_explanation", None) or getattr(data, "explanation", {}),
+            "assessed_at": getattr(data, "assessed_at", None),
+            "created_at": getattr(data, "created_at", None),
+        }

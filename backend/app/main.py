@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from app.api.errors import register_exception_handlers
 from app.api.router import api_router
 from app.core.config import settings
 
@@ -11,6 +12,9 @@ app = FastAPI(
     redoc_url="/redoc",
     openapi_url="/openapi.json",
 )
+
+# Register centralized exception handlers for domain & assessment errors
+register_exception_handlers(app)
 
 
 @app.get("/", summary="Root Status")

@@ -37,7 +37,10 @@ class ApplicantProfileBase(BaseModel):
 class ApplicantProfileCreate(ApplicantProfileBase):
     """Schema for creating an applicant profile."""
 
-    pass
+    user_id: Optional[UUID] = Field(
+        None,
+        description="Associated User account primary key UUID",
+    )
 
 
 class ApplicantProfileUpdate(BaseModel):

@@ -7,6 +7,7 @@ from app.schemas.applicant import (
 from app.schemas.application import (
     ApplicationCreate,
     ApplicationResponse,
+    ApplicationStatusUpdate,
     ApplicationSummary,
     ApplicationUpdate,
 )
@@ -52,6 +53,7 @@ __all__ = [
     # Application
     "ApplicationCreate",
     "ApplicationUpdate",
+    "ApplicationStatusUpdate",
     "ApplicationSummary",
     "ApplicationResponse",
     # Consent

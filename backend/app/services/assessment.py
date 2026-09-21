@@ -237,5 +237,10 @@ class AssessmentService:
             model_version_id=mv_id,
         )
 
-        return self.create_assessment(create_schema, auto_commit=auto_commit)
+        assessment = self.create_assessment(create_schema, auto_commit=auto_commit)
+        setattr(assessment, "_transient_model_name", result.model_name)
+        setattr(assessment, "_transient_model_version", result.model_version)
+        setattr(assessment, "_transient_key_factors", result.key_factors)
+        setattr(assessment, "_transient_explanation", result.explanation)
+        return assessment
 

@@ -28,3 +28,8 @@ api_router.include_router(
     prefix="/database",
     tags=["database"],
 )
+
+# Domain v1 endpoints
+from app.api.v1.router import v1_router
+
+api_router.include_router(v1_router)
