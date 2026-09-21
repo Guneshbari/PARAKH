@@ -10,11 +10,11 @@ This directory (`PARAKH/backend/`) contains the **FastAPI** backend service resp
 ## 2. Current Backend Technology Stack
 - **Framework**: [FastAPI](https://fastapi.tiangolo.com/) (Python web framework for high-performance APIs)
 - **ASGI Server**: [Uvicorn](https://www.uvicorn.org/)
+- **Data Validation & Contracts**: [Pydantic v2](https://docs.pydantic.dev/) and [pydantic-settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/)
 - **Database ORM**: [SQLAlchemy 2.0](https://www.sqlalchemy.org/) (SQL toolkit and Object Relational Mapper)
 - **Database Migrations**: [Alembic](https://alembic.sqlalchemy.org/) (Schema migration environment)
 - **Database Driver**: [psycopg (v3)](https://www.psycopg.org/) (High-performance PostgreSQL adapter)
 - **Relational Database**: [PostgreSQL](https://www.postgresql.org/)
-- **Configuration & Validation**: [Pydantic](https://docs.pydantic.dev/) and [pydantic-settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/)
 - **Environment Management**: [python-dotenv](https://github.com/theskumar/python-dotenv)
 
 ---
@@ -28,22 +28,28 @@ HTTP Request
     ↓
 API Layer (app/api/)
     ↓
+Pydantic Request Schemas (app/schemas/)
+    ↓
 Service Layer (app/services/)
     ↓
 Repository Layer (app/repositories/)
     ↓
-Database ORM (SQLAlchemy 2.0 + psycopg)
+SQLAlchemy Models (app/models/)
     ↓
 PostgreSQL Database
+    ↓
+Pydantic Response Schemas (app/schemas/)
+    ↓
+HTTP Response
 ```
 
 ### Architectural Components:
 1. **API Layer (`app/api/`)**:
    Exposes HTTP routes via FastAPI routers. The central router (`api/router.py`) aggregates versioned domain subrouters (e.g., `api/database.py`).
-2. **Database & Core (`app/core/`)**:
+2. **Schemas Layer (`app/schemas/`)**:
+   Pydantic v2 contracts defining strong typing, input validation, and output serialization separate from database models.
+3. **Database & Core (`app/core/`)**:
    Contains application settings (`config.py`) and database infrastructure (`database.py`), including the engine, session factory (`SessionLocal`), and the request-scoped database dependency (`get_db()`).
-3. **Schemas (`app/schemas/`)**:
-   Pydantic models defining input validation rules and output response serialization contracts (`StatusResponse`, `DatabaseHealthResponse`).
 4. **Models (`app/models/`)**:
    SQLAlchemy 2.0 domain entities and DeclarativeBase providing the data model for accounts, profiles, applications, consents, signals, and assessments.
 5. **Migrations (`alembic/`)**:
@@ -97,7 +103,6 @@ AuditLog
 3. **Application (`applications`)**: Credit assessment requests with requested amounts, purpose, repayment period, and lifecycle status (`DRAFT`, `SUBMITTED`, `UNDER_REVIEW`, `ASSESSED`, `MANUAL_REVIEW`, `COMPLETED`).
 4. **Consent (`consents`)**: Explicit applicant permission tracking per data source (`PLATFORM`, `FINANCIAL_ACTIVITY`, `UTILITY`) and purpose, supporting grant and revocation timestamps (`granted_at`, `revoked_at`).
 5. **FinancialSignal (`financial_signals`)**: Aggregated, derived financial metrics (e.g. `average_income`, `median_income`, `income_volatility`, `income_trend`, `active_days`, `payment_regularity`, `cashflow_buffer`, `existing_obligation`, `platform_rating`).
-   > **Data Minimization Principle**: `FinancialSignal` strictly contains aggregated and derived indicators. It **does NOT** store raw UPI transaction descriptions, merchant names, contact books, GPS/location history, or raw bank credentials.
 6. **CreditAssessment (`credit_assessments`)**: Generated assessment output including `credit_score`, `risk_probability`, `risk_level` (`LOWER`, `MODERATE`, `HIGHER`, `INSUFFICIENT`), `confidence`, and financial health ratios. Nullable values are supported when evidence is insufficient.
 7. **ModelVersion (`model_versions`)**: Traceability record identifying the specific scoring model, version string, algorithm name, and description used to produce an assessment.
 8. **ReviewOutcome (`review_outcomes`)**: Decision support record capturing human reviewer evaluation (`REVIEWED`, `ESCALATED`, `ADDITIONAL_INFORMATION_REQUIRED`) with notes.
@@ -105,7 +110,39 @@ AuditLog
 
 ---
 
-## 6. Local Setup & Configuration
+## 6. Pydantic Schema Layer
+
+The schema layer (`app/schemas/`) defines explicit API request and response contracts, decoupled from the internal database models:
+
+### Schema Roles:
+1. **Request Schemas** (e.g. `UserCreate`, `ApplicantProfileCreate`, `ApplicationCreate`, `ConsentCreate`, `FinancialSignalCreate`, `ReviewOutcomeCreate`):
+   Validate incoming payload data from API consumers, applying boundary constraints (e.g. loan amount > 0, email format check, string length limits).
+2. **Response Schemas** (e.g. `UserResponse`, `ApplicantProfileResponse`, `ApplicationResponse`, `CreditAssessmentResponse`, `ReviewOutcomeResponse`, `AuditLogResponse`):
+   Define serialization contracts sent back to clients, ensuring sensitive internal attributes are omitted.
+3. **Summary Schemas** (e.g. `UserSummary`, `ApplicationSummary`):
+   Lightweight projections optimized for listing and summary endpoints.
+
+### ORM Serialization & Compatibility:
+All response schemas declare:
+```python
+model_config = ConfigDict(from_attributes=True)
+```
+This enables seamless conversion from SQLAlchemy ORM entities via `Schema.model_validate(orm_instance)` without manual dict mapping.
+
+### Validation Rules:
+- **Loan Amount**: `requested_loan_amount > 0`
+- **Probabilities & Confidence**: `risk_probability` and `confidence` bounded strictly between `0` and `1`.
+- **Experience & Activity**: `years_working >= 0`, `average_working_days` between `0` and `31`.
+- **Monetary Signals**: `average_income`, `median_income`, `cashflow_buffer`, and `existing_obligation` must be `>= 0`.
+- **Email Validation**: Case-normalized and regex-validated without third-party external dependencies.
+
+### Privacy Boundary & Data Minimization:
+- **Zero Credential Exposure**: `UserResponse` and `UserSummary` strictly exclude `password_hash` and plaintext passwords.
+- **Aggregated Indicators Only**: `FinancialSignal` schemas contain only derived summary metrics (`average_income`, `payment_regularity`, `volatility`). They strictly forbid raw bank transactions, raw UPI descriptions, merchant names, GPS/location coordinates, contacts, or bank login credentials.
+
+---
+
+## 7. Local Setup & Configuration
 
 ### Prerequisites
 - Python 3.10+ (tested on Python 3.12)
@@ -159,7 +196,7 @@ AuditLog
 
 ---
 
-## 7. Database Migrations (Alembic)
+## 8. Database Migrations (Alembic)
 
 Schema migrations are managed with Alembic. The database connection URL is dynamically read from `app.core.config.settings.DATABASE_URL` without hardcoding credentials into source files.
 
@@ -201,16 +238,9 @@ Schema migrations are managed with Alembic. The database connection URL is dynam
    alembic downgrade -1
    ```
 
-> **Note on Local PostgreSQL Availability**:
-> If PostgreSQL is currently offline, live `alembic upgrade head` cannot connect to apply migrations directly. You can inspect and verify migrations offline using `alembic upgrade base:head --sql`.
-> Once PostgreSQL is running and `.env` is configured, run:
-> ```bash
-> alembic upgrade head
-> ```
-
 ---
 
-## 8. Endpoints
+## 9. Endpoints
 
 | Method | Endpoint | Description | Sample Response (Success) |
 |---|---|---|---|
@@ -234,25 +264,21 @@ curl -s http://127.0.0.1:8000/api/v1/status
 curl -s http://127.0.0.1:8000/api/v1/database/health
 ```
 
-> **Database Health Check Behavior**:
-> - If PostgreSQL is connected: returns `HTTP 200` with `{"status": "healthy", "database": "connected"}`.
-> - If PostgreSQL is unavailable: returns `HTTP 503` with `{"status": "unhealthy", "database": "disconnected"}` without leaking internal credentials, host details, or tracebacks.
-
 ---
 
-## 9. Running Tests
+## 10. Running Tests
 
 Run the full unit and integration test suite:
 ```bash
 python -m unittest discover -s tests -p "test_*.py" -v
 ```
 
-- **Unit tests**: Validate configuration, SQLAlchemy engine creation, DeclarativeBase inheritance, `get_db()` lifecycle, domain model relationships, constraints, data minimization, and Alembic configuration / offline migration generation.
+- **Unit tests**: Validate configuration, SQLAlchemy engine creation, DeclarativeBase inheritance, `get_db()` lifecycle, domain model relationships, constraints, data minimization, Alembic configuration/offline migrations, and Pydantic schema validation/ORM compatibility.
 - **Integration tests**: Automatically attempt live `SELECT 1` queries against PostgreSQL if available. If PostgreSQL is offline locally, integration tests skip gracefully without failing the build.
 
 ---
 
-## 10. Project Structure
+## 11. Project Structure
 ```
 backend/
 ├── alembic.ini               # Alembic CLI configuration (credentials omitted)
@@ -273,8 +299,17 @@ backend/
 │   │   ├── config.py        # Pydantic Settings (APP_NAME, DATABASE_URL, etc.)
 │   │   └── database.py      # Engine, SessionLocal, get_db session dependency
 │   ├── schemas/
-│   │   ├── __init__.py
-│   │   └── common.py        # StatusResponse and DatabaseHealthResponse schemas
+│   │   ├── __init__.py      # Exports all public request/response schemas
+│   │   ├── common.py        # StatusResponse and DatabaseHealthResponse schemas
+│   │   ├── user.py          # UserCreate, UserResponse, UserSummary, UserUpdate
+│   │   ├── applicant.py     # ApplicantProfileCreate, ApplicantProfileResponse, etc.
+│   │   ├── application.py   # ApplicationCreate, ApplicationResponse, etc.
+│   │   ├── consent.py       # ConsentCreate, ConsentResponse
+│   │   ├── financial_signal.py # FinancialSignalCreate, FinancialSignalResponse
+│   │   ├── assessment.py    # CreditAssessmentCreate, CreditAssessmentResponse
+│   │   ├── model_version.py # ModelVersionCreate, ModelVersionResponse
+│   │   ├── review.py        # ReviewOutcomeCreate, ReviewOutcomeResponse
+│   │   └── audit.py         # AuditLogResponse
 │   ├── models/
 │   │   ├── __init__.py      # Exports all domain models and enums
 │   │   ├── base.py          # DeclarativeBase, UUIDPrimaryKeyMixin, TimestampMixin
@@ -297,7 +332,8 @@ backend/
 │   ├── test_health.py       # API endpoints and database health tests
 │   ├── test_database.py     # Database engine, session, and unit/integration tests
 │   ├── test_models.py       # Domain model structure, relationship, and constraint tests
-│   └── test_migrations.py   # Alembic configuration and migration generation tests
+│   ├── test_migrations.py   # Alembic configuration and migration generation tests
+│   └── test_schemas.py      # Pydantic request/response schema validation & ORM tests
 │
 ├── .env.example             # Example configuration template with DATABASE_URL
 ├── .gitignore               # Ignored files (.env, .venv, caches)
