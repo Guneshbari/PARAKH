@@ -1,5 +1,6 @@
 """Central API router aggregating all versioned domain endpoints."""
 from fastapi import APIRouter
+from app.api.database import router as database_router
 from app.core.config import settings
 from app.schemas.common import StatusResponse
 
@@ -21,6 +22,9 @@ def get_status() -> StatusResponse:
     )
 
 
-# Future domain routers will be included here:
-# e.g., api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
-# e.g., api_router.include_router(applications.router, prefix="/applications", tags=["applications"])
+# Database endpoints: /api/v1/database/health
+api_router.include_router(
+    database_router,
+    prefix="/database",
+    tags=["database"],
+)

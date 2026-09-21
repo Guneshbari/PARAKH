@@ -10,6 +10,9 @@ This directory (`PARAKH/backend/`) contains the **FastAPI** backend service resp
 ## 2. Current Backend Technology Stack
 - **Framework**: [FastAPI](https://fastapi.tiangolo.com/) (Python web framework for high-performance APIs)
 - **ASGI Server**: [Uvicorn](https://www.uvicorn.org/)
+- **Database ORM**: [SQLAlchemy 2.0](https://www.sqlalchemy.org/) (SQL toolkit and Object Relational Mapper)
+- **Database Driver**: [psycopg (v3)](https://www.psycopg.org/) (High-performance PostgreSQL adapter)
+- **Relational Database**: [PostgreSQL](https://www.postgresql.org/)
 - **Configuration & Validation**: [Pydantic](https://docs.pydantic.dev/) and [pydantic-settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/)
 - **Environment Management**: [python-dotenv](https://github.com/theskumar/python-dotenv)
 
@@ -28,30 +31,44 @@ Service Layer (app/services/)
     ↓
 Repository Layer (app/repositories/)
     ↓
-Database / External Sources (app/models/)
+Database ORM (SQLAlchemy 2.0 + psycopg)
+    ↓
+PostgreSQL Database
 ```
 
 ### Architectural Components:
 1. **API Layer (`app/api/`)**:
-   Exposes HTTP routes via FastAPI routers. The central router (`api/router.py`) prefixes versioned endpoints (default `/api/v1`) and will aggregate future domain-specific subrouters (e.g., auth, applicants, applications, assessments).
-2. **Schemas (`app/schemas/`)**:
-   Pydantic models defining input validation rules and output response serialization contracts (e.g., `StatusResponse`).
-3. **Services (`app/services/`)**:
+   Exposes HTTP routes via FastAPI routers. The central router (`api/router.py`) aggregates versioned domain subrouters (e.g., `api/database.py`).
+2. **Database & Core (`app/core/`)**:
+   Contains application settings (`config.py`) and database infrastructure (`database.py`), including the engine, session factory (`SessionLocal`), and the request-scoped database dependency (`get_db()`).
+3. **Schemas (`app/schemas/`)**:
+   Pydantic models defining input validation rules and output response serialization contracts (`StatusResponse`, `DatabaseHealthResponse`).
+4. **Models (`app/models/`)**:
+   SQLAlchemy 2.0 DeclarativeBase (`models/base.py`) providing the foundation for future database entities.
+5. **Services (`app/services/`)**:
    Business logic and orchestration layer. Will house workflows for credit assessment calculations, consent handling, and external integrations.
-4. **Repositories (`app/repositories/`)**:
+6. **Repositories (`app/repositories/`)**:
    Data access abstraction isolating database queries and persistence mechanisms from business logic.
-5. **Models (`app/models/`)**:
-   Domain models and database entity definitions.
 
-> **Note**: `services/`, `repositories/`, and `models/` currently represent architectural boundaries prepared for future implementation. Database (PostgreSQL/SQLAlchemy), authentication (JWT), and ML scoring logic do not exist yet and will be added in subsequent tasks.
+> **Note**: `services/`, `repositories/`, and specific business tables in `models/` represent architectural boundaries prepared for future implementation. Business tables, database migrations (Alembic), authentication (JWT), and ML scoring logic do not exist yet and will be introduced in subsequent tasks.
 
 ---
 
-## 4. Setup and Installation Guide
+## 4. Database Foundation
+
+- **Relational Database**: PostgreSQL is the primary database for application state, audit logs, and structured assessments.
+- **ORM & Abstraction**: SQLAlchemy 2.0 provides declarative modeling, type safety, and connection pool management.
+- **Driver**: `psycopg` (v3 with binary extensions) serves as the modern DBAPI driver.
+- **Declarative Base**: Defined in `app/models/base.py` as the root for future entity definitions.
+- **Session Lifecycle**: The `get_db()` dependency yields a scoped SQLAlchemy `Session` per request and ensures it is reliably closed upon completion.
+
+---
+
+## 5. Local Setup & Configuration
 
 ### Prerequisites
 - Python 3.10+ (tested on Python 3.12)
-- `venv` module for virtual environment management
+- PostgreSQL 14+ installed and running locally (optional for initial mock/unit testing)
 
 ### Step-by-Step Instructions (Linux / macOS)
 
@@ -77,79 +94,105 @@ Database / External Sources (app/models/)
    ```
 
 5. **Configure environment variables**:
-   Copy the example environment file to create your local `.env`:
+   Copy `.env.example` to create your local `.env`:
    ```bash
    cp .env.example .env
    ```
-   Modify `.env` as required (defaults work out-of-the-box for local development).
 
----
+6. **PostgreSQL Setup (Local)**:
+   - Create a local PostgreSQL user and database (e.g. using `psql`):
+     ```sql
+     CREATE USER parakh WITH PASSWORD 'parakh_password';
+     CREATE DATABASE parakh OWNER parakh;
+     GRANT ALL PRIVILEGES ON DATABASE parakh TO parakh;
+     ```
+   - Update `DATABASE_URL` in `.env`:
+     ```env
+     DATABASE_URL=postgresql+psycopg://parakh:parakh_password@localhost:5432/parakh
+     ```
 
-## 5. Running the Development Server
-
-Start the FastAPI application with auto-reload:
-```bash
-uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
-```
-
-The application will be accessible at:
-- **Base URL**: `http://127.0.0.1:8000`
-- **Interactive Swagger Documentation**: `http://127.0.0.1:8000/docs`
-- **ReDoc Documentation**: `http://127.0.0.1:8000/redoc`
-- **OpenAPI Schema**: `http://127.0.0.1:8000/openapi.json`
+7. **Start the FastAPI development server**:
+   ```bash
+   uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+   ```
 
 ---
 
 ## 6. Endpoints
 
-| Method | Endpoint | Description | Sample Response |
+| Method | Endpoint | Description | Sample Response (Success) |
 |---|---|---|---|
 | `GET` | `/` | API root message | `{"message": "PARAKH API is running"}` |
 | `GET` | `/health` | Health check endpoint | `{"status": "healthy"}` |
 | `GET` | `/api/v1/status` | Versioned API service status | `{"status": "ok", "service": "PARAKH API", "version": "0.1.0"}` |
+| `GET` | `/api/v1/database/health` | Database connection check (`SELECT 1`) | `{"status": "healthy", "database": "connected"}` |
 
-### Testing with curl
+### Testing Endpoints with curl
 ```bash
-# Check root endpoint
+# Root greeting
 curl -s http://127.0.0.1:8000/
 
-# Check health endpoint
+# Service health
 curl -s http://127.0.0.1:8000/health
 
-# Check versioned API status endpoint
+# API layer status
 curl -s http://127.0.0.1:8000/api/v1/status
+
+# Database connectivity health check
+curl -s http://127.0.0.1:8000/api/v1/database/health
 ```
+
+> **Database Health Check Behavior**:
+> - If PostgreSQL is connected: returns `HTTP 200` with `{"status": "healthy", "database": "connected"}`.
+> - If PostgreSQL is unavailable: returns `HTTP 503` with `{"status": "unhealthy", "database": "disconnected"}` without leaking internal credentials, host details, or tracebacks.
+> - Note: This endpoint only verifies raw database connectivity. Business tables do not exist yet.
 
 ---
 
-## 7. Project Structure
+## 7. Running Tests
+
+Run the full unit and integration test suite:
+```bash
+python -m unittest discover -s tests -p "test_*.py" -v
+```
+
+- **Unit tests**: Validate configuration, SQLAlchemy engine creation, DeclarativeBase inheritance, `get_db()` lifecycle, and error handling.
+- **Integration tests**: Automatically attempt live `SELECT 1` queries against PostgreSQL if available. If PostgreSQL is offline locally, integration tests skip gracefully without failing the build.
+
+---
+
+## 8. Project Structure
 ```
 backend/
 ├── app/
 │   ├── __init__.py
-│   ├── main.py              # FastAPI app instance and router registration
+│   ├── main.py              # FastAPI application entrypoint
 │   ├── api/
 │   │   ├── __init__.py
-│   │   └── router.py        # Central API router with versioned routes
+│   │   ├── router.py        # Central API router aggregating subrouters
+│   │   └── database.py      # Database health check router
 │   ├── core/
 │   │   ├── __init__.py
-│   │   └── config.py        # Configuration management with pydantic-settings
+│   │   ├── config.py        # Pydantic Settings (APP_NAME, DATABASE_URL, etc.)
+│   │   └── database.py      # Engine, SessionLocal, get_db session dependency
 │   ├── schemas/
 │   │   ├── __init__.py
-│   │   └── common.py        # Common Pydantic response/request models
+│   │   └── common.py        # StatusResponse and DatabaseHealthResponse schemas
+│   ├── models/
+│   │   ├── __init__.py
+│   │   └── base.py          # SQLAlchemy DeclarativeBase
 │   ├── services/
 │   │   └── __init__.py      # Business logic orchestration (placeholder)
-│   ├── repositories/
-│   │   └── __init__.py      # Data access layer (placeholder)
-│   └── models/
-│       └── __init__.py      # Database entities (placeholder)
+│   └── repositories/
+│       └── __init__.py      # Data persistence abstraction (placeholder)
 │
 ├── tests/
 │   ├── __init__.py
-│   └── test_health.py       # API endpoint test suite
+│   ├── test_health.py       # API endpoints and database health tests
+│   └── test_database.py     # Database engine, session, and unit/integration tests
 │
-├── .env.example             # Example environment configuration
-├── .gitignore               # Backend-specific ignore patterns
+├── .env.example             # Example configuration template with DATABASE_URL
+├── .gitignore               # Ignored files (.env, .venv, caches)
 ├── requirements.txt         # Current backend dependencies
-└── README.md                # Documentation and architecture guide
+└── README.md                # Comprehensive documentation & setup guide
 ```

@@ -17,5 +17,10 @@ class Settings(BaseSettings):
     API_V1_PREFIX: str = "/api/v1"
     VERSION: str = "0.1.0"
 
+    # Database
+    DATABASE_URL: str = (
+        "postgresql+psycopg://parakh:parakh_password@localhost:5432/parakh"
+    )
+
 
 settings = Settings()

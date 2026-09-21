@@ -8,3 +8,10 @@ class StatusResponse(BaseModel):
     status: str
     service: str
     version: str
+
+
+class DatabaseHealthResponse(BaseModel):
+    """Response schema for database connectivity health check."""
+
+    status: str
+    database: str
