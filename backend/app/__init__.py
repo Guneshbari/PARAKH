@@ -1,0 +1,1 @@
+"""PARAKH Backend Application Package."""

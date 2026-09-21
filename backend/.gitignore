@@ -1,0 +1,30 @@
+# Environment
+.env
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Python cache and bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Testing and type checking
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# IDE and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Operating System
+.DS_Store
+Thumbs.db
