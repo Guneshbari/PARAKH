@@ -7,6 +7,7 @@ from app.services.application import (
 from app.services.assessment import AssessmentService
 from app.services.consent import ConsentService
 from app.services.exceptions import (
+    ConsentRequiredError,
     DuplicateEntityError,
     EntityNotFoundError,
     InvalidStateTransitionError,
@@ -25,6 +26,7 @@ __all__ = [
     "DuplicateEntityError",
     "InvalidStateTransitionError",
     "ValidationError",
+    "ConsentRequiredError",
     # Constants
     "VALID_STATUS_TRANSITIONS",
     # Services

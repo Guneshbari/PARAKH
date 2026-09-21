@@ -219,12 +219,16 @@ PostgreSQL Database
     - `ASSESSED → COMPLETED`
     - Rejects invalid or backward status transitions with `InvalidStateTransitionError`.
 - **`ConsentService`**:
-  - Records explicit applicant data access permissions by data category.
-  - Validates purpose strings and application/profile linkages.
-  - Queries active (unrevoked) consents and handles revocation timestamps.
+  - Enforces explicit consent creation requiring application existence and applicant/profile ownership verification.
+  - Guarantees consent cannot be silently implied; requires explicit grant state (`granted=True`) and records `granted_at`.
+  - Implements reusable authorization verification: `has_active_consent(application_id, data_source, applicant_profile_id=None)` and `require_active_consent(...)`.
+  - Evaluates consent independently per data source category (`PLATFORM`, `FINANCIAL_ACTIVITY`, `UTILITY`).
+  - Implements soft revocation: marks `granted=False` and timestamps `revoked_at` without deleting historical audit records.
+  - Strictly prevents cross-application authorization leakage (consents for Application A never authorize access for Application B).
 - **`FinancialSignalService`**:
   - Persists aggregated and derived platform metrics (`average_income`, `payment_regularity`, `volatility`).
-  - Enforces strict data-minimization rules: immediately rejects raw transaction logs, bank account numbers, UPI IDs, merchant names, GPS coordinates, and contact lists with `ValidationError`.
+  - Enforces strict data-minimization rules: immediately rejects raw transaction logs, bank account numbers, UPI IDs, raw bank statements, merchant names, GPS coordinates, contacts, and passwords with `ValidationError`.
+  - Supports authorization verification via `create_signal(..., enforce_consent=True)` or `create_signal_with_consent(...)` rejecting unauthorized ingestion with `ConsentRequiredError`.
 - **`AssessmentService`**:
   - Manages credit evaluation output persistence and history.
   - Validates application and model version linkages.
@@ -242,7 +246,8 @@ Defined in `app/services/exceptions.py`, domain-level exceptions decouple raw da
 - `EntityNotFoundError`: Raised when an entity is missing.
 - `DuplicateEntityError`: Raised on uniqueness violations (e.g. duplicate email, duplicate profile).
 - `InvalidStateTransitionError`: Raised when an illegal lifecycle status change is requested.
-- `ValidationError`: Raised on business logic constraint failures.
+- `ValidationError`: Raised on business logic constraint failures (e.g. prohibited raw data, invalid linkages).
+- `ConsentRequiredError`: Raised when an operation attempts to access or process a data source without active, unrevoked consent.
 
 ### Transaction Boundaries & Rollback
 - Repositories default to `flush()` without auto-committing.
@@ -381,8 +386,8 @@ Run the full unit and integration test suite:
 python -m unittest discover -s tests -p "test_*.py" -v
 ```
 
-- **Unit tests**: Validate configuration, SQLAlchemy engine creation, DeclarativeBase inheritance, `get_db()` lifecycle, domain model relationships, constraints, data minimization, Alembic configuration/offline migrations, Pydantic schema validation/ORM compatibility, repository CRUD/specialized query behavior, and service business rules/validations/state machines.
-- **Integration tests**: Automatically execute live `SELECT 1`, repository queries, and service transactional workflows against PostgreSQL if available. If PostgreSQL is offline locally, integration tests skip gracefully without failing the build.
+- **Unit tests**: Validate configuration, SQLAlchemy engine creation, DeclarativeBase inheritance, `get_db()` lifecycle, domain model relationships, constraints, data minimization, Alembic configuration/offline migrations, Pydantic schema validation/ORM compatibility, repository CRUD/specialized query behavior, service business rules/validations/state machines, and consent/privacy authorization enforcement.
+- **Integration tests**: Automatically execute live `SELECT 1`, repository queries, service transactional workflows, and end-to-end consent lifecycle/revocation checks against PostgreSQL if available. If PostgreSQL is offline locally, integration tests skip gracefully without failing the build.
 
 ---
 
@@ -444,7 +449,7 @@ backend/
 │   │   └── audit.py         # AuditRepository & AuditLogRepository
 │   └── services/
 │       ├── __init__.py      # Exports all domain services and exceptions
-│       ├── exceptions.py    # Domain service exceptions (EntityNotFoundError, etc.)
+│       ├── exceptions.py    # Domain service exceptions (EntityNotFoundError, ConsentRequiredError, etc.)
 │       ├── user.py          # UserService
 │       ├── applicant.py     # ApplicantService
 │       ├── application.py   # ApplicationService
@@ -462,7 +467,8 @@ backend/
 │   ├── test_migrations.py   # Alembic configuration and migration generation tests
 │   ├── test_schemas.py      # Pydantic request/response schema validation & ORM tests
 │   ├── test_repositories.py # Repository CRUD and specialized query tests
-│   └── test_services.py     # Service layer business logic, validation, and workflow tests
+│   ├── test_services.py     # Service layer business logic, validation, and workflow tests
+│   └── test_consent_privacy.py # Consent authorization, independent sources & privacy tests
 │
 ├── .env.example             # Example configuration template with DATABASE_URL
 ├── .gitignore               # Ignored files (.env, .venv, caches)

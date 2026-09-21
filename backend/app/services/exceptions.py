@@ -34,3 +34,10 @@ class ValidationError(ServiceError):
     """Raised when business logic validation constraints are violated."""
 
     pass
+
+
+class ConsentRequiredError(ServiceError):
+    """Raised when an operation lacks valid, active applicant consent."""
+
+    pass
+
