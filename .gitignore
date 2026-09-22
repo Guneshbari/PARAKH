@@ -5,6 +5,7 @@ __pycache__/
 *.so
 .Python
 .venv/
+.venv-ml/
 venv/
 .env
 uv.lock.bak
@@ -41,6 +42,8 @@ build/
 # Model artifacts / experiments
 models/artifacts/*
 !models/artifacts/.gitkeep
+models/checkpoints/*
+!models/checkpoints/.gitkeep
 mlruns/
 mlartifacts/
 
