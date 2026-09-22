@@ -71,7 +71,9 @@ export class ParakhApiClient {
   constructor(config?: ApiClientConfig) {
     const envUrl =
       typeof process !== 'undefined' && process.env
-        ? process.env.NEXT_PUBLIC_API_URL
+        ? typeof window === 'undefined'
+          ? process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL
+          : process.env.NEXT_PUBLIC_API_URL
         : undefined;
     this.baseUrl = config?.baseUrl || envUrl || 'http://localhost:8000';
     this.timeoutMs = config?.timeoutMs || 15000;
