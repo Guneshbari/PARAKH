@@ -34,33 +34,39 @@ function UnauthorizedContent() {
           </p>
         </div>
 
-        {user && (
-          <div className="p-4 rounded-xl bg-surface-elevated border border-border text-left space-y-1">
-            <span className="text-[10px] font-mono uppercase text-foreground-muted block">
-              Current Active Identity
-            </span>
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-foreground">{user.name}</span>
-              <Badge variant="default" className="text-[10px]">
-                {role === 'reviewer' ? 'Credit Reviewer' : 'Applicant'}
-              </Badge>
+        {user && (() => {
+          const isReviewer = role?.toUpperCase() === 'REVIEWER';
+          return (
+            <div className="p-4 rounded-xl bg-surface-elevated border border-border text-left space-y-1">
+              <span className="text-[10px] font-mono uppercase text-foreground-muted block">
+                Current Active Identity
+              </span>
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-foreground">{user.name}</span>
+                <Badge variant="default" className="text-[10px]">
+                  {isReviewer ? 'Credit Reviewer' : 'Applicant'}
+                </Badge>
+              </div>
+              <span className="text-[11px] text-foreground-secondary block">{user.email}</span>
             </div>
-            <span className="text-[11px] text-foreground-secondary block">{user.email}</span>
-          </div>
-        )}
+          );
+        })()}
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-2 pt-2">
-          {user && (
-            <Link
-              href={role === 'reviewer' ? '/admin/dashboard' : '/user/dashboard'}
-              className="w-full sm:w-auto"
-            >
-              <Button className="w-full text-xs font-semibold gap-1.5 h-9">
-                <span>Go to Your {role === 'reviewer' ? 'Credit Review Dashboard' : 'Applicant Dashboard'}</span>
-                <ArrowRight className="size-3.5" />
-              </Button>
-            </Link>
-          )}
+          {user && (() => {
+            const isReviewer = role?.toUpperCase() === 'REVIEWER';
+            return (
+              <Link
+                href={isReviewer ? '/admin/dashboard' : '/user/dashboard'}
+                className="w-full sm:w-auto"
+              >
+                <Button className="w-full text-xs font-semibold gap-1.5 h-9">
+                  <span>Go to Your {isReviewer ? 'Credit Review Dashboard' : 'Applicant Dashboard'}</span>
+                  <ArrowRight className="size-3.5" />
+                </Button>
+              </Link>
+            );
+          })()}
 
           <Link
             href={attemptedRole === 'reviewer' ? '/login?role=reviewer' : '/login?role=applicant'}

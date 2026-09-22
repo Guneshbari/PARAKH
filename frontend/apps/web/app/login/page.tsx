@@ -25,10 +25,6 @@ import { cn } from '@/lib/utils';
 import {
   useAuth,
   UserRole,
-  DEMO_APPLICANT,
-  DEMO_REVIEWER,
-  DEMO_APPLICANT_CREDENTIALS,
-  DEMO_REVIEWER_CREDENTIALS,
 } from '@/components/auth/AuthContext';
 import {
   AuthFormCard,
@@ -37,6 +33,20 @@ import {
   getAuthInputClassName,
   AuthStatus,
 } from '@/components/auth/AuthFeedback';
+
+const DEMO_PRESETS = {
+  applicant: {
+    name: 'Arjun Verma',
+    email: 'arjun.verma@example.com',
+    password: 'Password123!',
+  },
+  reviewer: {
+    name: 'Priya Sharma',
+    email: 'reviewer@parakh.internal',
+    password: 'Password123!',
+  },
+};
+
 
 function LoginFormContent() {
   const router = useRouter();
@@ -62,9 +72,10 @@ function LoginFormContent() {
   // If already authenticated in current role, redirect immediately
   useEffect(() => {
     if (isAuthenticated) {
-      if (userRole === 'reviewer') {
+      const roleUpper = userRole?.toUpperCase();
+      if (roleUpper === 'REVIEWER') {
         router.push(redirectUrl || '/admin/dashboard');
-      } else if (userRole === 'applicant') {
+      } else if (roleUpper === 'APPLICANT') {
         router.push(redirectUrl || '/user/dashboard');
       }
     }
@@ -96,13 +107,13 @@ function LoginFormContent() {
     setError(null);
 
     if (!email.trim() && !password.trim()) {
-      setError('Please enter your email/mobile and account password.');
+      setError('Please enter your email and account password.');
       setAuthStatus('error');
       setShakeKey((k) => k + 1);
       return;
     }
     if (!email.trim()) {
-      setError('Please enter your email address or mobile number.');
+      setError('Please enter your email address.');
       setAuthStatus('error');
       setShakeKey((k) => k + 1);
       return;
@@ -128,9 +139,10 @@ function LoginFormContent() {
       setAuthStatus('success');
       setError(null);
 
-      // Brief 400ms confirmation window to showcase "Credentials Verified" check ring
+      // Brief confirmation window to showcase verification
       setTimeout(() => {
-        if (authUser.role === 'reviewer') {
+        const roleUpper = authUser.role?.toUpperCase();
+        if (roleUpper === 'REVIEWER') {
           router.push(redirectUrl || '/admin/dashboard');
         } else {
           router.push(redirectUrl || '/user/dashboard');
@@ -148,44 +160,31 @@ function LoginFormContent() {
     }
   };
 
-  const handleFillDemo = (role: UserRole) => {
+  const handleFillDemo = (role: 'applicant' | 'reviewer') => {
     setError(null);
     setAuthStatus('idle');
-    if (role === 'applicant') {
-      setEmail(DEMO_APPLICANT_CREDENTIALS.email);
-      setPassword(DEMO_APPLICANT_CREDENTIALS.password);
-      setActiveRole('applicant');
-    } else {
-      setEmail(DEMO_REVIEWER_CREDENTIALS.email);
-      setPassword(DEMO_REVIEWER_CREDENTIALS.password);
-      setActiveRole('reviewer');
-    }
+    const preset = DEMO_PRESETS[role];
+    setEmail(preset.email);
+    setPassword(preset.password);
+    setActiveRole(role);
   };
 
-  const handleDemoLogin = async (role: UserRole) => {
+  const handleDemoLogin = async (role: 'applicant' | 'reviewer') => {
     setError(null);
-    const demoEmail =
-      role === 'applicant'
-        ? DEMO_APPLICANT_CREDENTIALS.email
-        : DEMO_REVIEWER_CREDENTIALS.email;
-    const demoPassword =
-      role === 'applicant'
-        ? DEMO_APPLICANT_CREDENTIALS.password
-        : DEMO_REVIEWER_CREDENTIALS.password;
+    const preset = DEMO_PRESETS[role];
 
     // Populate UI fields
-    setEmail(demoEmail);
-    setPassword(demoPassword);
+    setEmail(preset.email);
+    setPassword(preset.password);
     setActiveRole(role);
 
     setAuthStatus('submitting');
     setIsSubmitting(true);
 
     try {
-      // Explicitly route through standard credential validation
       const authUser = await login({
-        email: demoEmail,
-        password: demoPassword,
+        email: preset.email,
+        password: preset.password,
         portalRole: role,
       });
 
@@ -193,7 +192,8 @@ function LoginFormContent() {
       setError(null);
 
       setTimeout(() => {
-        if (authUser.role === 'reviewer') {
+        const roleUpper = authUser.role?.toUpperCase();
+        if (roleUpper === 'REVIEWER') {
           router.push(redirectUrl || '/admin/dashboard');
         } else {
           router.push(redirectUrl || '/user/dashboard');
@@ -207,6 +207,7 @@ function LoginFormContent() {
       setIsSubmitting(false);
     }
   };
+
 
   return (
     <div className="relative min-h-screen w-full flex flex-col justify-between bg-background text-foreground transition-colors duration-200 overflow-x-hidden">
@@ -480,11 +481,11 @@ function LoginFormContent() {
                     </Badge>
                   </div>
                   <p className="text-[11px] text-foreground-secondary mt-1 font-medium">
-                    {DEMO_APPLICANT.name}
+                    {DEMO_PRESETS.applicant.name}
                   </p>
                   <div className="text-[10px] font-mono text-foreground-muted space-y-0.5 mt-1 bg-surface-highlight/50 p-1.5 rounded-md border border-border">
-                    <div><span className="text-foreground-secondary">Email:</span> {DEMO_APPLICANT_CREDENTIALS.email}</div>
-                    <div><span className="text-foreground-secondary">Pass:</span> {DEMO_APPLICANT_CREDENTIALS.password}</div>
+                    <div><span className="text-foreground-secondary">Email:</span> {DEMO_PRESETS.applicant.email}</div>
+                    <div><span className="text-foreground-secondary">Pass:</span> {DEMO_PRESETS.applicant.password}</div>
                   </div>
                 </div>
 
@@ -522,13 +523,14 @@ function LoginFormContent() {
                     </Badge>
                   </div>
                   <p className="text-[11px] text-foreground-secondary mt-1 font-medium">
-                    {DEMO_REVIEWER.name}
+                    {DEMO_PRESETS.reviewer.name}
                   </p>
                   <div className="text-[10px] font-mono text-foreground-muted space-y-0.5 mt-1 bg-surface-highlight/50 p-1.5 rounded-md border border-border">
-                    <div><span className="text-foreground-secondary">Email:</span> {DEMO_REVIEWER_CREDENTIALS.email}</div>
-                    <div><span className="text-foreground-secondary">Pass:</span> {DEMO_REVIEWER_CREDENTIALS.password}</div>
+                    <div><span className="text-foreground-secondary">Email:</span> {DEMO_PRESETS.reviewer.email}</div>
+                    <div><span className="text-foreground-secondary">Pass:</span> {DEMO_PRESETS.reviewer.password}</div>
                   </div>
                 </div>
+
 
                 <div className="flex items-center gap-1.5 pt-1">
                   <Button

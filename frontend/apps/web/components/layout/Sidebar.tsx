@@ -31,8 +31,8 @@ interface SidebarProps {
 export function Sidebar({ portal }: SidebarProps) {
   const pathname = usePathname();
   const { user, role } = useAuth();
-  const userRole = user?.role || role;
-  const effectivePortal = userRole === 'applicant' ? 'user' : userRole === 'reviewer' ? 'admin' : portal;
+  const userRole = (user?.role || role)?.toUpperCase();
+  const effectivePortal = userRole === 'APPLICANT' ? 'user' : userRole === 'REVIEWER' ? 'admin' : portal;
 
   const userLinks: NavLinkItem[] = [
     { href: '/user/dashboard', label: 'Applicant Dashboard', icon: Home },

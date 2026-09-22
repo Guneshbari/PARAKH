@@ -4,10 +4,11 @@ import React, { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from './AuthContext';
 import { Sparkles } from 'lucide-react';
+import { normalizeUserRole, UserRole } from '@parakh/types';
 
 interface RouteGuardProps {
   children: React.ReactNode;
-  requiredRole: 'applicant' | 'reviewer';
+  requiredRole: 'applicant' | 'reviewer' | 'admin' | UserRole;
 }
 
 export function RouteGuard({ children, requiredRole }: RouteGuardProps) {
@@ -15,20 +16,25 @@ export function RouteGuard({ children, requiredRole }: RouteGuardProps) {
   const router = useRouter();
   const pathname = usePathname();
 
+  const requiredRoleUpper = normalizeUserRole(requiredRole);
+  const currentRoleUpper = normalizeUserRole(role);
+
   useEffect(() => {
     if (isLoading) return;
 
     if (!isAuthenticated || !user) {
+      const portalParam = typeof requiredRole === 'string' ? requiredRole.toLowerCase() : 'applicant';
       router.replace(
-        `/login?role=${requiredRole}&redirect=${encodeURIComponent(pathname)}`
+        `/login?role=${portalParam}&redirect=${encodeURIComponent(pathname)}`
       );
       return;
     }
 
-    if (role !== requiredRole) {
-      router.replace(`/unauthorized?required=${requiredRole}`);
+    if (currentRoleUpper !== requiredRoleUpper) {
+      const portalParam = typeof requiredRole === 'string' ? requiredRole.toLowerCase() : 'applicant';
+      router.replace(`/unauthorized?required=${portalParam}`);
     }
-  }, [isAuthenticated, user, role, requiredRole, isLoading, router, pathname]);
+  }, [isAuthenticated, user, currentRoleUpper, requiredRoleUpper, requiredRole, isLoading, router, pathname]);
 
   if (isLoading) {
     return (
@@ -41,7 +47,7 @@ export function RouteGuard({ children, requiredRole }: RouteGuardProps) {
     );
   }
 
-  if (!isAuthenticated || role !== requiredRole) {
+  if (!isAuthenticated || currentRoleUpper !== requiredRoleUpper) {
     return null;
   }
 

@@ -9,6 +9,10 @@ import type {
   PortfolioAnalytics,
   ModelInsights,
   UnderwriterReviewOutcome,
+  LoginRequest,
+  TokenResponse,
+  UserResponse,
+  UserCreateRequest,
 } from '@parakh/types';
 import type { ApplicationFormData, UnderwriterReviewInput } from '@parakh/validation';
 
@@ -16,6 +20,8 @@ export interface ApiClientConfig {
   baseUrl?: string;
   timeoutMs?: number;
   headers?: Record<string, string>;
+  token?: string | null;
+  onUnauthorized?: () => void;
 }
 
 export class ApiError extends Error {
@@ -33,10 +39,18 @@ export class ParakhApiClient {
   private baseUrl: string;
   private timeoutMs: number;
   private defaultHeaders: Record<string, string>;
+  private token: string | null = null;
+  private onUnauthorized?: () => void;
 
   constructor(config?: ApiClientConfig) {
-    this.baseUrl = config?.baseUrl || 'http://localhost:8000';
+    const envUrl =
+      typeof process !== 'undefined' && process.env
+        ? process.env.NEXT_PUBLIC_API_URL
+        : undefined;
+    this.baseUrl = config?.baseUrl || envUrl || 'http://localhost:8000';
     this.timeoutMs = config?.timeoutMs || 15000;
+    this.token = config?.token || null;
+    this.onUnauthorized = config?.onUnauthorized;
     this.defaultHeaders = {
       'Content-Type': 'application/json',
       Accept: 'application/json',
@@ -44,22 +58,45 @@ export class ParakhApiClient {
     };
   }
 
+  setToken(token: string | null): void {
+    this.token = token;
+  }
+
+  getToken(): string | null {
+    return this.token;
+  }
+
+  clearToken(): void {
+    this.token = null;
+  }
+
+
   private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
     const url = `${this.baseUrl.replace(/\/$/, '')}/${endpoint.replace(/^\//, '')}`;
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), this.timeoutMs);
 
+    const headers: Record<string, string> = {
+      ...this.defaultHeaders,
+      ...((options?.headers as Record<string, string>) || {}),
+    };
+
+    if (this.token && !headers['Authorization']) {
+      headers['Authorization'] = `Bearer ${this.token}`;
+    }
+
     try {
       const response = await fetch(url, {
         ...options,
         signal: controller.signal,
-        headers: {
-          ...this.defaultHeaders,
-          ...(options?.headers || {}),
-        },
+        headers,
       });
 
       if (!response.ok) {
+        if (response.status === 401 && this.onUnauthorized) {
+          this.onUnauthorized();
+        }
+
         let errorData: unknown;
         try {
           errorData = await response.json();
@@ -88,6 +125,40 @@ export class ParakhApiClient {
       clearTimeout(timer);
     }
   }
+
+  // --- AUTHENTICATION & IDENTITY ENDPOINTS ---
+
+  async login(credentials: LoginRequest): Promise<TokenResponse> {
+    const response = await this.request<TokenResponse>('/api/v1/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({
+        email: credentials.email.trim().toLowerCase(),
+        password: credentials.password,
+      }),
+    });
+    if (response.access_token) {
+      this.setToken(response.access_token);
+    }
+    return response;
+  }
+
+  async getMe(): Promise<UserResponse> {
+    return this.request<UserResponse>('/api/v1/auth/me', {
+      method: 'GET',
+    });
+  }
+
+  async register(data: UserCreateRequest): Promise<UserResponse> {
+    return this.request<UserResponse>('/api/v1/users', {
+      method: 'POST',
+      body: JSON.stringify({
+        email: data.email.trim().toLowerCase(),
+        password: data.password,
+        role: data.role || 'APPLICANT',
+      }),
+    });
+  }
+
 
   // --- USER / BORROWER ENDPOINTS ---
 
@@ -161,7 +232,10 @@ export class ParakhApiClient {
   }
 }
 
-// Singleton factory
+// Singleton instance & factory
+export const api: ParakhApiClient = new ParakhApiClient();
+
 export function createApiClient(config?: ApiClientConfig): ParakhApiClient {
   return new ParakhApiClient(config);
 }
+

@@ -22,8 +22,8 @@ export function MobileNav() {
     return null;
   }
 
-  const userRole = user?.role || role;
-  const isReviewer = userRole === 'reviewer';
+  const userRole = (user?.role || role)?.toUpperCase();
+  const isReviewer = userRole === 'REVIEWER';
 
   const userNavItems: NavItem[] = [
     { href: '/user/dashboard', label: 'Home', icon: Home },
