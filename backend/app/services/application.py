@@ -36,10 +36,12 @@ VALID_STATUS_TRANSITIONS: Dict[ApplicationStatus, Set[ApplicationStatus]] = {
     ApplicationStatus.MANUAL_REVIEW: {
         ApplicationStatus.ASSESSED,
         ApplicationStatus.COMPLETED,
+        ApplicationStatus.UNDER_REVIEW,
     },
     ApplicationStatus.ASSESSED: {
         ApplicationStatus.COMPLETED,
         ApplicationStatus.MANUAL_REVIEW,
+        ApplicationStatus.UNDER_REVIEW,
     },
     ApplicationStatus.COMPLETED: set(),
 }

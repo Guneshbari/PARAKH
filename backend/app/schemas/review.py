@@ -16,8 +16,8 @@ class ReviewOutcomeBase(BaseModel):
 class ReviewOutcomeCreate(ReviewOutcomeBase):
     """Schema for submitting a human review outcome."""
 
-    application_id: UUID
-    reviewer_id: UUID
+    application_id: Optional[UUID] = None
+    reviewer_id: Optional[UUID] = None
 
 
 class ReviewOutcomeResponse(ReviewOutcomeBase):

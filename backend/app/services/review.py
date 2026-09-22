@@ -3,7 +3,8 @@ import uuid
 from typing import Any, Dict, List, Optional, Union
 from sqlalchemy.orm import Session
 from app.core.audit_events import AuditAction, AuditOutcome
-from app.models.review import ReviewOutcome
+from app.models.application import ApplicationStatus
+from app.models.review import ReviewOutcome, ReviewOutcomeType
 from app.repositories.application import ApplicationRepository
 from app.repositories.review import ReviewRepository
 from app.repositories.user import UserRepository
@@ -70,6 +71,10 @@ class ReviewService:
         if not data.get("outcome"):
             raise ValidationError("outcome is required.")
 
+        notes = data.get("notes")
+        if notes is not None and isinstance(notes, str) and len(notes.strip()) > 0 and len(notes.strip()) < 10:
+            raise ValidationError("Review decision notes must contain at least 10 characters.")
+
         # Validate existence of application
         app = self.app_repo.get_by_id(application_id, db=self.db)
         if not app:
@@ -82,10 +87,42 @@ class ReviewService:
 
         try:
             review = self.review_repo.create(data, commit=False, db=self.db)
+
+            # Map review outcome to target application status
+            outcome_val = getattr(review, "outcome", None)
+            target_status: Optional[ApplicationStatus] = None
+            if outcome_val == ReviewOutcomeType.REVIEWED:
+                target_status = ApplicationStatus.COMPLETED
+            elif outcome_val == ReviewOutcomeType.ESCALATED:
+                target_status = ApplicationStatus.MANUAL_REVIEW
+            elif outcome_val == ReviewOutcomeType.ADDITIONAL_INFORMATION_REQUIRED:
+                target_status = ApplicationStatus.UNDER_REVIEW
+
+            if target_status and app.status != target_status:
+                old_status = app.status
+                self.app_repo.update_status(app, target_status, commit=False, db=self.db)
+                if self.audit_service:
+                    try:
+                        self.audit_service.record_event(
+                            action=AuditAction.APPLICATION_STATUS_CHANGED,
+                            entity_type="Application",
+                            entity_id=getattr(app, "id", None),
+                            application_id=getattr(app, "id", None),
+                            user_id=getattr(review, "reviewer_id", None),
+                            outcome=AuditOutcome.SUCCESS,
+                            metadata={
+                                "previous_status": old_status.value if hasattr(old_status, "value") else str(old_status),
+                                "new_status": target_status.value if hasattr(target_status, "value") else str(target_status),
+                                "trigger": "REVIEW_OUTCOME_RECORDED",
+                            },
+                            commit=False,
+                        )
+                    except Exception:
+                        pass
+
             if self.audit_service:
                 try:
-                    outcome = getattr(review, "outcome", None)
-                    outcome_str = outcome.value if hasattr(outcome, "value") else str(outcome)
+                    outcome_str = outcome_val.value if hasattr(outcome_val, "value") else str(outcome_val)
                     self.audit_service.record_event(
                         action=AuditAction.REVIEW_CREATED,
                         entity_type="ReviewOutcome",

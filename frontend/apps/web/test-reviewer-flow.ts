@@ -71,7 +71,7 @@ async function runReviewerIntegrationTests() {
         recommended_limit: 45000,
         created_at: new Date(Date.now() - 1800000).toISOString(),
       },
-    ] as BackendCreditAssessmentResponse[],
+    ] as unknown as BackendCreditAssessmentResponse[],
     signals: [
       {
         id: 'sig-001',
