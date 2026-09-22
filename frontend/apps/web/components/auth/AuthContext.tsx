@@ -1,80 +1,45 @@
 'use client';
 
+/**
+ * PARAKH Real Authentication Context
+ * Connects frontend sessions to FastAPI JWT backend (/api/v1/auth/login, /api/v1/auth/me, /api/v1/users).
+ *
+ * Security Architecture & Tradeoffs:
+ * - JWT Access Token is persisted in localStorage under 'parakh_auth_token'.
+ *   Tradeoff: Storing tokens in localStorage is susceptible to XSS if third-party scripts execute in the browser.
+ *   In production, httpOnly SameSite cookies via an API proxy are recommended.
+ * - Sensitive credentials (passwords) are NEVER persisted in localStorage or session storage.
+ * - User identity and RBAC role ('APPLICANT' | 'REVIEWER' | 'ADMIN') are verified by FastAPI on every session initialization.
+ */
+
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { api } from '@parakh/api';
+import {
+  UserRole as CanonicalUserRole,
+  PortalRole,
+  normalizeUserRole,
+  toPortalRole,
+  UserResponse,
+} from '@parakh/types';
 
-export type UserRole = 'applicant' | 'reviewer';
+export type BackendUserRole = CanonicalUserRole;
+export type UserRole = BackendUserRole | PortalRole;
 
 export interface AuthUser {
   id: string;
   name: string;
   email: string;
-  role: UserRole;
+  role: BackendUserRole;
+  portalRole: PortalRole;
   title: string;
   station?: string;
 }
-
-export interface UserAccount {
-  id: string;
-  name: string;
-  email: string;
-  password: string;
-  role: UserRole;
-  title: string;
-  station?: string;
-}
-
-export const DEMO_APPLICANT_CREDENTIALS = {
-  email: 'arjun.verma@example.com',
-  password: 'Parakh@123',
-};
-
-export const DEMO_REVIEWER_CREDENTIALS = {
-  email: 'priya.sharma@parakh.internal',
-  password: 'Parakh@Reviewer123',
-};
-
-export const INITIAL_ACCOUNTS: UserAccount[] = [
-  {
-    id: 'usr-101',
-    name: 'Arjun Verma',
-    email: DEMO_APPLICANT_CREDENTIALS.email,
-    password: DEMO_APPLICANT_CREDENTIALS.password,
-    role: 'applicant',
-    title: 'Applicant',
-  },
-  {
-    id: 'rev-402',
-    name: 'Priya Sharma',
-    email: DEMO_REVIEWER_CREDENTIALS.email,
-    password: DEMO_REVIEWER_CREDENTIALS.password,
-    role: 'reviewer',
-    title: 'Senior Credit Reviewer',
-    station: 'Desk 04 • Tier-1 Institutional Review',
-  },
-];
-
-export const DEMO_APPLICANT: AuthUser = {
-  id: 'usr-101',
-  name: 'Arjun Verma',
-  email: DEMO_APPLICANT_CREDENTIALS.email,
-  role: 'applicant',
-  title: 'Applicant',
-};
-
-export const DEMO_REVIEWER: AuthUser = {
-  id: 'rev-402',
-  name: 'Priya Sharma',
-  email: DEMO_REVIEWER_CREDENTIALS.email,
-  role: 'reviewer',
-  title: 'Senior Credit Reviewer',
-  station: 'Desk 04 • Tier-1 Institutional Review',
-};
 
 export interface LoginParams {
   email: string;
   password: string;
-  portalRole?: UserRole;
+  portalRole?: string;
 }
 
 export interface SignupParams {
@@ -87,13 +52,14 @@ export interface SignupParams {
 
 interface AuthContextValue {
   user: AuthUser | null;
-  role: UserRole | null;
+  role: BackendUserRole | null;
+  portalRole: PortalRole | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (
     paramsOrEmail: LoginParams | string,
     maybePassword?: string,
-    maybePortalRole?: UserRole
+    maybePortalRole?: string
   ) => Promise<AuthUser>;
   signup: (
     paramsOrName: SignupParams | string,
@@ -108,6 +74,7 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue>({
   user: null,
   role: null,
+  portalRole: null,
   isAuthenticated: false,
   isLoading: true,
   login: async () => {
@@ -119,28 +86,53 @@ const AuthContext = createContext<AuthContextValue>({
   logout: () => {},
 });
 
-const AUTH_STORAGE_KEY = 'parakh_auth_session';
-const REGISTERED_ACCOUNTS_KEY = 'parakh_registered_users';
+// Storage keys
+export const AUTH_TOKEN_KEY = 'parakh_auth_token';
+export const AUTH_SESSION_KEY = 'parakh_auth_session';
 
-export function getRegisteredAccounts(): UserAccount[] {
-  if (typeof window === 'undefined') return INITIAL_ACCOUNTS;
-  try {
-    const raw = localStorage.getItem(REGISTERED_ACCOUNTS_KEY);
-    if (!raw) return INITIAL_ACCOUNTS;
-    const parsed: UserAccount[] = JSON.parse(raw);
-    return [...INITIAL_ACCOUNTS, ...parsed];
-  } catch {
-    return INITIAL_ACCOUNTS;
-  }
-}
-
-function setSessionCookie(role: UserRole | null) {
+function setSessionCookie(role: PortalRole | BackendUserRole | null) {
   if (typeof document === 'undefined') return;
   if (role) {
-    document.cookie = `parakh_role=${role}; path=/; max-age=604800; SameSite=Lax`;
+    const portal = typeof role === 'string' ? role.toLowerCase() : '';
+    document.cookie = `parakh_role=${portal}; path=/; max-age=86400; SameSite=Lax`;
   } else {
     document.cookie = 'parakh_role=; path=/; max-age=0; SameSite=Lax';
   }
+}
+
+function deriveDisplayName(email: string, role: BackendUserRole): string {
+  if (!email) return role === 'REVIEWER' ? 'Credit Reviewer' : 'Applicant';
+  const prefix = email.split('@')[0];
+  const parts = prefix.split(/[._-]/).filter(Boolean);
+  if (parts.length > 0) {
+    return parts.map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
+  }
+  return role === 'REVIEWER' ? 'Credit Reviewer' : 'Applicant';
+}
+
+function deriveTitle(role: BackendUserRole): string {
+  switch (role) {
+    case 'REVIEWER':
+      return 'Senior Credit Reviewer';
+    case 'ADMIN':
+      return 'System Administrator';
+    case 'APPLICANT':
+    default:
+      return 'Applicant';
+  }
+}
+
+function formatUserFromResponse(res: UserResponse, storedName?: string): AuthUser {
+  const portal = toPortalRole(res.role) || 'applicant';
+  return {
+    id: res.id,
+    email: res.email,
+    role: res.role,
+    portalRole: portal,
+    name: storedName || deriveDisplayName(res.email, res.role),
+    title: deriveTitle(res.role),
+    station: res.role === 'REVIEWER' ? 'Desk 04 • Tier-1 Institutional Review' : undefined,
+  };
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -148,51 +140,106 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  // Load session from localStorage on initial mount and verify integrity
+  // Load session from FastAPI on initial mount using stored JWT
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(AUTH_STORAGE_KEY);
-      if (stored) {
-        const parsed: AuthUser = JSON.parse(stored);
-        const accounts = getRegisteredAccounts();
-        const matched = accounts.find(
-          (acc) =>
-            acc.id === parsed.id &&
-            acc.email.toLowerCase() === parsed.email.toLowerCase() &&
-            acc.role === parsed.role
-        );
-        if (matched) {
-          setUser(parsed);
-          setSessionCookie(parsed.role);
-        } else {
-          // Stale or invalid session - clear it
-          localStorage.removeItem(AUTH_STORAGE_KEY);
-          localStorage.removeItem('parakh_session');
+    let isMounted = true;
+
+    async function initializeSession() {
+      if (typeof window === 'undefined') {
+        if (isMounted) setIsLoading(false);
+        return;
+      }
+
+      try {
+        const storedToken = localStorage.getItem(AUTH_TOKEN_KEY);
+        if (!storedToken) {
+          api.clearToken();
+          if (isMounted) {
+            setUser(null);
+            setSessionCookie(null);
+          }
+          return;
+        }
+
+        // Attach stored JWT to API client
+        api.setToken(storedToken);
+
+        // Fetch current active user profile from backend /api/v1/auth/me
+        try {
+          const profile = await api.getMe();
+          if (!isMounted) return;
+
+          // Retrieve cached name if available
+          let cachedName: string | undefined;
+          try {
+            const cachedSession = localStorage.getItem(AUTH_SESSION_KEY);
+            if (cachedSession) {
+              const parsed = JSON.parse(cachedSession);
+              cachedName = parsed.name;
+            }
+          } catch {}
+
+          const authUser = formatUserFromResponse(profile, cachedName);
+          setUser(authUser);
+          localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(authUser));
+          setSessionCookie(authUser.role);
+        } catch (err: unknown) {
+          if (!isMounted) return;
+          // Status 401: Token invalid or expired -> purge session
+          const status = (err as { status?: number })?.status;
+          if (status === 401) {
+            api.clearToken();
+            localStorage.removeItem(AUTH_TOKEN_KEY);
+            localStorage.removeItem(AUTH_SESSION_KEY);
+            localStorage.removeItem('parakh_session');
+            setUser(null);
+            setSessionCookie(null);
+          } else {
+            // Backend unreachable (e.g. temporary network offline): check cached session
+            try {
+              const cached = localStorage.getItem(AUTH_SESSION_KEY);
+              if (cached) {
+                const parsed: AuthUser = JSON.parse(cached);
+                setUser(parsed);
+                setSessionCookie(parsed.role);
+              } else {
+                setUser(null);
+                setSessionCookie(null);
+              }
+            } catch {
+              setUser(null);
+              setSessionCookie(null);
+            }
+          }
+        }
+      } catch {
+        if (isMounted) {
           setUser(null);
           setSessionCookie(null);
         }
-      } else {
-        setSessionCookie(null);
+      } finally {
+        if (isMounted) setIsLoading(false);
       }
-    } catch {
-      setSessionCookie(null);
-    } finally {
-      setIsLoading(false);
     }
+
+    initializeSession();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const login = useCallback(
     async (
       paramsOrEmail: LoginParams | string,
       maybePassword?: string,
-      maybePortalRole?: UserRole
+      maybePortalRole?: string
     ): Promise<AuthUser> => {
       setIsLoading(true);
 
-      // Normalize parameters
       let email = '';
       let password = '';
-      let portalRole: UserRole | undefined;
+      let portalRole: string | undefined;
 
       if (typeof paramsOrEmail === 'object' && paramsOrEmail !== null) {
         email = paramsOrEmail.email || '';
@@ -207,65 +254,75 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const cleanEmail = email.trim().toLowerCase();
       const cleanPassword = password.trim();
 
-      // Simulate brief network delay for credential verification
-      await new Promise((resolve) => setTimeout(resolve, 250));
-
-      // 1. Mandatory field checks
       if (!cleanEmail && !cleanPassword) {
         setIsLoading(false);
         throw new Error('Please enter your email address and account password.');
       }
       if (!cleanEmail) {
         setIsLoading(false);
-        throw new Error('Please enter your email address or mobile number.');
+        throw new Error('Please enter your email address.');
       }
       if (!cleanPassword) {
         setIsLoading(false);
         throw new Error('Please enter your account password.');
       }
 
-      // 2. Query registered accounts
-      const accounts = getRegisteredAccounts();
-      const matchedAccount = accounts.find(
-        (acc) => acc.email.toLowerCase() === cleanEmail
-      );
-
-      // 3. Credential verification (must match both account existence and exact password)
-      if (!matchedAccount || matchedAccount.password !== cleanPassword) {
-        setIsLoading(false);
-        // Non-sensitive error: do not reveal whether email exists or password was wrong
-        throw new Error('Invalid email or password. Please check your credentials and try again.');
-      }
-
-      // 4. Role verification: ensure credentials match the portal portalRole if specified
-      if (portalRole && matchedAccount.role !== portalRole) {
-        setIsLoading(false);
-        throw new Error(
-          portalRole === 'reviewer'
-            ? 'Access denied. These credentials belong to an Applicant account and cannot access the Credit Reviewer portal.'
-            : 'Access denied. These credentials belong to a Credit Reviewer account and cannot access the Applicant portal.'
-        );
-      }
-
-      // 5. Success! ONLY create authenticated session after successful validation
-      const authUser: AuthUser = {
-        id: matchedAccount.id,
-        name: matchedAccount.name,
-        email: matchedAccount.email,
-        role: matchedAccount.role,
-        title: matchedAccount.title,
-        station: matchedAccount.station,
-      };
-
-      setUser(authUser);
       try {
-        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authUser));
-        localStorage.setItem('parakh_session', JSON.stringify(authUser));
-      } catch {}
-      setSessionCookie(authUser.role);
-      setIsLoading(false);
+        // Authenticate with real FastAPI endpoint: POST /api/v1/auth/login
+        const tokenResp = await api.login({
+          email: cleanEmail,
+          password: cleanPassword,
+        });
 
-      return authUser;
+        // Verify that account role aligns with portal role if specified
+        if (portalRole) {
+          const expectedBackendRole = normalizeUserRole(portalRole);
+          if (expectedBackendRole && tokenResp.role !== expectedBackendRole) {
+            api.clearToken();
+            setIsLoading(false);
+            throw new Error(
+              portalRole.toLowerCase() === 'reviewer'
+                ? 'Access denied. These credentials belong to an Applicant account and cannot access the Credit Reviewer portal.'
+                : 'Access denied. These credentials belong to a Credit Reviewer account and cannot access the Applicant portal.'
+            );
+          }
+        }
+
+        const authUser: AuthUser = {
+          id: tokenResp.user_id,
+          email: tokenResp.email,
+          role: tokenResp.role,
+          portalRole: toPortalRole(tokenResp.role) || 'applicant',
+          name: deriveDisplayName(tokenResp.email, tokenResp.role),
+          title: deriveTitle(tokenResp.role),
+          station: tokenResp.role === 'REVIEWER' ? 'Desk 04 • Tier-1 Institutional Review' : undefined,
+        };
+
+        setUser(authUser);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(AUTH_TOKEN_KEY, tokenResp.access_token);
+          localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(authUser));
+          // Clean legacy mock keys
+          localStorage.removeItem('parakh_registered_users');
+          localStorage.removeItem('parakh_session');
+        }
+        setSessionCookie(authUser.role);
+        setIsLoading(false);
+        return authUser;
+      } catch (err: unknown) {
+        setIsLoading(false);
+        const status = (err as { status?: number })?.status;
+        if (status === 401) {
+          throw new Error('Invalid email or password. Please check your credentials and try again.');
+        }
+        if (status === 403) {
+          throw new Error('Account is inactive or access forbidden. Contact system administrator.');
+        }
+        if (err instanceof Error) {
+          throw err;
+        }
+        throw new Error('Authentication request failed. Please check network connection.');
+      }
     },
     []
   );
@@ -300,8 +357,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         consent = maybeConsent ?? true;
       }
 
-      await new Promise((resolve) => setTimeout(resolve, 300));
-
       const cleanName = name.trim();
       const cleanEmail = email.trim().toLowerCase();
       const cleanPassword = password.trim();
@@ -310,13 +365,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsLoading(false);
         throw new Error('Please enter your full legal name.');
       }
-      if (!cleanEmail || (!cleanEmail.includes('@') && cleanEmail.length < 10)) {
+      if (!cleanEmail || !cleanEmail.includes('@')) {
         setIsLoading(false);
-        throw new Error('Please enter a valid email address or mobile number.');
+        throw new Error('Please enter a valid email address.');
       }
-      if (!cleanPassword || cleanPassword.length < 6) {
+      if (!cleanPassword || cleanPassword.length < 8) {
         setIsLoading(false);
-        throw new Error('Password must contain at least 6 characters.');
+        throw new Error('Password must contain at least 8 characters.');
       }
       if (cleanPassword !== confirmPassword.trim()) {
         setIsLoading(false);
@@ -327,61 +382,74 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error('You must accept the alternative credit evaluation terms and data consent.');
       }
 
-      // Check for duplicate accounts
-      const accounts = getRegisteredAccounts();
-      const existing = accounts.find((acc) => acc.email.toLowerCase() === cleanEmail);
-      if (existing) {
+      try {
+        // Register user via backend API: POST /api/v1/users
+        await api.register({
+          email: cleanEmail,
+          password: cleanPassword,
+          role: 'APPLICANT',
+        });
+
+        // Immediately authenticate with newly created account: POST /api/v1/auth/login
+        const tokenResp = await api.login({
+          email: cleanEmail,
+          password: cleanPassword,
+        });
+
+        const authUser: AuthUser = {
+          id: tokenResp.user_id,
+          email: tokenResp.email,
+          role: tokenResp.role,
+          portalRole: 'applicant',
+          name: cleanName,
+          title: 'Applicant',
+        };
+
+        setUser(authUser);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(AUTH_TOKEN_KEY, tokenResp.access_token);
+          localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(authUser));
+          localStorage.removeItem('parakh_registered_users');
+          localStorage.removeItem('parakh_session');
+        }
+        setSessionCookie('applicant');
         setIsLoading(false);
-        throw new Error('An account with this email or mobile number already exists. Please sign in.');
+        return authUser;
+      } catch (err: unknown) {
+        setIsLoading(false);
+        const status = (err as { status?: number })?.status;
+        const respData = (err as { responseData?: unknown })?.responseData;
+        const errDetail =
+          typeof respData === 'object' && respData !== null
+            ? (respData as { detail?: string }).detail
+            : undefined;
+
+        if (status === 409 || (errDetail && String(errDetail).toLowerCase().includes('already exists'))) {
+          throw new Error('An account with this email address already exists. Please sign in.');
+        }
+        if (errDetail) {
+          throw new Error(String(errDetail));
+        }
+        if (err instanceof Error) {
+          throw err;
+        }
+        throw new Error('Registration failed. Please verify your details and try again.');
       }
-
-      // Create new applicant account record (public signup is strictly applicant only)
-      const newAccount: UserAccount = {
-        id: `usr-${Date.now().toString().slice(-4)}`,
-        name: cleanName,
-        email: cleanEmail,
-        password: cleanPassword,
-        role: 'applicant',
-        title: 'Applicant',
-      };
-
-      try {
-        const raw = localStorage.getItem(REGISTERED_ACCOUNTS_KEY);
-        const existingList: UserAccount[] = raw ? JSON.parse(raw) : [];
-        existingList.push(newAccount);
-        localStorage.setItem(REGISTERED_ACCOUNTS_KEY, JSON.stringify(existingList));
-      } catch {}
-
-      // Create authenticated session only after valid registration
-      const authUser: AuthUser = {
-        id: newAccount.id,
-        name: newAccount.name,
-        email: newAccount.email,
-        role: newAccount.role,
-        title: newAccount.title,
-      };
-
-      setUser(authUser);
-      try {
-        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authUser));
-        localStorage.setItem('parakh_session', JSON.stringify(authUser));
-      } catch {}
-      setSessionCookie('applicant');
-      setIsLoading(false);
-
-      return authUser;
     },
     []
   );
 
   const logout = useCallback(() => {
+    api.clearToken();
     setUser(null);
-    try {
-      localStorage.removeItem(AUTH_STORAGE_KEY);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(AUTH_TOKEN_KEY);
+      localStorage.removeItem(AUTH_SESSION_KEY);
       localStorage.removeItem('parakh_session');
-    } catch {}
+      localStorage.removeItem('parakh_registered_users');
+    }
     setSessionCookie(null);
-    router.push('/');
+    router.push('/login');
   }, [router]);
 
   return (
@@ -389,6 +457,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       value={{
         user,
         role: user ? user.role : null,
+        portalRole: user ? user.portalRole : null,
         isAuthenticated: !!user,
         isLoading,
         login,

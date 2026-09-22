@@ -31,19 +31,30 @@ def assess_application(
         None,
         description="Optional model version ID override. If omitted, uses active model version.",
     ),
+    enforce_consent: Optional[bool] = Query(
+        None,
+        description="Whether to verify active applicant consent before evaluation",
+    ),
+    require_consent: Optional[bool] = Query(
+        None,
+        description="Alias for enforce_consent",
+    ),
     current_user: User = Depends(get_current_active_user),
     assessment_service: AssessmentService = Depends(get_assessment_service),
 ) -> CreditAssessmentResponse:
-    """Execute credit assessment evaluation with role/ownership enforcement."""
+    """Execute credit assessment evaluation with role/ownership and consent enforcement."""
     check_application_ownership(
         assessment_service.db,
         application_id,
         current_user,
         allow_reviewers=True,
     )
+    # Default to enforcing active consent unless explicitly set to False
+    check_consent = True if enforce_consent is None and require_consent is None else bool(enforce_consent or require_consent)
     assessment = assessment_service.assess_application(
         application_id=application_id,
         model_version_id=model_version_id,
+        enforce_consent=check_consent,
     )
     return CreditAssessmentResponse.model_validate(assessment)
 

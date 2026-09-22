@@ -1,7 +1,9 @@
 """Centralized exception handlers mapping domain exceptions to standard HTTP responses."""
 import logging
-from fastapi import FastAPI, Request, status
+from fastapi import FastAPI, Request, status, HTTPException
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.assessment.exceptions import (
     AssessmentEngineError,
@@ -25,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 def register_exception_handlers(app: FastAPI) -> None:
-    """Register domain and engine exception handlers onto the FastAPI application."""
+    """Register domain, engine, and unhandled exception handlers onto the FastAPI application."""
 
     @app.exception_handler(EntityNotFoundError)
     async def handle_entity_not_found(request: Request, exc: EntityNotFoundError) -> JSONResponse:
@@ -128,5 +130,26 @@ def register_exception_handlers(app: FastAPI) -> None:
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content={"detail": "An internal audit recording error occurred."},
+        )
+
+    @app.exception_handler(Exception)
+    async def handle_unhandled_exception(
+        request: Request, exc: Exception
+    ) -> JSONResponse:
+        if isinstance(exc, (HTTPException, StarletteHTTPException)):
+            return JSONResponse(
+                status_code=exc.status_code,
+                content={"detail": exc.detail},
+                headers=getattr(exc, "headers", None),
+            )
+        if isinstance(exc, RequestValidationError):
+            return JSONResponse(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                content={"detail": exc.errors()},
+            )
+        logger.exception("Unhandled server exception processing %s %s: %s", request.method, request.url.path, exc)
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={"detail": "An internal server error occurred. Please try again later."},
         )
 

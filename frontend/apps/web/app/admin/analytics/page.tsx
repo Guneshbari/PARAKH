@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Activity,
   TrendingUp,
@@ -10,13 +10,13 @@ import {
   Info,
   Clock,
   Sparkles,
+  AlertTriangle,
+  Loader2,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
   BarChart,
   Bar,
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   Tooltip,
@@ -29,17 +29,42 @@ import { PageTransition } from '@/components/motion/PageTransition';
 import { MetricCard } from '@/components/shared/MetricCard';
 import { useTheme } from '@/components/theme/ThemeProvider';
 import {
-  mockPortfolioAnalytics,
-  mockSectorRiskStackedData,
-  mockShockRecoveryCurveData,
-} from '@/data/mock/admin';
+  api,
+  type AdaptedPortfolioAnalytics,
+} from '@parakh/api';
 
 export default function AdminAnalyticsPage() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
   const [timeRange, setTimeRange] = useState<string>('90D');
-  const stats = mockPortfolioAnalytics;
+  const [portfolio, setPortfolio] = useState<AdaptedPortfolioAnalytics | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchAnalytics = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await api.getPortfolioAnalyticsAdapted();
+      setPortfolio(data);
+    } catch (err: any) {
+      console.warn('Analytics page fetch error:', err);
+      setError(err?.message || 'Failed to load portfolio analytics from backend.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAnalytics();
+  }, []);
+
+  const totalEvaluated = portfolio?.totalEvaluated ?? 0;
+  const avgScore = portfolio?.averageScore;
+  const avgRiskDifficulty = portfolio?.averageRiskDifficulty;
+  const completionRate = portfolio?.assessmentCompletionRate ?? 0;
+  const sectorRiskData = portfolio?.sectorRisk ?? [];
 
   // Chart tokens
   const chartGridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(15,23,42,0.06)';
@@ -125,46 +150,61 @@ export default function AdminAnalyticsPage() {
         </div>
       </div>
 
+      {/* ERROR BANNER IF API FAILED */}
+      {error && (
+        <div className="p-3.5 rounded-2xl bg-destructive/10 border border-destructive/20 text-xs text-destructive flex items-center justify-between gap-3">
+          <span>Failed to load live portfolio analytics: {error}</span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={fetchAnalytics}
+            className="text-xs h-7 rounded-full shrink-0"
+          >
+            Retry
+          </Button>
+        </div>
+      )}
+
       {/* 2. PORTFOLIO RESILIENCE KPIS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
-          title="Portfolio Volatility Index"
-          value={0.29}
-          format={(n) => n.toFixed(2)}
-          pillLabel="Controlled Variance"
-          pillVariant="mint"
-          subtext="Coefficient of weekly variation"
+          title="Total Evaluated Applicants"
+          value={totalEvaluated}
+          pillLabel={portfolio?.totalApplicants ? `${portfolio.totalApplicants} profiles` : 'Active'}
+          pillVariant="secondary"
+          subtext="Informal & gig economy applicants"
           icon={Activity}
         />
 
         <MetricCard
-          title="Mean Shock Rebound Velocity"
-          value={11.4}
-          suffix=" Days"
-          format={(n) => n.toFixed(1)}
-          pillLabel="Rapid Rebound"
+          title="Portfolio Average Score"
+          value={avgScore ?? 0}
+          format={(n) => (avgScore !== null && avgScore !== undefined ? String(n) : '—')}
+          suffix={avgScore !== null && avgScore !== undefined ? ' / 850' : ''}
+          pillLabel={avgScore !== null && avgScore !== undefined ? 'Calibrated' : 'Pending'}
           pillVariant="secondary"
-          subtext="Days to return to 90%+ baseline"
-          icon={Clock}
+          subtext={avgScore !== null && avgScore !== undefined ? 'Alternative volatility scoring engine' : 'No assessments completed yet'}
+          icon={TrendingUp}
         />
 
         <MetricCard
-          title="Micro-Obligation Punctuality"
-          value={96.8}
-          suffix="%"
-          pillLabel="24-Cycle Punctual"
-          pillVariant="mint"
-          subtext="BBPS utility & recharge cadence"
+          title="Avg. Repayment Difficulty"
+          value={avgRiskDifficulty ?? 0}
+          format={(n) => (avgRiskDifficulty !== null && avgRiskDifficulty !== undefined ? String(n) : '—')}
+          suffix={avgRiskDifficulty !== null && avgRiskDifficulty !== undefined ? '%' : ''}
+          pillLabel={avgRiskDifficulty !== null && avgRiskDifficulty !== undefined ? 'Risk Rate' : 'Pending'}
+          pillVariant="secondary"
+          subtext={avgRiskDifficulty !== null && avgRiskDifficulty !== undefined ? 'Estimated repayment stress indicator' : 'No assessments completed yet'}
           icon={ShieldCheck}
         />
 
         <MetricCard
-          title="Disposable Inflow Cushion"
-          value={89.2}
+          title="Assessment Completion Rate"
+          value={completionRate}
           suffix="%"
-          pillLabel="Safe Debt Buffer"
+          pillLabel={`${portfolio?.completedApplications ?? 0} Completed`}
           pillVariant="mint"
-          subtext="Residual inflow after micro-commitments"
+          subtext="Digital intake to synthesis conversion"
           icon={TrendingUp}
         />
       </div>
@@ -198,44 +238,51 @@ export default function AdminAnalyticsPage() {
           </div>
         </div>
 
-        <div className="h-72 w-full pt-2">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={mockSectorRiskStackedData}
-              margin={{ top: 15, right: 10, left: -10, bottom: 0 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke={chartGridColor} />
-              <XAxis dataKey="sector" stroke={chartAxisColor} fontSize={11} tickLine={false} />
-              <YAxis stroke={chartAxisColor} fontSize={11} tickLine={false} />
-              <Tooltip
-                content={({ active, payload, label }) => {
-                  if (active && payload && payload.length) {
-                    const total = payload.reduce((acc, p) => acc + (Number(p.value) || 0), 0);
-                    return (
-                      <div className="bg-surface p-3 rounded-xl border border-border shadow-xl text-xs space-y-1 text-foreground">
-                        <span className="font-semibold text-foreground block">{label} ({total.toLocaleString()} Total)</span>
-                        {payload.map((p) => (
-                          <div key={p.name} className="flex justify-between gap-3 font-mono">
-                            <span className="text-foreground-secondary">{p.name}:</span>
-                            <span className="text-foreground font-semibold">{Number(p.value).toLocaleString()}</span>
-                          </div>
-                        ))}
-                      </div>
-                    );
-                  }
-                  return null;
-                }}
-              />
-              <Bar dataKey="lowerRisk" name="Lower Estimated Risk" stackId="a" fill={stackedBarColors.lower} radius={[0, 0, 0, 0]} />
-              <Bar dataKey="moderateRisk" name="Moderate Estimated Risk" stackId="a" fill={stackedBarColors.moderate} />
-              <Bar dataKey="higherRisk" name="Higher Estimated Risk" stackId="a" fill={stackedBarColors.higher} />
-              <Bar dataKey="manualReview" name="Manual Review Required" stackId="a" fill={stackedBarColors.review} radius={[3, 3, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+        {sectorRiskData.length === 0 ? (
+          <div className="py-16 text-center text-xs text-foreground-muted space-y-1">
+            <p className="font-semibold text-foreground">No Sector Risk Data Available</p>
+            <p>Risk distribution across gig sectors will populate as applicants with profiles submit applications and complete assessments.</p>
+          </div>
+        ) : (
+          <div className="h-72 w-full pt-2">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={sectorRiskData}
+                margin={{ top: 15, right: 10, left: -10, bottom: 0 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke={chartGridColor} />
+                <XAxis dataKey="sector" stroke={chartAxisColor} fontSize={11} tickLine={false} />
+                <YAxis stroke={chartAxisColor} fontSize={11} tickLine={false} />
+                <Tooltip
+                  content={({ active, payload, label }) => {
+                    if (active && payload && payload.length) {
+                      const total = payload.reduce((acc, p) => acc + (Number(p.value) || 0), 0);
+                      return (
+                        <div className="bg-surface p-3 rounded-xl border border-border shadow-xl text-xs space-y-1 text-foreground">
+                          <span className="font-semibold text-foreground block">{label} ({total.toLocaleString()} Total)</span>
+                          {payload.map((p) => (
+                            <div key={p.name} className="flex justify-between gap-3 font-mono">
+                              <span className="text-foreground-secondary">{p.name}:</span>
+                              <span className="text-foreground font-semibold">{Number(p.value).toLocaleString()}</span>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Bar dataKey="lowerRisk" name="Lower Estimated Risk" stackId="a" fill={stackedBarColors.lower} radius={[0, 0, 0, 0]} />
+                <Bar dataKey="moderateRisk" name="Moderate Estimated Risk" stackId="a" fill={stackedBarColors.moderate} />
+                <Bar dataKey="higherRisk" name="Higher Estimated Risk" stackId="a" fill={stackedBarColors.higher} />
+                <Bar dataKey="manualReview" name="Manual Review Required" stackId="a" fill={stackedBarColors.review} radius={[3, 3, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
       </Card>
 
-      {/* 4. VISUALIZATION 2: SHOCK RECOVERY VELOCITY REBOUND CURVES */}
+      {/* 4. VISUALIZATION 2: SHOCK RECOVERY VELOCITY REBOUND CURVES (ML PLACEHOLDER) */}
       <Card className="p-6 bg-surface border-border space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-border">
           <div>
@@ -247,91 +294,24 @@ export default function AdminAnalyticsPage() {
               Tracks normalized post-shock earning recovery against traditional salaried baseline expectations.
             </p>
           </div>
-
-          <div className="flex flex-wrap items-center gap-3 text-xs">
-            <span className="flex items-center gap-1.5 text-foreground font-medium">
-              <span className="size-2 rounded-full bg-foreground" /> Food Delivery
-            </span>
-            <span className="flex items-center gap-1.5 text-foreground-secondary font-medium">
-              <span className="size-2 rounded-full bg-foreground-secondary" /> Home Services
-            </span>
-            <span className="flex items-center gap-1.5 text-foreground-muted font-medium">
-              <span className="size-2 rounded-full bg-foreground-muted" /> Ride Logistics
-            </span>
-            <span className="flex items-center gap-1.5 text-foreground-muted/60 font-medium">
-              <span className="size-2 rounded-full bg-foreground-muted/60" /> Formal Benchmark
-            </span>
-          </div>
+          <Badge variant="outline" className="text-[10px] font-mono">
+            Pending ML Pipeline
+          </Badge>
         </div>
 
-        <div className="h-64 w-full pt-2">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart
-              data={mockShockRecoveryCurveData}
-              margin={{ top: 10, right: 15, left: -10, bottom: 0 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke={chartGridColor} />
-              <XAxis dataKey="day" stroke={chartAxisColor} fontSize={11} tickLine={false} />
-              <YAxis
-                stroke={chartAxisColor}
-                fontSize={11}
-                tickLine={false}
-                domain={[30, 110]}
-                unit="%"
-              />
-              <Tooltip
-                content={({ active, payload, label }) => {
-                  if (active && payload && payload.length) {
-                    return (
-                      <div className="bg-surface p-3 rounded-xl border border-border shadow-xl text-xs space-y-1 text-foreground">
-                        <span className="font-semibold text-foreground block">{label} (Recovery Level)</span>
-                        {payload.map((p) => (
-                          <div key={p.name} className="flex justify-between gap-4 font-mono">
-                            <span className="text-foreground-secondary">{p.name}:</span>
-                            <span className="text-foreground font-bold">{p.value}%</span>
-                          </div>
-                        ))}
-                      </div>
-                    );
-                  }
-                  return null;
-                }}
-              />
-              <Line
-                type="monotone"
-                dataKey="foodDelivery"
-                name="Food Delivery"
-                stroke={lineColors.food}
-                strokeWidth={2}
-                dot={{ r: 3, fill: lineColors.food }}
-              />
-              <Line
-                type="monotone"
-                dataKey="homeServices"
-                name="Home Services"
-                stroke={lineColors.home}
-                strokeWidth={2}
-                dot={{ r: 3, fill: lineColors.home }}
-              />
-              <Line
-                type="monotone"
-                dataKey="rideLogistics"
-                name="Ride Logistics"
-                stroke={lineColors.ride}
-                strokeWidth={2}
-                dot={{ r: 3, fill: lineColors.ride }}
-              />
-              <Line
-                type="monotone"
-                dataKey="formalBenchmark"
-                name="Formal Benchmark"
-                stroke={lineColors.bench}
-                strokeWidth={1.5}
-                strokeDasharray="4 4"
-                dot={false}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+        {/* Clean explicit placeholder */}
+        <div className="p-6 rounded-2xl bg-surface-highlight/30 border border-border text-center space-y-3">
+          <div className="size-10 rounded-2xl bg-surface border border-border mx-auto flex items-center justify-center text-amber-500">
+            <AlertTriangle className="size-5" />
+          </div>
+          <div className="space-y-1 max-w-md mx-auto">
+            <h4 className="text-xs font-semibold text-foreground">
+              ML Analytics Unavailable Until Production Assessment Model Is Integrated
+            </h4>
+            <p className="text-[11px] text-foreground-muted leading-relaxed">
+              Empirical recovery rebound curves and cyclical variance calibrations depend on Person 3&apos;s upcoming LightGBM/XGBoost volatility pipeline. In the interim, live assessments are scored through the deterministic MockAssessmentEngine.
+            </p>
+          </div>
         </div>
 
         {/* Explainability Callout */}
@@ -339,10 +319,10 @@ export default function AdminAnalyticsPage() {
           <Sparkles className="size-4 text-foreground-secondary shrink-0 mt-0.5" />
           <div className="space-y-0.5">
             <span className="font-semibold text-foreground block">
-              Core PARAKH Methodology Proof: Rapid 10–14 Day Shock Recovery
+              Core PARAKH Methodology: Volatility Resilience & Recovery
             </span>
             <p className="text-foreground-muted leading-relaxed">
-              Traditional credit models treat sharp week-to-week income drops as insolvency risk. In contrast, PARAKH measures rebound velocity: 93% of observed informal earning shocks in Food Delivery recover to full baseline within 12 days, maintaining flawless micro-obligation discipline.
+              Traditional credit models treat sharp week-to-week income drops as insolvency risk. PARAKH alternative scoring is designed to recognize rapid cashflow rebound velocity across delivery and platform workers once seasonal dips resolve.
             </p>
           </div>
         </div>
@@ -350,35 +330,43 @@ export default function AdminAnalyticsPage() {
 
       {/* 5. DETAILED SECTOR PERFORMANCE COMPARISON GRID */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.volatilityTrendsBySector.map((s) => (
-          <Card key={s.sector} className="p-5 bg-surface border-border space-y-3">
-            <div className="space-y-0.5">
-              <h4 className="text-xs font-semibold text-foreground line-clamp-1">{s.sector}</h4>
-              <span className="text-[11px] font-mono text-foreground-muted">
-                {s.applicantCount.toLocaleString()} Applicants
-              </span>
-            </div>
+        {sectorRiskData.length === 0 ? (
+          <div className="col-span-full p-6 text-center rounded-2xl bg-surface border border-border text-xs text-foreground-muted">
+            No sector breakdown records registered yet. Real applicant data will display here as profiles are registered.
+          </div>
+        ) : (
+          sectorRiskData.map((s) => (
+            <Card key={s.sector} className="p-5 bg-surface border-border space-y-3">
+              <div className="space-y-0.5">
+                <h4 className="text-xs font-semibold text-foreground line-clamp-1">{s.sector}</h4>
+                <span className="text-[11px] font-mono text-foreground-muted">
+                  {s.total.toLocaleString()} Assessed Applications
+                </span>
+              </div>
 
-            <div className="space-y-2 text-xs pt-1 border-t border-border">
-              <div className="flex justify-between">
-                <span className="text-foreground-muted">Recovery Velocity</span>
-                <span className="font-mono font-semibold text-foreground">
-                  {(s.avgRecoveryRate * 100).toFixed(0)}% (10–14d)
-                </span>
+              <div className="space-y-2 text-xs pt-1 border-t border-border">
+                <div className="flex justify-between">
+                  <span className="text-foreground-muted">Lower Risk</span>
+                  <span className="font-mono font-semibold text-foreground">
+                    {s.lowerRisk}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-foreground-muted">Moderate Risk</span>
+                  <span className="font-mono font-semibold text-foreground">
+                    {s.moderateRisk}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-foreground-muted">Higher / Review</span>
+                  <span className="font-mono text-foreground-secondary">
+                    {s.higherRisk + s.manualReview}
+                  </span>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-foreground-muted">Volatility Index</span>
-                <span className="font-mono font-semibold text-foreground">
-                  {s.volatilityIndex.toFixed(2)}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-foreground-muted">Verification Rate</span>
-                <span className="font-mono text-foreground-secondary">92.4% Verified</span>
-              </div>
-            </div>
-          </Card>
-        ))}
+            </Card>
+          ))
+        )}
       </div>
 
       {/* 6. STATUTORY GOVERNANCE FOOTNOTE */}

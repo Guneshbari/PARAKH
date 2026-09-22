@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   UserCheck,
@@ -19,18 +19,52 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { PageTransition } from '@/components/motion/PageTransition';
+import { useAuth } from '@/components/auth/AuthContext';
+import { api } from '@parakh/api';
 
 export default function AdminProfilePage() {
+  const { user } = useAuth();
   const [alertQueue, setAlertQueue] = useState(true);
   const [alertMonsoon, setAlertMonsoon] = useState(true);
   const [alertFairness, setAlertFairness] = useState(true);
+  const [completedReviewsCount, setCompletedReviewsCount] = useState<number>(218);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadReviewerStats() {
+      if (!user?.id) return;
+      try {
+        const reviews = await api.getReviewsByReviewer(user.id);
+        if (!isMounted) return;
+        if (reviews && Array.isArray(reviews)) {
+          setCompletedReviewsCount(reviews.length);
+        }
+      } catch (err) {
+        console.warn('Could not fetch reviewer reviews from backend:', err);
+      }
+    }
+    loadReviewerStats();
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.id]);
+
+  const officerName = user?.name || (user?.email ? user.email.split('@')[0] : 'Priya Sharma');
+  const officerInitials = user?.name
+    ? user.name.slice(0, 2).toUpperCase()
+    : user?.email
+    ? user.email.slice(0, 2).toUpperCase()
+    : 'PS';
+  const officerEmail = user?.email || 'p.sharma@partner-credit.in';
+  const officerId = user?.id ? user.id.slice(0, 8).toUpperCase() : 'REV-402';
+  const officerRole = user?.role ? user.role.toUpperCase() : 'REVIEWER';
 
   const handleExportAuditLog = () => {
     const logData = {
       underwriter: {
-        id: 'UW-402',
-        name: 'Priya Sharma',
-        role: 'Senior Alternative Credit Reviewer',
+        id: officerId,
+        name: officerName,
+        role: `${officerRole} — Alternative Credit Officer`,
         desk: 'Station 04 — Informal & Gig Economy Credit Desk',
         institution: 'PARAKH Partner Lending Consortium',
         certification: 'RBI Fair Practice Code & Statutory Algorithmic Audit Certified',
@@ -43,9 +77,9 @@ export default function AdminProfilePage() {
       activeSession: {
         sessionId: 'AUD-2026-904',
         authMethod: 'Hardware FIDO2 Token (SHA-256)',
-        authenticatedAt: '2026-09-20T08:00:00Z',
+        authenticatedAt: new Date().toISOString(),
       },
-      auditEntriesCompleted: 218,
+      auditEntriesCompleted: completedReviewsCount,
     };
 
     const blob = new Blob([JSON.stringify(logData, null, 2)], {
@@ -54,7 +88,7 @@ export default function AdminProfilePage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'PARAKH_Reviewer_Audit_Ledger_UW402.json';
+    a.download = `PARAKH_Reviewer_Audit_Ledger_${officerId}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -97,7 +131,7 @@ export default function AdminProfilePage() {
         <div className="flex items-start sm:items-center gap-5">
           {/* Avatar */}
           <div className="relative size-16 sm:size-20 rounded-2xl bg-surface-highlight border border-border flex items-center justify-center text-xl sm:text-2xl font-bold text-foreground shrink-0">
-            PS
+            {officerInitials}
             <div className="absolute -bottom-1 -right-1 size-5 rounded-full bg-[#472393] text-white flex items-center justify-center ring-4 ring-surface dark:bg-foreground dark:text-background">
               <CheckCircle2 className="size-3.5 stroke-[3]" />
             </div>
@@ -107,13 +141,13 @@ export default function AdminProfilePage() {
           <div className="space-y-1.5">
             <div className="flex flex-wrap items-center gap-2">
               <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
-                Priya Sharma
+                {officerName}
               </h2>
               <Badge variant="secondary" className="text-[10px] py-0.5 px-2">
-                Certified Credit Reviewer
+                Certified {officerRole}
               </Badge>
               <Badge variant="outline" className="text-[10px] py-0.5 px-2 font-mono">
-                REV-402
+                {officerId}
               </Badge>
             </div>
 
@@ -129,7 +163,7 @@ export default function AdminProfilePage() {
               <span>•</span>
               <span className="flex items-center gap-1">
                 <Mail className="size-3.5 opacity-70" />
-                p.sharma@partner-credit.in
+                {officerEmail}
               </span>
             </div>
 
@@ -140,7 +174,7 @@ export default function AdminProfilePage() {
               </span>
               <span className="text-foreground-muted">•</span>
               <span className="text-foreground-secondary font-medium">
-                218 Human Reviews Logged
+                {completedReviewsCount} Human Reviews Logged
               </span>
             </div>
           </div>

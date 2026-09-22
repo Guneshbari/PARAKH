@@ -950,10 +950,19 @@ class TestApiExceptionHandlers(unittest.TestCase):
 
     def setUp(self):
         self.client = TestClient(app)
+        from unittest.mock import MagicMock
         from app.models.user import User, UserRole
-        from app.api.deps import get_current_active_user
+        from app.api.deps import get_current_active_user, get_user_service
+        from app.services.user import UserService
+        from app.services.exceptions import EntityNotFoundError
+
         mock_user = User(id=uuid.uuid4(), email="admin_ex@parakh.com", role=UserRole.ADMIN, is_active=True)
         app.dependency_overrides[get_current_active_user] = lambda: mock_user
+
+        mock_user_svc = MagicMock(spec=UserService)
+        mock_user_svc.db = MagicMock()
+        mock_user_svc.get_user.side_effect = EntityNotFoundError("User not found")
+        app.dependency_overrides[get_user_service] = lambda: mock_user_svc
 
     def tearDown(self):
         app.dependency_overrides.clear()
@@ -1007,6 +1016,62 @@ class TestApiExceptionHandlers(unittest.TestCase):
         res = self.client.post(f"/api/v1/applications/{uuid.uuid4()}/assess")
         self.assertEqual(res.status_code, 501)
         self.assertIn("Scoring model not implemented", res.json().get("detail", ""))
+
+
+class TestApplicationListRoutesUnit(unittest.TestCase):
+    """Unit tests for GET /api/v1/applications route with role authorization."""
+
+    def setUp(self):
+        self.client = TestClient(app)
+
+    def tearDown(self):
+        app.dependency_overrides.clear()
+
+    def test_reviewer_can_list_all_applications(self):
+        """Reviewers are authorized to list all applications."""
+        from datetime import datetime, timezone
+        from decimal import Decimal
+        from unittest.mock import MagicMock
+        from app.api.deps import get_application_service, get_current_active_user
+        from app.models.application import Application, ApplicationStatus
+        from app.models.user import User, UserRole
+        from app.services.application import ApplicationService
+
+        reviewer_user = User(id=uuid.uuid4(), email="reviewer@parakh.com", role=UserRole.REVIEWER, is_active=True)
+        app.dependency_overrides[get_current_active_user] = lambda: reviewer_user
+
+        mock_app_svc = MagicMock(spec=ApplicationService)
+        mock_app = Application(
+            id=uuid.uuid4(),
+            applicant_profile_id=uuid.uuid4(),
+            requested_loan_amount=Decimal("25000.00"),
+            loan_purpose="Working capital",
+            preferred_repayment_period=12,
+            status=ApplicationStatus.SUBMITTED,
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
+        )
+        mock_app_svc.list_all_applications.return_value = [mock_app]
+        app.dependency_overrides[get_application_service] = lambda: mock_app_svc
+
+        res = self.client.get("/api/v1/applications")
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+        self.assertEqual(len(data), 1)
+        self.assertEqual(data[0]["id"], str(mock_app.id))
+        mock_app_svc.list_all_applications.assert_called_once_with(status=None, skip=0, limit=100)
+
+    def test_applicant_cannot_list_all_applications(self):
+        """Applicants are forbidden from listing all applications."""
+        from app.api.deps import get_current_active_user
+        from app.models.user import User, UserRole
+
+        applicant_user = User(id=uuid.uuid4(), email="applicant@parakh.com", role=UserRole.APPLICANT, is_active=True)
+        app.dependency_overrides[get_current_active_user] = lambda: applicant_user
+
+        res = self.client.get("/api/v1/applications")
+        self.assertEqual(res.status_code, 403)
+        self.assertIn("only reviewers and administrators", res.json()["detail"])
 
 
 if __name__ == "__main__":

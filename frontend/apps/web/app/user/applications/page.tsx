@@ -1,8 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { PlusCircle, Search, FileText } from 'lucide-react';
+import {
+  PlusCircle,
+  Search,
+  FileText,
+  AlertCircle,
+  RefreshCw,
+  ArrowRight,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -11,14 +18,100 @@ import { PageTransition } from '@/components/motion/PageTransition';
 import { ApplicationCard } from '@/components/shared/ApplicationCard';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { RiskBadge } from '@/components/shared/RiskBadge';
-import { mockUserApplications } from '@/data/mock/user';
 import { formatCurrency } from '@/lib/utils';
+import { useAuth } from '@/components/auth/AuthContext';
+import {
+  api,
+  adaptApplication,
+  adaptAssessment,
+  ApiError,
+  type BackendApplicantProfile,
+  type BackendApplication,
+} from '@parakh/api';
+import type { CreditApplication } from '@parakh/types';
 
 export default function UserApplicationsPage() {
+  const { user, isLoading: authLoading } = useAuth();
+
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [applications, setApplications] = useState<CreditApplication[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
 
-  const filteredApplications = mockUserApplications.filter((app) => {
+  const fetchApplications = useCallback(async () => {
+    if (!user) return;
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // 1. Fetch Profile
+      let rawProfile: BackendApplicantProfile | null = null;
+      try {
+        rawProfile = await api.getApplicantByUserId(user.id);
+      } catch (err: unknown) {
+        if (err instanceof ApiError && err.status === 404) {
+          rawProfile = null;
+        } else {
+          throw err;
+        }
+      }
+
+      if (!rawProfile) {
+        setApplications([]);
+        setIsLoading(false);
+        return;
+      }
+
+      // 2. Fetch Applications
+      let rawApps: BackendApplication[] = [];
+      try {
+        rawApps = await api.getApplicationsByApplicant(rawProfile.id);
+      } catch (err: unknown) {
+        if (err instanceof ApiError && err.status === 404) {
+          rawApps = [];
+        } else {
+          throw err;
+        }
+      }
+
+      // Sort newest first
+      rawApps.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+      // Adapt each application, fetching assessment if completed/assessed
+      const adaptedList: CreditApplication[] = await Promise.all(
+        rawApps.map(async (rawApp) => {
+          let assessment = null;
+          if (rawApp.status === 'ASSESSED' || rawApp.status === 'COMPLETED') {
+            try {
+              const rawAsmt = await api.getLatestAssessmentByApplication(rawApp.id);
+              assessment = adaptAssessment(rawAsmt, rawProfile?.full_name || undefined);
+            } catch {
+              assessment = null;
+            }
+          }
+          return adaptApplication(rawApp, rawProfile, assessment);
+        })
+      );
+
+      setApplications(adaptedList);
+    } catch (err: unknown) {
+      const msg = err instanceof ApiError ? err.userMessage : 'Failed to load applications.';
+      setError(msg);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      fetchApplications();
+    } else if (!authLoading && !user) {
+      setIsLoading(false);
+    }
+  }, [authLoading, user, fetchApplications]);
+
+  const filteredApplications = applications.filter((app) => {
     const matchesSearch =
       app.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
       app.purpose.toLowerCase().includes(searchQuery.toLowerCase());
@@ -36,6 +129,38 @@ export default function UserApplicationsPage() {
     return matchesSearch && matchesStatus;
   });
 
+  if (authLoading || isLoading) {
+    return (
+      <div className="py-24 text-center space-y-4 max-w-md mx-auto">
+        <div className="size-10 rounded-full border-2 border-primary border-t-transparent animate-spin mx-auto" />
+        <h2 className="text-base font-semibold text-foreground">Loading Applications...</h2>
+        <p className="text-xs text-foreground-muted">Retrieving your credit evaluations from PARAKH.</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-xl mx-auto py-16 px-4">
+        <Card className="p-6 border-red-500/30 bg-red-500/5 space-y-4 text-center">
+          <AlertCircle className="size-10 text-red-500 mx-auto" />
+          <div className="space-y-1">
+            <h2 className="text-base font-semibold text-foreground">Unable to Load Applications</h2>
+            <p className="text-xs text-foreground-secondary">{error}</p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => fetchApplications()}
+            className="gap-1.5 rounded-full text-xs mx-auto"
+          >
+            <RefreshCw className="size-3.5" /> Try Again
+          </Button>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <PageTransition className="space-y-6 sm:space-y-8 w-full pb-12">
       {/* 1. HEADER ROW */}
@@ -46,7 +171,7 @@ export default function UserApplicationsPage() {
               My Evaluation Applications
             </h1>
             <Badge variant="outline" className="text-xs">
-              {mockUserApplications.length} Total
+              {applications.length} Total
             </Badge>
           </div>
           <p className="text-xs sm:text-sm text-foreground-muted">
@@ -88,8 +213,8 @@ export default function UserApplicationsPage() {
               onClick={() => setStatusFilter(tab.id)}
               className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
                 statusFilter === tab.id
-                  ? 'bg-[#472393] text-white font-semibold shadow-xs dark:bg-foreground dark:text-background'
-                  : 'text-foreground-muted hover:text-[#472393] hover:bg-[#F5F1FF] dark:hover:text-foreground dark:hover:bg-transparent'
+                  ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
+                  : 'text-foreground-muted hover:text-foreground hover:bg-surface'
               }`}
             >
               {tab.label}
@@ -99,7 +224,22 @@ export default function UserApplicationsPage() {
       </div>
 
       {/* 3. APPLICATIONS DISPLAY */}
-      {filteredApplications.length === 0 ? (
+      {applications.length === 0 ? (
+        <Card className="p-12 text-center space-y-4 max-w-xl mx-auto my-6 bg-surface border-dashed border-border">
+          <FileText className="size-10 text-foreground-muted mx-auto opacity-75" />
+          <div className="space-y-1">
+            <h3 className="text-base font-semibold text-foreground">No Applications Yet</h3>
+            <p className="text-xs text-foreground-muted max-w-sm mx-auto leading-relaxed">
+              You haven&apos;t submitted any credit evaluation applications yet. Start a new assessment to evaluate your gig cashflow metrics.
+            </p>
+          </div>
+          <Link href="/user/applications/new">
+            <Button variant="default" size="sm" className="rounded-full text-xs gap-1.5 font-semibold px-5">
+              <PlusCircle className="size-4" /> Start First Assessment
+            </Button>
+          </Link>
+        </Card>
+      ) : filteredApplications.length === 0 ? (
         <Card className="p-12 text-center space-y-3">
           <FileText className="size-8 text-foreground-muted mx-auto" />
           <h3 className="text-base font-semibold text-foreground">No applications match your filter</h3>
@@ -130,95 +270,66 @@ export default function UserApplicationsPage() {
           </div>
 
           {/* Desktop Table View */}
-          <Card className="hidden sm:block overflow-hidden p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-surface-highlight/40 border-b border-border text-foreground-muted font-medium uppercase tracking-wider text-[11px]">
-                  <tr>
-                    <th className="py-3.5 px-5">Application ID</th>
-                    <th className="py-3.5 px-5">Purpose & Amount</th>
-                    <th className="py-3.5 px-5">Date</th>
-                    <th className="py-3.5 px-5">Status</th>
-                    <th className="py-3.5 px-5">Assessment</th>
-                    <th className="py-3.5 px-5 text-right">Actions</th>
+          <div className="hidden sm:block overflow-hidden rounded-2xl border border-border bg-surface">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-surface-highlight border-b border-border text-foreground-muted uppercase font-semibold tracking-wider">
+                <tr>
+                  <th className="py-3.5 px-5">Application ID</th>
+                  <th className="py-3.5 px-5">Loan Purpose</th>
+                  <th className="py-3.5 px-5">Requested Amount</th>
+                  <th className="py-3.5 px-5">Pipeline Status</th>
+                  <th className="py-3.5 px-5">Risk Rating</th>
+                  <th className="py-3.5 px-5">Submitted Date</th>
+                  <th className="py-3.5 px-5 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {filteredApplications.map((app) => (
+                  <tr
+                    key={app.id}
+                    className="hover:bg-surface-highlight/50 transition-colors group cursor-pointer"
+                  >
+                    <td className="py-4 px-5 font-mono font-medium text-foreground">
+                      <Link href={`/user/applications/${app.id}`} className="hover:underline">
+                        {app.id.substring(0, 8)}...
+                      </Link>
+                    </td>
+                    <td className="py-4 px-5 text-foreground-secondary font-medium">
+                      {app.purpose}
+                    </td>
+                    <td className="py-4 px-5 font-semibold text-foreground">
+                      {formatCurrency(app.requestedAmount)}
+                    </td>
+                    <td className="py-4 px-5">
+                      <StatusBadge status={app.status} />
+                    </td>
+                    <td className="py-4 px-5">
+                      <RiskBadge riskLevel={app.assessment?.riskLevel || 'MODERATE_ESTIMATED RISK'} />
+                    </td>
+                    <td className="py-4 px-5 text-foreground-muted">
+                      {new Date(app.submittedAt).toLocaleDateString('en-IN', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                    </td>
+                    <td className="py-4 px-5 text-right">
+                      <Link href={`/user/applications/${app.id}`}>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 rounded-full text-xs font-semibold gap-1 text-primary hover:text-primary"
+                        >
+                          <span>Track</span>
+                          <ArrowRight className="size-3" />
+                        </Button>
+                      </Link>
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {filteredApplications.map((app) => (
-                    <tr
-                      key={app.id}
-                      className="hover:bg-surface-highlight/30 transition-colors group"
-                    >
-                      <td className="py-4 px-5 font-mono font-semibold text-foreground">
-                        {app.id}
-                      </td>
-
-                      <td className="py-4 px-5">
-                        <div className="space-y-0.5">
-                          <span className="font-semibold text-foreground font-mono block">
-                            {formatCurrency(app.requestedAmount)}
-                          </span>
-                          <span className="text-foreground-muted text-[11px]">
-                            {app.purpose}
-                          </span>
-                        </div>
-                      </td>
-
-                      <td className="py-4 px-5 text-foreground-muted">
-                        {new Date(app.submittedAt).toLocaleDateString('en-IN', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric',
-                        })}
-                      </td>
-
-                      <td className="py-4 px-5">
-                        <StatusBadge status={app.status} />
-                      </td>
-
-                      <td className="py-4 px-5">
-                        {app.assessment ? (
-                          <div className="space-y-1">
-                            <span className="font-mono font-semibold text-foreground">
-                              {app.assessment.score} / 850
-                            </span>
-                            <div>
-                              <RiskBadge
-                                riskLevel={app.assessment.riskLevel}
-                                showIcon={false}
-                                className="text-[10px] py-0 px-2"
-                              />
-                            </div>
-                          </div>
-                        ) : (
-                          <span className="text-foreground-muted font-mono">
-                            Evaluating...
-                          </span>
-                        )}
-                      </td>
-
-                      <td className="py-4 px-5 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Link href={`/user/applications/${app.id}`}>
-                            <Button variant="ghost" size="sm" className="rounded-full text-xs text-foreground-muted hover:text-foreground">
-                              Details
-                            </Button>
-                          </Link>
-                          {app.assessment && (
-                            <Link href={`/user/results/${app.id}`}>
-                              <Button variant="secondary" size="sm" className="rounded-full text-xs">
-                                Report
-                              </Button>
-                            </Link>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Card>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </PageTransition>

@@ -83,9 +83,9 @@ export function Header() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const notifRef = useRef<HTMLDivElement>(null);
 
-  const userRole = user?.role || role;
-  const isApplicant = userRole === 'applicant';
-  const isReviewer = userRole === 'reviewer';
+  const userRole = (user?.role || role)?.toUpperCase();
+  const isApplicant = userRole === 'APPLICANT';
+  const isReviewer = userRole === 'REVIEWER';
 
   useEffect(() => {
     setNotifications(isReviewer ? REVIEWER_NOTIFICATIONS : APPLICANT_NOTIFICATIONS);
