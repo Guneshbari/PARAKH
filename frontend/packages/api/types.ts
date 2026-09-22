@@ -24,6 +24,10 @@ export type BackendConsentDataSource =
   | 'UTILITY';
 
 export type BackendSignalSource =
+  | 'PLATFORM'
+  | 'FINANCIAL_ACTIVITY'
+  | 'UTILITY'
+  | 'DERIVED'
   | 'BANKING_AGGREGATOR'
   | 'GIG_PLATFORM'
   | 'TELECOM_UTILITY'
@@ -162,6 +166,21 @@ export interface BackendCreditAssessmentResponse {
 
 export interface BackendFinancialSignalCreate {
   source: BackendSignalSource;
+  average_income?: number | string;
+  median_income?: number | string;
+  income_volatility?: number | string;
+  income_trend?: string;
+  active_days?: number;
+  payment_regularity?: number | string;
+  cashflow_buffer?: number | string;
+  existing_obligation?: number | string;
+  platform_rating?: number | string;
+  repayment_reliability?: number | string;
+  signal_metadata?: Record<string, any>;
+  application_id?: string;
+  applicant_profile_id?: string;
+
+  // Legacy/alias fields for compatibility
   average_daily_income?: number | string;
   income_volatility_score?: number | string;
   days_active_per_month?: number;
@@ -174,7 +193,22 @@ export interface BackendFinancialSignalCreate {
 export interface BackendFinancialSignalResponse {
   id: string;
   application_id: string;
+  applicant_profile_id?: string | null;
   source: BackendSignalSource;
+  average_income?: number | string | null;
+  median_income?: number | string | null;
+  income_volatility?: number | string | null;
+  income_trend?: string | null;
+  active_days?: number | null;
+  payment_regularity?: number | string | null;
+  cashflow_buffer?: number | string | null;
+  existing_obligation?: number | string | null;
+  platform_rating?: number | string | null;
+  repayment_reliability?: number | string | null;
+  signal_metadata?: Record<string, any>;
+  created_at: string;
+
+  // Legacy/alias fields for compatibility
   average_daily_income?: number | string | null;
   income_volatility_score?: number | string | null;
   days_active_per_month?: number | null;
@@ -182,24 +216,30 @@ export interface BackendFinancialSignalResponse {
   operating_expenses_ratio?: number | string | null;
   digital_payment_acceptance_ratio?: number | string | null;
   raw_signal_metadata?: Record<string, any>;
-  recorded_at: string;
+  recorded_at?: string;
 }
 
 // --- Consent Transport Models ---
 
 export interface BackendConsentCreate {
-  application_id: string;
   data_source: BackendConsentDataSource;
+  purpose: string;
+  application_id?: string;
+  applicant_profile_id?: string;
   granted?: boolean;
 }
 
 export interface BackendConsentResponse {
   id: string;
-  application_id: string;
+  application_id?: string | null;
+  applicant_profile_id?: string | null;
   data_source: BackendConsentDataSource;
+  purpose: string;
   granted: boolean;
   granted_at: string;
   revoked_at?: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 // --- Review Transport Models ---

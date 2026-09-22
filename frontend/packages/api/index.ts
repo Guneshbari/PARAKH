@@ -306,11 +306,11 @@ export class ParakhApiClient {
   // =========================================================================
 
   async triggerAssessment(applicationId: string, modelVersionId?: string): Promise<BackendAssessment> {
+    const qs = modelVersionId ? `?model_version_id=${encodeURIComponent(modelVersionId)}` : '';
     return this.request<BackendAssessment>(
-      `/api/v1/applications/${encodeURIComponent(applicationId)}/assess`,
+      `/api/v1/applications/${encodeURIComponent(applicationId)}/assess${qs}`,
       {
         method: 'POST',
-        body: JSON.stringify({ model_version_id: modelVersionId }),
       }
     );
   }

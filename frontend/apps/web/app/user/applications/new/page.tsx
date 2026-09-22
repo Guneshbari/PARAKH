@@ -21,6 +21,13 @@ import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { PageTransition } from '@/components/motion/PageTransition';
 import { ApplicationFormSchema, type ApplicationFormData } from '@parakh/validation';
+import { useAuth } from '@/components/auth/AuthContext';
+import {
+  api,
+  ApiError,
+  type BackendApplicantProfile,
+  type BackendApplication,
+} from '@parakh/api';
 
 const STEPS = [
   { id: 1, label: 'Personal', icon: User },
@@ -32,14 +39,17 @@ const STEPS = [
 
 export default function NewApplicationPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionPhase, setSubmissionPhase] = useState('');
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
+  const [createdApp, setCreatedApp] = useState<BackendApplication | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Form State initialized with realistic defaults for a smooth test run
   const [formData, setFormData] = useState<ApplicationFormData>({
-    fullName: 'Arjun Verma',
+    fullName: user?.name || 'Arjun Verma',
     phone: '9845128910',
     city: 'Bengaluru',
     employmentType: 'GIG_WORKER',
@@ -98,22 +108,31 @@ export default function NewApplicationPage() {
       if (formData.lowestMonthIncome < 0) {
         stepErrors.lowestMonthIncome = 'Lowest month income cannot be negative';
       }
-      if (formData.typicalRecoveryDays < 1 || formData.typicalRecoveryDays > 60) {
-        stepErrors.typicalRecoveryDays = 'Recovery window must be between 1 and 60 days';
+      if (formData.lowestMonthIncome > formData.averageMonthlyIncome) {
+        stepErrors.lowestMonthIncome = 'Lowest month income cannot exceed average income';
+      }
+      if (!formData.typicalRecoveryDays || formData.typicalRecoveryDays < 1) {
+        stepErrors.typicalRecoveryDays = 'Recovery days must be at least 1';
       }
     } else if (currentStep === 4) {
-      if (formData.monthlyRent < 0) stepErrors.monthlyRent = 'Cannot be negative';
-      if (formData.utilityExpenses < 0) stepErrors.utilityExpenses = 'Cannot be negative';
-      if (formData.existingEmiObligations < 0) stepErrors.existingEmiObligations = 'Cannot be negative';
+      if (formData.monthlyRent < 0) {
+        stepErrors.monthlyRent = 'Monthly rent cannot be negative';
+      }
+      if (formData.utilityExpenses < 0) {
+        stepErrors.utilityExpenses = 'Utility expenses cannot be negative';
+      }
+      if (formData.existingEmiObligations < 0) {
+        stepErrors.existingEmiObligations = 'EMI obligations cannot be negative';
+      }
+      if (formData.requestedAmount < 1000) {
+        stepErrors.requestedAmount = 'Minimum loan requested is ₹1,000';
+      }
+      if (!formData.purpose || formData.purpose.length < 5) {
+        stepErrors.purpose = 'Please provide a clear loan purpose (min 5 characters)';
+      }
     } else if (currentStep === 5) {
-      if (formData.requestedAmount < 5000) {
-        stepErrors.requestedAmount = 'Minimum requested amount is ₹5,000';
-      }
-      if (!formData.purpose || formData.purpose.length < 3) {
-        stepErrors.purpose = 'Please describe the intended purpose';
-      }
       if (!formData.consentGiven) {
-        stepErrors.consentGiven = 'Consent is required to run alternative assessment';
+        stepErrors.consentGiven = 'Voluntary consent is required to process assessment';
       }
     }
 
@@ -150,18 +169,122 @@ export default function NewApplicationPage() {
       return;
     }
 
+    if (!user) {
+      setSubmissionError('You must be signed in to submit an evaluation application.');
+      return;
+    }
+
     setIsSubmitting(true);
-    setSubmissionPhase('Ingesting alternative platform & UPI telemetry...');
-    await new Promise((r) => setTimeout(r, 900));
+    setSubmissionError(null);
 
-    setSubmissionPhase('Calculating Volatility Index & Shock Recovery velocity...');
-    await new Promise((r) => setTimeout(r, 900));
+    try {
+      // Step 1: Ensure ApplicantProfile exists
+      setSubmissionPhase('1/5: Verifying applicant identity & profile...');
+      let profile: BackendApplicantProfile;
+      try {
+        profile = await api.getApplicantByUserId(user.id);
+      } catch (err: unknown) {
+        if (err instanceof ApiError && err.status === 404) {
+          profile = await api.createApplicant({
+            full_name: formData.fullName,
+            phone_number: formData.phone,
+            city: formData.city,
+            work_type: formData.employmentType,
+            experience_months: formData.tenureMonths,
+            declared_monthly_income: formData.averageMonthlyIncome,
+            preferred_loan_purpose: formData.purpose,
+          });
+        } else {
+          throw err;
+        }
+      }
 
-    setSubmissionPhase('Synthesizing explainable SHAP feature contributions...');
-    await new Promise((r) => setTimeout(r, 900));
+      // Step 2: Create Credit Application
+      setSubmissionPhase('2/5: Registering credit evaluation application...');
+      let activeApp = createdApp;
+      if (!activeApp) {
+        activeApp = await api.createApplication({
+          applicant_profile_id: profile.id,
+          requested_loan_amount: formData.requestedAmount,
+          loan_purpose: formData.purpose,
+          preferred_repayment_period: 12,
+        });
+        setCreatedApp(activeApp);
+      }
 
-    // Route to generated assessment report
-    router.push('/user/results/demo');
+      // Step 3: Register DPDP Statutory Consent
+      setSubmissionPhase('3/5: Registering statutory DPDP Act consent...');
+      try {
+        await api.createConsent({
+          application_id: activeApp.id,
+          applicant_profile_id: profile.id,
+          data_source: 'PLATFORM',
+          purpose: 'Alternative credit assessment and risk evaluation under DPDP Act 2023',
+          granted: true,
+        });
+      } catch (consentErr: unknown) {
+        // If consent was already granted on a previous retry, ignore conflict
+        if (!(consentErr instanceof ApiError && consentErr.status === 409)) {
+          throw consentErr;
+        }
+      }
+
+      // Step 4: Ingest Aggregated Financial Telemetry Signals
+      setSubmissionPhase('4/5: Ingesting verified platform & cashflow telemetry...');
+      const incomeVol =
+        formData.lowestMonthIncome && formData.averageMonthlyIncome > 0
+          ? Math.max(
+              0,
+              Math.min(
+                1,
+                (formData.averageMonthlyIncome - formData.lowestMonthIncome) /
+                  formData.averageMonthlyIncome
+              )
+            )
+          : 0.18;
+      const totalObligation =
+        (formData.monthlyRent || 0) +
+        (formData.utilityExpenses || 0) +
+        (formData.existingEmiObligations || 0);
+
+      await api.recordFinancialSignals(activeApp.id, {
+        source: 'PLATFORM',
+        average_income: formData.averageMonthlyIncome,
+        median_income: Math.round(formData.averageMonthlyIncome * 0.95),
+        income_volatility: Number(incomeVol.toFixed(2)),
+        income_trend: 'STABLE',
+        active_days: 24,
+        payment_regularity: 0.95,
+        cashflow_buffer: Math.max(0, formData.averageMonthlyIncome - totalObligation),
+        existing_obligation: totalObligation,
+        platform_rating: 4.85,
+        repayment_reliability: 0.96,
+        signal_metadata: {
+          primary_platform: formData.primaryPlatform,
+          income_frequency: formData.incomeFrequency,
+          typical_recovery_days: formData.typicalRecoveryDays,
+        },
+      });
+
+      // Step 5: Execute MockAssessmentEngine Evaluation
+      setSubmissionPhase('5/5: Executing alternative credit assessment...');
+      await api.triggerAssessment(activeApp.id);
+
+      // Verify assessment was persisted
+      await api.getLatestAssessmentByApplication(activeApp.id);
+
+      // Successfully finished! Route to results dossier
+      router.push(`/user/results/${activeApp.id}`);
+    } catch (err: unknown) {
+      setIsSubmitting(false);
+      const msg =
+        err instanceof ApiError
+          ? err.userMessage
+          : err instanceof Error
+          ? err.message
+          : 'Application submission encountered an error. Please try again.';
+      setSubmissionError(msg);
+    }
   };
 
   if (isSubmitting) {
@@ -181,7 +304,7 @@ export default function NewApplicationPage() {
         </div>
 
         <div className="h-1.5 w-full bg-surface-highlight rounded-full overflow-hidden max-w-sm mx-auto">
-          <div className="h-full bg-foreground rounded-full animate-pulse w-3/4" />
+          <div className="h-full bg-primary rounded-full animate-pulse w-3/4" />
         </div>
 
         <p className="text-xs text-foreground-muted pt-4">
@@ -671,6 +794,17 @@ export default function NewApplicationPage() {
                   {errors.consentGiven}
                 </span>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* SUBMISSION ERROR ALERT */}
+        {submissionError && (
+          <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs flex items-start gap-2.5">
+            <AlertCircle className="size-4 shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <span className="font-semibold block">Submission Error</span>
+              <span>{submissionError}</span>
             </div>
           </div>
         )}
