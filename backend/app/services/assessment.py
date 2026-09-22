@@ -14,7 +14,11 @@ from app.repositories.financial_signal import FinancialSignalRepository
 from app.repositories.model_version import ModelVersionRepository
 from app.schemas.assessment import CreditAssessmentCreate
 from app.services.audit import AuditService
-from app.services.exceptions import EntityNotFoundError, ValidationError
+from app.services.exceptions import (
+    ConsentRequiredError,
+    EntityNotFoundError,
+    ValidationError,
+)
 
 
 def _extract_dict(obj: Union[Any, Dict[str, Any]]) -> Dict[str, Any]:
@@ -38,6 +42,7 @@ class AssessmentService:
         signal_repo: Optional[FinancialSignalRepository] = None,
         engine: Optional[AssessmentEngine] = None,
         audit_service: Optional[AuditService] = None,
+        consent_service: Optional[Any] = None,
     ) -> None:
         """Initialize AssessmentService with required repositories, optional engine, and audit service."""
         self.db = db
@@ -47,6 +52,7 @@ class AssessmentService:
         self.signal_repo = signal_repo or FinancialSignalRepository(db=db)
         self.engine = engine
         self.audit_service = audit_service or AuditService(db=db)
+        self.consent_service = consent_service
 
     def create_assessment(
         self,
@@ -188,6 +194,7 @@ class AssessmentService:
         application_id: Union[uuid.UUID, str],
         model_version_id: Optional[Union[uuid.UUID, str]] = None,
         engine: Optional[AssessmentEngine] = None,
+        enforce_consent: bool = False,
         auto_commit: bool = True,
     ) -> CreditAssessment:
         """Execute an assessment on an application using the configured engine.
@@ -200,12 +207,14 @@ class AssessmentService:
             model_version_id: Optional specific model version to associate. If omitted,
                 resolves the active model version or first registered model version.
             engine: Optional override for the assessment engine.
+            enforce_consent: Whether to verify active applicant consent before evaluation.
             auto_commit: Whether to commit at the service boundary.
 
         Returns:
             CreditAssessment: Created assessment entity.
 
         Raises:
+            ConsentRequiredError: If enforce_consent is True and active consent is missing or revoked.
             AssessmentEngineError: If no engine is configured or engine execution fails.
             AssessmentOutputError: If engine returns unexpected result type.
             EntityNotFoundError: If application or model version does not exist.
@@ -217,6 +226,21 @@ class AssessmentService:
         app = self.app_repo.get_by_id(application_id, db=self.db)
         if not app:
             raise EntityNotFoundError(f"Application with id '{application_id}' not found.")
+
+        # Verify active applicant consent when requested
+        if enforce_consent:
+            if not self.consent_service:
+                from app.services.consent import ConsentService
+                self.consent_service = ConsentService(db=self.db, app_repo=self.app_repo)
+
+            active_consents = self.consent_service.get_active_consents(
+                application_id=app.id,
+                applicant_profile_id=app.applicant_profile_id,
+            )
+            if not active_consents:
+                raise ConsentRequiredError(
+                    f"Active applicant consent is required to execute credit assessment for application '{app.id}'."
+                )
 
         # Resolve model_version_id if not explicitly provided
         mv_id = model_version_id
