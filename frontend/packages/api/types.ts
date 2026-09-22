@@ -309,3 +309,45 @@ export type BackendUnderwriterReviewCreate = BackendReviewOutcomeCreate;
 export type BackendModelVersion = BackendModelVersionResponse;
 export type BackendAuditLog = BackendAuditLogResponse;
 
+// --- Portfolio Analytics Transport Models ---
+
+export interface BackendScoreBucket {
+  range: string;
+  label: string;
+  count: number;
+  percentage: number;
+  risk_tier: string;
+}
+
+export interface BackendMonthlyVolume {
+  month: string;
+  count: number;
+  avg_score: number | null;
+}
+
+export interface BackendSectorRiskItem {
+  sector: string;
+  lower_risk: number;
+  moderate_risk: number;
+  higher_risk: number;
+  manual_review: number;
+  total: number;
+}
+
+export interface BackendPortfolioAnalytics {
+  total_applications: number;
+  total_applicants: number;
+  status_distribution: Record<string, number>;
+  risk_distribution: Record<string, number>;
+  average_credit_score: number | null;
+  average_risk_probability: number | null;
+  assessment_completion_rate: number;
+  total_assessments: number;
+  assessed_applications: number;
+  manual_review_applications: number;
+  completed_applications: number;
+  score_distribution: BackendScoreBucket[];
+  monthly_volume: BackendMonthlyVolume[];
+  sector_risk: BackendSectorRiskItem[];
+}
+

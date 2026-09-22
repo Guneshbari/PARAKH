@@ -24,6 +24,8 @@ import type {
   BackendReviewOutcomeResponse,
   BackendApplicantProfileResponse,
   BackendUserResponse,
+  BackendPortfolioAnalytics,
+  BackendSectorRiskItem,
 } from './types';
 
 // ==========================================
@@ -357,4 +359,180 @@ export function adaptBorrowerProfile(
     memberSince: backendProfile.created_at,
   };
 }
+
+// ==========================================
+// 3. ANALYTICS & GOVERNANCE ADAPTERS
+// ==========================================
+
+export interface AdaptedScoreBucket {
+  range: string;
+  label: string;
+  count: number;
+  percentage: number;
+  riskTier: RiskLevel;
+}
+
+export interface AdaptedPipelineStage {
+  id: string;
+  name: string;
+  count: number;
+  subtext: string;
+}
+
+export interface AdaptedSectorRisk {
+  sector: string;
+  lowerRisk: number;
+  moderateRisk: number;
+  higherRisk: number;
+  manualReview: number;
+  total: number;
+}
+
+export interface AdaptedPortfolioAnalytics {
+  totalEvaluated: number;
+  totalApplicants: number;
+  averageScore: number | null;
+  averageRiskDifficulty: number | null;
+  assessmentCompletionRate: number;
+  totalAssessments: number;
+  assessedApplications: number;
+  manualReviewApplications: number;
+  completedApplications: number;
+  riskDistribution: {
+    lowerRiskCount: number;
+    moderateRiskCount: number;
+    higherRiskCount: number;
+    manualReviewCount: number;
+  };
+  pipelineStages: AdaptedPipelineStage[];
+  scoreDistribution: AdaptedScoreBucket[];
+  monthlyVolume: {
+    month: string;
+    count: number;
+    avgScore: number | null;
+  }[];
+  sectorRisk: AdaptedSectorRisk[];
+}
+
+export interface AdaptedSectorRisk {
+  sector: string;
+  displayName: string;
+  lowerRisk: number;
+  moderateRisk: number;
+  higherRisk: number;
+  manualReview: number;
+  total: number;
+}
+
+const SECTOR_DISPLAY_NAMES: Record<string, string> = {
+  DELIVERY: 'Delivery & Quick Commerce',
+  MOBILITY: 'Mobility & Cab Drivers',
+  HOME_SERVICES: 'Home Services & Maintenance',
+  RETAIL_COMMERCE: 'Retail & Commerce',
+  FREELANCE_CREATIVE: 'Freelance & Creative',
+  GIG_WORKER: 'General Gig Worker',
+  OTHER: 'Other Sectors',
+};
+
+/**
+ * Adapts FastAPI sector risk items into frontend display models.
+ */
+export function adaptSectorRisk(items: BackendSectorRiskItem[] = []): AdaptedSectorRisk[] {
+  return items.map((s) => ({
+    sector: s.sector,
+    displayName: SECTOR_DISPLAY_NAMES[s.sector] || s.sector.replace(/_/g, ' '),
+    lowerRisk: s.lower_risk || 0,
+    moderateRisk: s.moderate_risk || 0,
+    higherRisk: s.higher_risk || 0,
+    manualReview: s.manual_review || 0,
+    total: s.total || 0,
+  }));
+}
+
+/**
+ * Adapts FastAPI BackendPortfolioAnalytics into frontend domain display models.
+ */
+export function adaptPortfolioAnalytics(backend: BackendPortfolioAnalytics): AdaptedPortfolioAnalytics {
+  const statusDist = backend.status_distribution || {};
+  const riskDist = backend.risk_distribution || {};
+
+  // Pipeline stages derived from canonical backend ApplicationStatus
+  const pipelineStages: AdaptedPipelineStage[] = [
+    {
+      id: 'p1',
+      name: 'Intake Registered',
+      count: (statusDist['SUBMITTED'] || 0) + (statusDist['DRAFT'] || 0),
+      subtext: 'Intake applications registered',
+    },
+    {
+      id: 'p2',
+      name: 'Data Validation',
+      count: statusDist['UNDER_REVIEW'] || 0,
+      subtext: 'Inflows & validation in progress',
+    },
+    {
+      id: 'p3',
+      name: 'Assessment Completed',
+      count: statusDist['ASSESSED'] || 0,
+      subtext: 'Synthesized credit evaluation ready',
+    },
+    {
+      id: 'p4',
+      name: 'Manual Review Required',
+      count: statusDist['MANUAL_REVIEW'] || 0,
+      subtext: 'Non-standard volatility / reviewer queue',
+    },
+    {
+      id: 'p5',
+      name: 'Review Completed',
+      count: statusDist['COMPLETED'] || 0,
+      subtext: 'Human underwriter decision finalized',
+    },
+  ];
+
+  // Score distribution buckets
+  const scoreDistribution: AdaptedScoreBucket[] = (backend.score_distribution || []).map((b) => ({
+    range: b.range,
+    label: b.label,
+    count: b.count,
+    percentage: b.percentage,
+    riskTier: adaptRiskLevel(b.risk_tier),
+  }));
+
+  // Monthly volume
+  const monthlyVolume = (backend.monthly_volume || []).map((m) => ({
+    month: m.month,
+    count: m.count,
+    avgScore: m.avg_score,
+  }));
+
+  return {
+    totalEvaluated: backend.total_applications || 0,
+    totalApplicants: backend.total_applicants || 0,
+    averageScore:
+      backend.average_credit_score !== null && backend.average_credit_score !== undefined
+        ? Math.round(backend.average_credit_score)
+        : null,
+    averageRiskDifficulty:
+      backend.average_risk_probability !== null && backend.average_risk_probability !== undefined
+        ? Number((backend.average_risk_probability * 100).toFixed(1))
+        : null,
+    assessmentCompletionRate: Number((backend.assessment_completion_rate || 0).toFixed(1)),
+    totalAssessments: backend.total_assessments || 0,
+    assessedApplications: backend.assessed_applications || 0,
+    manualReviewApplications: backend.manual_review_applications || 0,
+    completedApplications: backend.completed_applications || 0,
+    riskDistribution: {
+      lowerRiskCount: riskDist['LOWER'] || 0,
+      moderateRiskCount: riskDist['MODERATE'] || 0,
+      higherRiskCount: riskDist['HIGHER'] || 0,
+      manualReviewCount: riskDist['INSUFFICIENT'] || 0,
+    },
+    pipelineStages,
+    scoreDistribution,
+    monthlyVolume,
+    sectorRisk: adaptSectorRisk(backend.sector_risk || []),
+  };
+}
+
 

@@ -39,13 +39,14 @@ import { StatusBadge } from '@/components/shared/StatusBadge';
 import { RiskBadge } from '@/components/shared/RiskBadge';
 import { useTheme } from '@/components/theme/ThemeProvider';
 import { useAuth } from '@/components/auth/AuthContext';
-import { api, reverseAdaptReviewAction, adaptApplication } from '@parakh/api';
 import {
-  mockPortfolioAnalytics,
-  mockScoreDistributionBuckets,
-  mockPipelineStages,
+  api,
+  reverseAdaptReviewAction,
+  adaptApplication,
+  type AdaptedPortfolioAnalytics,
+} from '@parakh/api';
+import {
   mockOperationalAlerts,
-  mockPriorityReviewQueue,
 } from '@/data/mock/admin';
 import { formatCurrency } from '@/lib/utils';
 import type { ReviewActionType, UnderwriterReviewOutcome } from '@parakh/types';
@@ -56,28 +57,31 @@ export default function AdminDashboardPage() {
   const { user } = useAuth();
 
   const [isLoading, setIsLoading] = useState(true);
+  const [portfolio, setPortfolio] = useState<AdaptedPortfolioAnalytics | null>(null);
+  const [portfolioError, setPortfolioError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [reviewError, setReviewError] = useState<string | null>(null);
-  const [totalEvaluatedCount, setTotalEvaluatedCount] = useState(mockPortfolioAnalytics.totalEvaluated);
-  const [pipelineStagesData, setPipelineStagesData] = useState(mockPipelineStages);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
 
   // Interactive review modal/drawer state
-  const [selectedCase, setSelectedCase] = useState<
-    (typeof mockPriorityReviewQueue)[0] | null
-  >(null);
+  const [selectedCase, setSelectedCase] = useState<any | null>(null);
   const [reviewAction, setReviewAction] =
     useState<ReviewActionType>('MANUAL_REVIEW');
   const [reviewNotes, setReviewNotes] = useState('');
   const [reviewSuccess, setReviewSuccess] = useState(false);
-  const [activeQueue, setActiveQueue] = useState(mockPriorityReviewQueue);
+  const [activeQueue, setActiveQueue] = useState<any[]>([]);
 
-  const stats = {
-    ...mockPortfolioAnalytics,
-    totalEvaluated: totalEvaluatedCount,
-  };
+  const totalEvaluated = portfolio?.totalEvaluated ?? 0;
+  const avgScore = portfolio?.averageScore !== null && portfolio?.averageScore !== undefined ? portfolio.averageScore : null;
+  const avgRiskDifficulty = portfolio?.averageRiskDifficulty !== null && portfolio?.averageRiskDifficulty !== undefined ? portfolio.averageRiskDifficulty : null;
+  const completionRate = portfolio?.assessmentCompletionRate ?? 0;
+  const riskDist = portfolio?.riskDistribution ?? { lowerRiskCount: 0, moderateRiskCount: 0, higherRiskCount: 0, manualReviewCount: 0 };
+  const totalAssessed = riskDist.lowerRiskCount + riskDist.moderateRiskCount + riskDist.higherRiskCount + riskDist.manualReviewCount;
+  const pipelineStages = portfolio?.pipelineStages ?? [];
+  const scoreBuckets = portfolio?.scoreDistribution ?? [];
+  const monthlyVolume = portfolio?.monthlyVolume ?? [];
 
   // Filter priority queue
   const filteredQueue = activeQueue.filter((item) => {
@@ -85,7 +89,7 @@ export default function AdminDashboardPage() {
       item.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.applicantName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.purpose.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.triggerReason.toLowerCase().includes(searchQuery.toLowerCase());
+      (item.triggerReason && item.triggerReason.toLowerCase().includes(searchQuery.toLowerCase()));
 
     const matchesFilter =
       statusFilter === 'ALL' ||
@@ -95,9 +99,19 @@ export default function AdminDashboardPage() {
     return matchesSearch && matchesFilter;
   });
 
-  const loadQueue = async () => {
+  const loadDashboardData = async () => {
+    setIsLoading(true);
+    setPortfolioError(null);
+
     try {
-      setIsLoading(true);
+      const analyticsData = await api.getPortfolioAnalyticsAdapted();
+      setPortfolio(analyticsData);
+    } catch (err: any) {
+      console.warn('Portfolio analytics fetch error:', err);
+      setPortfolioError(err?.message || 'Failed to fetch portfolio analytics from database');
+    }
+
+    try {
       const rawApps = await api.getApplications();
       if (rawApps && rawApps.length > 0) {
         const mappedQueue = rawApps.map((app) => {
@@ -105,7 +119,7 @@ export default function AdminDashboardPage() {
           return {
             ...adapted,
             applicantName: `Applicant ${app.applicant_profile_id ? app.applicant_profile_id.slice(0, 8) : app.id.slice(0, 8)}`,
-            sectorTag: adapted.purpose?.toLowerCase().includes('equipment') ? 'Micro-enterprise' : 'Informal Commerce',
+            sectorTag: adapted.purpose?.toLowerCase().includes('equipment') ? 'Micro-enterprise' : 'Urban Gig Delivery',
             triggerReason:
               app.status === 'MANUAL_REVIEW'
                 ? 'Alternative cashflow volatility requires reviewer sign-off'
@@ -115,33 +129,19 @@ export default function AdminDashboardPage() {
           };
         });
         setActiveQueue(mappedQueue);
-        setTotalEvaluatedCount(rawApps.length);
-
-        const stageCounts = {
-          SUBMITTED: rawApps.filter((a) => a.status === 'SUBMITTED').length,
-          DATA_VALIDATION: rawApps.filter((a) => a.status === 'UNDER_REVIEW').length,
-          FINANCIAL_ANALYSIS: 0,
-          ASSESSMENT_COMPLETED: rawApps.filter((a) => a.status === 'ASSESSED').length,
-          MANUAL_REVIEW_REQUIRED: rawApps.filter((a) => a.status === 'MANUAL_REVIEW').length,
-          REVIEW_COMPLETED: rawApps.filter((a) => a.status === 'COMPLETED').length,
-        };
-
-        setPipelineStagesData((prev) =>
-          prev.map((stage) => ({
-            ...stage,
-            count: (stageCounts as any)[stage.id] ?? stage.count,
-          }))
-        );
+      } else {
+        setActiveQueue([]);
       }
     } catch (err) {
-      console.warn('Could not load live applications for dashboard:', err);
+      console.warn('Could not load applications for review queue:', err);
+      setActiveQueue([]);
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    loadQueue();
+    loadDashboardData();
   }, []);
 
   const handleOpenReview = (item: (typeof activeQueue)[0]) => {
@@ -176,7 +176,7 @@ export default function AdminDashboardPage() {
         }
       }
 
-      await loadQueue();
+      await loadDashboardData();
 
       setReviewSuccess(true);
       setTimeout(() => {
@@ -209,7 +209,7 @@ export default function AdminDashboardPage() {
               Portfolio Resilient
             </Badge>
             <Badge variant="outline" className="text-[10px] font-mono text-foreground-muted">
-              v2.4-volatility
+              PostgreSQL Live
             </Badge>
           </div>
           <p className="text-xs sm:text-sm text-foreground-muted">
@@ -234,18 +234,33 @@ export default function AdminDashboardPage() {
               className="rounded-full gap-1.5 text-xs font-semibold shadow-xs cursor-pointer"
             >
               <UserCheck className="size-3.5" />
-              <span>Review Queue ({activeQueue.filter(q => q.status === 'MANUAL_REVIEW_REQUIRED').length} Pending)</span>
+              <span>Review Queue ({activeQueue.filter(q => q.status === 'MANUAL_REVIEW_REQUIRED' || q.status === 'DATA_VALIDATION').length} Pending)</span>
             </Button>
           </a>
         </div>
       </div>
 
+      {/* ERROR BANNER IF API FAILED */}
+      {portfolioError && (
+        <div className="p-3.5 rounded-2xl bg-destructive/10 border border-destructive/20 text-xs text-destructive flex items-center justify-between gap-3">
+          <span>Failed to load live portfolio analytics: {portfolioError}</span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={loadDashboardData}
+            className="text-xs h-7 rounded-full shrink-0"
+          >
+            Retry
+          </Button>
+        </div>
+      )}
+
       {/* 2. PORTFOLIO HIGH-LEVEL KPIS (NO AUTOMATED LOAN APPROVAL RATES) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
           title="Total Evaluated Applicants"
-          value={stats.totalEvaluated}
-          pillLabel="+12.4% MoM"
+          value={totalEvaluated}
+          pillLabel={portfolio?.totalApplicants ? `${portfolio.totalApplicants} profiles` : 'Active'}
           pillVariant="secondary"
           subtext="Informal & gig economy applicants"
           icon={Users}
@@ -253,29 +268,31 @@ export default function AdminDashboardPage() {
 
         <MetricCard
           title="Portfolio Average Score"
-          value={stats.averageScore}
-          suffix=" / 850"
-          pillLabel="+4 pts Stability"
+          value={avgScore ?? 0}
+          format={(n) => (avgScore !== null ? String(n) : '—')}
+          suffix={avgScore !== null ? ' / 850' : ''}
+          pillLabel={avgScore !== null ? 'Calibrated' : 'Pending'}
           pillVariant="secondary"
-          subtext="Alternative volatility scoring engine"
+          subtext={avgScore !== null ? 'Alternative volatility scoring engine' : 'No assessments completed yet'}
           icon={TrendingUp}
         />
 
         <MetricCard
           title="Avg. Repayment Difficulty"
-          value={stats.averageRiskDifficulty}
-          suffix="%"
-          pillLabel="-1.8% Improving"
+          value={avgRiskDifficulty ?? 0}
+          format={(n) => (avgRiskDifficulty !== null ? String(n) : '—')}
+          suffix={avgRiskDifficulty !== null ? '%' : ''}
+          pillLabel={avgRiskDifficulty !== null ? 'Risk Rate' : 'Pending'}
           pillVariant="secondary"
-          subtext="Estimated repayment stress indicator"
+          subtext={avgRiskDifficulty !== null ? 'Estimated repayment stress indicator' : 'No assessments completed yet'}
           icon={Activity}
         />
 
         <MetricCard
           title="Assessment Completion Rate"
-          value={stats.assessmentCompletionRate}
+          value={completionRate}
           suffix="%"
-          pillLabel="91.8% Verified Feeds"
+          pillLabel={`${portfolio?.completedApplications ?? 0} Completed`}
           pillVariant="mint"
           subtext="Digital intake to synthesis conversion"
           icon={CheckCircle2}
@@ -328,96 +345,104 @@ export default function AdminDashboardPage() {
               </p>
             </div>
             <span className="text-xs font-mono text-foreground-muted">
-              {stats.totalEvaluated.toLocaleString()} Total
+              {totalAssessed.toLocaleString()} Assessed
             </span>
           </div>
 
-          {/* Segmented Progress Bar */}
-          <div className="w-full h-2.5 rounded-full bg-surface-highlight overflow-hidden flex">
-            <div
-              style={{ width: `${(stats.riskDistribution.lowerRiskCount / stats.totalEvaluated) * 100}%` }}
-              className="bg-foreground h-full"
-              title="LOWER ESTIMATED RISK"
-            />
-            <div
-              style={{ width: `${(stats.riskDistribution.moderateRiskCount / stats.totalEvaluated) * 100}%` }}
-              className="bg-foreground-secondary h-full opacity-70"
-              title="MODERATE ESTIMATED RISK"
-            />
-            <div
-              style={{ width: `${(stats.riskDistribution.higherRiskCount / stats.totalEvaluated) * 100}%` }}
-              className="bg-foreground-muted h-full opacity-50"
-              title="HIGHER ESTIMATED RISK"
-            />
-            <div
-              style={{ width: `${(stats.riskDistribution.manualReviewCount / stats.totalEvaluated) * 100}%` }}
-              className="bg-foreground-muted h-full opacity-30"
-              title="INSUFFICIENT EVIDENCE / MANUAL REVIEW"
-            />
-          </div>
-
-          {/* Breakdown Rows */}
-          <div className="space-y-2.5 pt-1 text-xs">
-            <div className="flex items-center justify-between p-2.5 rounded-xl bg-surface-highlight/40 border border-border">
-              <div className="flex items-center gap-2.5">
-                <span className="size-2 rounded-full bg-foreground" />
-                <span className="font-semibold text-foreground">LOWER ESTIMATED RISK</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="font-mono text-foreground-muted">
-                  {stats.riskDistribution.lowerRiskCount.toLocaleString()}
-                </span>
-                <span className="font-mono font-semibold text-foreground w-12 text-right">
-                  {((stats.riskDistribution.lowerRiskCount / stats.totalEvaluated) * 100).toFixed(1)}%
-                </span>
-              </div>
+          {totalAssessed === 0 ? (
+            <div className="py-8 text-center text-xs text-foreground-muted">
+              No credit assessments generated yet. Risk tiers will populate upon assessment execution.
             </div>
+          ) : (
+            <>
+              {/* Segmented Progress Bar */}
+              <div className="w-full h-2.5 rounded-full bg-surface-highlight overflow-hidden flex">
+                <div
+                  style={{ width: `${(riskDist.lowerRiskCount / totalAssessed) * 100}%` }}
+                  className="bg-foreground h-full"
+                  title="LOWER ESTIMATED RISK"
+                />
+                <div
+                  style={{ width: `${(riskDist.moderateRiskCount / totalAssessed) * 100}%` }}
+                  className="bg-foreground-secondary h-full opacity-70"
+                  title="MODERATE ESTIMATED RISK"
+                />
+                <div
+                  style={{ width: `${(riskDist.higherRiskCount / totalAssessed) * 100}%` }}
+                  className="bg-foreground-muted h-full opacity-50"
+                  title="HIGHER ESTIMATED RISK"
+                />
+                <div
+                  style={{ width: `${(riskDist.manualReviewCount / totalAssessed) * 100}%` }}
+                  className="bg-foreground-muted h-full opacity-30"
+                  title="INSUFFICIENT EVIDENCE / MANUAL REVIEW"
+                />
+              </div>
 
-            <div className="flex items-center justify-between p-2.5 rounded-xl bg-surface-highlight/40 border border-border">
-              <div className="flex items-center gap-2.5">
-                <span className="size-2 rounded-full bg-foreground-secondary opacity-70" />
-                <span className="font-semibold text-foreground">MODERATE ESTIMATED RISK</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="font-mono text-foreground-muted">
-                  {stats.riskDistribution.moderateRiskCount.toLocaleString()}
-                </span>
-                <span className="font-mono font-semibold text-foreground-secondary w-12 text-right">
-                  {((stats.riskDistribution.moderateRiskCount / stats.totalEvaluated) * 100).toFixed(1)}%
-                </span>
-              </div>
-            </div>
+              {/* Breakdown Rows */}
+              <div className="space-y-2.5 pt-1 text-xs">
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-surface-highlight/40 border border-border">
+                  <div className="flex items-center gap-2.5">
+                    <span className="size-2 rounded-full bg-foreground" />
+                    <span className="font-semibold text-foreground">LOWER ESTIMATED RISK</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="font-mono text-foreground-muted">
+                      {riskDist.lowerRiskCount.toLocaleString()}
+                    </span>
+                    <span className="font-mono font-semibold text-foreground w-12 text-right">
+                      {((riskDist.lowerRiskCount / totalAssessed) * 100).toFixed(1)}%
+                    </span>
+                  </div>
+                </div>
 
-            <div className="flex items-center justify-between p-2.5 rounded-xl bg-surface-highlight/40 border border-border">
-              <div className="flex items-center gap-2.5">
-                <span className="size-2 rounded-full bg-foreground-muted opacity-50" />
-                <span className="font-semibold text-foreground">HIGHER ESTIMATED RISK</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="font-mono text-foreground-muted">
-                  {stats.riskDistribution.higherRiskCount.toLocaleString()}
-                </span>
-                <span className="font-mono font-semibold text-foreground-muted w-12 text-right">
-                  {((stats.riskDistribution.higherRiskCount / stats.totalEvaluated) * 100).toFixed(1)}%
-                </span>
-              </div>
-            </div>
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-surface-highlight/40 border border-border">
+                  <div className="flex items-center gap-2.5">
+                    <span className="size-2 rounded-full bg-foreground-secondary opacity-70" />
+                    <span className="font-semibold text-foreground">MODERATE ESTIMATED RISK</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="font-mono text-foreground-muted">
+                      {riskDist.moderateRiskCount.toLocaleString()}
+                    </span>
+                    <span className="font-mono font-semibold text-foreground-secondary w-12 text-right">
+                      {((riskDist.moderateRiskCount / totalAssessed) * 100).toFixed(1)}%
+                    </span>
+                  </div>
+                </div>
 
-            <div className="flex items-center justify-between p-2.5 rounded-xl bg-surface-highlight/40 border border-border">
-              <div className="flex items-center gap-2.5">
-                <span className="size-2 rounded-full bg-foreground-muted opacity-30" />
-                <span className="font-semibold text-foreground">INSUFFICIENT EVIDENCE / MANUAL REVIEW</span>
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-surface-highlight/40 border border-border">
+                  <div className="flex items-center gap-2.5">
+                    <span className="size-2 rounded-full bg-foreground-muted opacity-50" />
+                    <span className="font-semibold text-foreground">HIGHER ESTIMATED RISK</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="font-mono text-foreground-muted">
+                      {riskDist.higherRiskCount.toLocaleString()}
+                    </span>
+                    <span className="font-mono font-semibold text-foreground-muted w-12 text-right">
+                      {((riskDist.higherRiskCount / totalAssessed) * 100).toFixed(1)}%
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-surface-highlight/40 border border-border">
+                  <div className="flex items-center gap-2.5">
+                    <span className="size-2 rounded-full bg-foreground-muted opacity-30" />
+                    <span className="font-semibold text-foreground">INSUFFICIENT EVIDENCE / MANUAL REVIEW</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="font-mono text-foreground-muted">
+                      {riskDist.manualReviewCount.toLocaleString()}
+                    </span>
+                    <span className="font-mono font-semibold text-foreground-muted w-12 text-right">
+                      {((riskDist.manualReviewCount / totalAssessed) * 100).toFixed(1)}%
+                    </span>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="font-mono text-foreground-muted">
-                  {stats.riskDistribution.manualReviewCount.toLocaleString()}
-                </span>
-                <span className="font-mono font-semibold text-foreground-muted w-12 text-right">
-                  {((stats.riskDistribution.manualReviewCount / stats.totalEvaluated) * 100).toFixed(1)}%
-                </span>
-              </div>
-            </div>
-          </div>
+            </>
+          )}
         </Card>
 
         {/* Right: Application Pipeline Funnel */}
@@ -433,13 +458,13 @@ export default function AdminDashboardPage() {
               </p>
             </div>
             <Badge variant="outline" className="text-[10px] font-mono">
-              94.2% Synthesized
+              {totalEvaluated > 0 ? `${completionRate}% Synthesized` : 'Pipeline Ready'}
             </Badge>
           </div>
 
           <div className="space-y-4 pt-1">
-            {pipelineStagesData.map((stage, idx) => {
-              const percentage = ((stage.count / stats.totalEvaluated) * 100).toFixed(1);
+            {pipelineStages.map((stage, idx) => {
+              const percentage = totalEvaluated > 0 ? ((stage.count / totalEvaluated) * 100).toFixed(1) : '0.0';
               return (
                 <div key={stage.id} className="space-y-1.5">
                   <div className="flex justify-between items-center text-xs">
@@ -448,18 +473,19 @@ export default function AdminDashboardPage() {
                       {stage.name}
                     </span>
                     <div className="flex items-center gap-2">
-                      <span className="text-[11px] text-foreground-muted">{stage.subtext}</span>
                       <span className="font-mono font-semibold text-foreground">
                         {stage.count.toLocaleString()}
                       </span>
+                      <span className="text-foreground-muted font-mono text-[11px]">({percentage}%)</span>
                     </div>
                   </div>
                   <div className="w-full h-1.5 rounded-full bg-surface-highlight overflow-hidden">
                     <div
-                      style={{ width: `${percentage}%` }}
+                      style={{ width: `${Math.min(100, Math.max(0, Number(percentage)))}%` }}
                       className="h-full rounded-full bg-foreground transition-all duration-500"
                     />
                   </div>
+                  <span className="text-[10px] text-foreground-muted block pl-5">{stage.subtext}</span>
                 </div>
               );
             })}
@@ -491,74 +517,79 @@ export default function AdminDashboardPage() {
         </div>
 
         <div className="h-64 w-full pt-2">
-          <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart
-              data={stats.monthlyVolume}
-              margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke={chartGridColor} />
-              <XAxis
-                dataKey="month"
-                stroke={chartAxisColor}
-                fontSize={11}
-                tickLine={false}
-              />
-              <YAxis
-                yAxisId="left"
-                stroke={chartAxisColor}
-                fontSize={11}
-                tickLine={false}
-                domain={[0, 3500]}
-              />
-              <YAxis
-                yAxisId="right"
-                orientation="right"
-                stroke={chartAxisColor}
-                fontSize={11}
-                tickLine={false}
-                domain={[650, 800]}
-              />
-              <Tooltip
-                content={({ active, payload, label }) => {
-                  if (active && payload && payload.length) {
-                    return (
-                      <div className="bg-surface p-3 rounded-xl border border-border shadow-xl text-xs space-y-1 text-foreground">
-                        <span className="font-semibold text-foreground block">{label}</span>
-                        <span className="font-mono block text-foreground-secondary">
-                          Intake: {payload[0]?.value} evaluations
-                        </span>
-                        <span className="font-mono block text-foreground font-semibold">
-                          Average Score: {payload[1]?.value} / 850
-                        </span>
-                      </div>
-                    );
-                  }
-                  return null;
-                }}
-              />
-              <Bar
-                yAxisId="left"
-                dataKey="count"
-                fill={chartBarColor}
-                opacity={0.8}
-                radius={[4, 4, 0, 0]}
-              />
-              <Line
-                yAxisId="right"
-                type="monotone"
-                dataKey="avgScore"
-                stroke={chartLineColor}
-                strokeWidth={2}
-                dot={{ r: 3.5, fill: chartLineColor }}
-              />
-            </ComposedChart>
-          </ResponsiveContainer>
+          {monthlyVolume.length === 0 || monthlyVolume.every((m) => m.count === 0) ? (
+            <div className="h-full flex items-center justify-center text-xs text-foreground-muted">
+              No application intake recorded in recent months.
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart
+                data={monthlyVolume}
+                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke={chartGridColor} />
+                <XAxis
+                  dataKey="month"
+                  stroke={chartAxisColor}
+                  fontSize={11}
+                  tickLine={false}
+                />
+                <YAxis
+                  yAxisId="left"
+                  stroke={chartAxisColor}
+                  fontSize={11}
+                  tickLine={false}
+                />
+                <YAxis
+                  yAxisId="right"
+                  orientation="right"
+                  stroke={chartAxisColor}
+                  fontSize={11}
+                  tickLine={false}
+                  domain={[300, 850]}
+                />
+                <Tooltip
+                  content={({ active, payload, label }) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div className="bg-surface p-3 rounded-xl border border-border shadow-xl text-xs space-y-1 text-foreground">
+                          <span className="font-semibold text-foreground block">{label}</span>
+                          <span className="font-mono block text-foreground-secondary">
+                            Intake: {payload[0]?.value} evaluations
+                          </span>
+                          <span className="font-mono block text-foreground font-semibold">
+                            Average Score: {payload[1]?.value ? `${payload[1].value} / 850` : 'N/A'}
+                          </span>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Bar
+                  yAxisId="left"
+                  dataKey="count"
+                  fill={chartBarColor}
+                  opacity={0.8}
+                  radius={[4, 4, 0, 0]}
+                />
+                <Line
+                  yAxisId="right"
+                  type="monotone"
+                  dataKey="avgScore"
+                  stroke={chartLineColor}
+                  strokeWidth={2}
+                  dot={{ r: 3.5, fill: chartLineColor }}
+                />
+              </ComposedChart>
+            </ResponsiveContainer>
+          )}
         </div>
       </Card>
 
       {/* 6. SECTOR VOLATILITY & SCORE BUCKETS (TWO COLUMNS) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Sector Volatility Comparison */}
+        {/* Sector Volatility Comparison - Explicit ML Placeholder */}
         <Card className="p-6 bg-surface border-border space-y-4">
           <div className="flex items-center justify-between pb-2 border-b border-border">
             <div>
@@ -570,41 +601,21 @@ export default function AdminDashboardPage() {
                 Observed recovery velocity and volatility index by gig worker segment.
               </p>
             </div>
+            <Badge variant="outline" className="text-[10px] font-mono">
+              Pending ML Pipeline
+            </Badge>
           </div>
 
-          <div className="space-y-3 pt-1">
-            {stats.volatilityTrendsBySector.map((s) => (
-              <div
-                key={s.sector}
-                className="p-3.5 rounded-2xl bg-surface-highlight/30 border border-border space-y-2"
-              >
-                <div className="flex justify-between items-center text-xs">
-                  <span className="font-semibold text-foreground">{s.sector}</span>
-                  <span className="font-mono text-foreground-muted text-[11px]">
-                    {s.applicantCount.toLocaleString()} Applicants
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2 text-xs pt-1">
-                  <div className="p-2 rounded-xl bg-surface-highlight/40 border border-border">
-                    <span className="text-[10px] text-foreground-muted block">
-                      Avg Shock Recovery Rate
-                    </span>
-                    <span className="font-mono font-semibold text-foreground">
-                      {(s.avgRecoveryRate * 100).toFixed(0)}% (10-14 days)
-                    </span>
-                  </div>
-                  <div className="p-2 rounded-xl bg-surface-highlight/40 border border-border">
-                    <span className="text-[10px] text-foreground-muted block">
-                      Income Volatility Index
-                    </span>
-                    <span className="font-mono font-semibold text-foreground">
-                      {s.volatilityIndex.toFixed(2)} (Controlled)
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div className="p-4 rounded-2xl bg-surface-highlight/30 border border-border space-y-2 text-xs">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="size-4 text-amber-500 shrink-0" />
+              <span className="font-semibold text-foreground">
+                ML Volatility Telemetry Integration
+              </span>
+            </div>
+            <p className="text-foreground-muted text-[11px] leading-relaxed">
+              Sector-level recovery velocity curves and cyclical volatility indices are computed by Person 2 & 3's LightGBM/XGBoost ML pipeline. In the interim, live assessments are scored through the deterministic MockAssessmentEngine registered in PostgreSQL. ML analytics unavailable until the production assessment model is integrated.
+            </p>
           </div>
         </Card>
 
@@ -621,37 +632,43 @@ export default function AdminDashboardPage() {
               </p>
             </div>
             <Badge variant="outline" className="text-[10px] font-mono">
-              Mean: 718
+              {avgScore !== null ? `Mean: ${avgScore}` : 'Unassessed'}
             </Badge>
           </div>
 
           <div className="space-y-3 pt-1">
-            {mockScoreDistributionBuckets.map((bucket) => (
-              <div
-                key={bucket.range}
-                className="p-3 rounded-2xl bg-surface-highlight/30 border border-border space-y-1.5 text-xs"
-              >
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono font-semibold text-foreground">{bucket.range}</span>
-                    <span className="text-foreground-muted text-[11px]">• {bucket.label}</span>
-                  </div>
-                  <RiskBadge riskLevel={bucket.riskTier} showIcon={false} className="text-[10px] py-0 px-2" />
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 h-1.5 rounded-full bg-surface-highlight overflow-hidden">
-                    <div
-                      style={{ width: `${bucket.percentage}%` }}
-                      className="h-full rounded-full bg-foreground"
-                    />
-                  </div>
-                  <span className="font-mono font-semibold text-foreground-secondary w-16 text-right">
-                    {bucket.count.toLocaleString()} ({bucket.percentage}%)
-                  </span>
-                </div>
+            {scoreBuckets.length === 0 ? (
+              <div className="py-8 text-center text-xs text-foreground-muted">
+                No score histogram available. Scores will populate once applications are assessed.
               </div>
-            ))}
+            ) : (
+              scoreBuckets.map((bucket) => (
+                <div
+                  key={bucket.range}
+                  className="p-3 rounded-2xl bg-surface-highlight/30 border border-border space-y-1.5 text-xs"
+                >
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono font-semibold text-foreground">{bucket.range}</span>
+                      <span className="text-foreground-muted text-[11px]">• {bucket.label}</span>
+                    </div>
+                    <RiskBadge riskLevel={bucket.riskTier} showIcon={false} className="text-[10px] py-0 px-2" />
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 h-1.5 rounded-full bg-surface-highlight overflow-hidden">
+                      <div
+                        style={{ width: `${bucket.percentage}%` }}
+                        className="h-full rounded-full bg-foreground"
+                      />
+                    </div>
+                    <span className="font-mono font-semibold text-foreground-secondary w-16 text-right">
+                      {bucket.count.toLocaleString()} ({bucket.percentage}%)
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </Card>
       </div>

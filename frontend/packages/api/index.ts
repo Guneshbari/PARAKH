@@ -31,12 +31,18 @@ import type {
   BackendModelVersion,
   BackendModelVersionCreate,
   BackendAuditLog,
+  BackendPortfolioAnalytics,
+  BackendSectorRiskItem,
 } from './types';
 import {
   adaptApplication,
   adaptAssessment,
   adaptReviewOutcome,
   adaptBorrowerProfile,
+  adaptPortfolioAnalytics,
+  adaptSectorRisk,
+  type AdaptedPortfolioAnalytics,
+  type AdaptedSectorRisk,
 } from './adapters';
 
 export * from './errors';
@@ -503,7 +509,33 @@ export class ParakhApiClient {
   }
 
   // =========================================================================
-  // 10. ADAPTER-BACKED CONVENIENCE METHODS (Frontend Domain Models)
+  // 10. PORTFOLIO ANALYTICS
+  // =========================================================================
+
+  async getPortfolioAnalytics(): Promise<BackendPortfolioAnalytics> {
+    return this.request<BackendPortfolioAnalytics>('/api/v1/analytics/portfolio', {
+      method: 'GET',
+    });
+  }
+
+  async getSectorRisk(): Promise<BackendSectorRiskItem[]> {
+    return this.request<BackendSectorRiskItem[]>('/api/v1/analytics/sector-risk', {
+      method: 'GET',
+    });
+  }
+
+  async getPortfolioAnalyticsAdapted(): Promise<AdaptedPortfolioAnalytics> {
+    const raw = await this.getPortfolioAnalytics();
+    return adaptPortfolioAnalytics(raw);
+  }
+
+  async getSectorRiskAdapted(): Promise<AdaptedSectorRisk[]> {
+    const raw = await this.getSectorRisk();
+    return adaptSectorRisk(raw);
+  }
+
+  // =========================================================================
+  // 11. ADAPTER-BACKED CONVENIENCE METHODS (Frontend Domain Models)
   // =========================================================================
 
   async getApplicationAdapted(
