@@ -1,20 +1,47 @@
 // @parakh/api
-// Typed client contracts for communicating with FastAPI backend
-// Strictly throws typed errors on HTTP failure; NO silent fallback to mock data
+// Authoritative API Client and Contract Adapters for PARAKH Platform
+// Single communication layer between Next.js frontend and FastAPI backend
 
 import type {
   CreditApplication,
   CreditAssessmentResult,
   BorrowerProfile,
-  PortfolioAnalytics,
-  ModelInsights,
   UnderwriterReviewOutcome,
   LoginRequest,
   TokenResponse,
   UserResponse,
   UserCreateRequest,
 } from '@parakh/types';
-import type { ApplicationFormData, UnderwriterReviewInput } from '@parakh/validation';
+
+import { ApiError, type ApiErrorCode } from './errors';
+import type {
+  BackendUser,
+  BackendUserCreate,
+  BackendApplicantProfile,
+  BackendApplicantProfileCreate,
+  BackendApplication,
+  BackendApplicationCreate,
+  BackendAssessment,
+  BackendFinancialSignal,
+  BackendFinancialSignalCreate,
+  BackendConsent,
+  BackendConsentCreate,
+  BackendUnderwriterReview,
+  BackendUnderwriterReviewCreate,
+  BackendModelVersion,
+  BackendModelVersionCreate,
+  BackendAuditLog,
+} from './types';
+import {
+  adaptApplication,
+  adaptAssessment,
+  adaptReviewOutcome,
+  adaptBorrowerProfile,
+} from './adapters';
+
+export * from './errors';
+export * from './types';
+export * from './adapters';
 
 export interface ApiClientConfig {
   baseUrl?: string;
@@ -22,17 +49,6 @@ export interface ApiClientConfig {
   headers?: Record<string, string>;
   token?: string | null;
   onUnauthorized?: () => void;
-}
-
-export class ApiError extends Error {
-  constructor(
-    message: string,
-    public status: number,
-    public responseData?: unknown
-  ) {
-    super(message);
-    this.name = 'ApiError';
-  }
 }
 
 export class ParakhApiClient {
@@ -70,8 +86,7 @@ export class ParakhApiClient {
     this.token = null;
   }
 
-
-  private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
+  public async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
     const url = `${this.baseUrl.replace(/\/$/, '')}/${endpoint.replace(/^\//, '')}`;
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), this.timeoutMs);
@@ -103,30 +118,41 @@ export class ParakhApiClient {
         } catch {
           errorData = await response.text();
         }
-        throw new ApiError(
-          `API request failed with HTTP status ${response.status}`,
-          response.status,
-          errorData
-        );
+        throw ApiError.fromResponse(response.status, errorData);
+      }
+
+      // Handle 204 No Content
+      if (response.status === 204) {
+        return undefined as unknown as T;
       }
 
       return (await response.json()) as T;
     } catch (err: unknown) {
       if (err instanceof ApiError) throw err;
       if (err instanceof Error && err.name === 'AbortError') {
-        throw new ApiError('Request timed out', 408);
+        throw new ApiError(
+          'Request timed out',
+          408,
+          null,
+          'TIMEOUT',
+          'The request timed out waiting for the server to respond.'
+        );
       }
       throw new ApiError(
-        err instanceof Error ? err.message : 'Network error occurred',
+        err instanceof Error ? err.message : 'Network connection error occurred',
         0,
-        err
+        err,
+        'NETWORK_ERROR',
+        'Unable to reach the server. Please check your network connection.'
       );
     } finally {
       clearTimeout(timer);
     }
   }
 
-  // --- AUTHENTICATION & IDENTITY ENDPOINTS ---
+  // =========================================================================
+  // 1. AUTHENTICATION & IDENTITY ENDPOINTS
+  // =========================================================================
 
   async login(credentials: LoginRequest): Promise<TokenResponse> {
     const response = await this.request<TokenResponse>('/api/v1/auth/login', {
@@ -159,76 +185,381 @@ export class ParakhApiClient {
     });
   }
 
-
-  // --- USER / BORROWER ENDPOINTS ---
-
-  async getBorrowerProfile(id: string): Promise<BorrowerProfile> {
-    return this.request<BorrowerProfile>(`/api/v1/user/profile/${id}`);
+  async getUserById(id: string): Promise<BackendUser> {
+    return this.request<BackendUser>(`/api/v1/users/${encodeURIComponent(id)}`, {
+      method: 'GET',
+    });
   }
 
-  async getBorrowerDashboard(applicantId: string): Promise<{
-    assessment: CreditAssessmentResult;
-    recentApplications: CreditApplication[];
-  }> {
-    return this.request(`/api/v1/user/dashboard/${applicantId}`);
+  async getUserByEmail(email: string): Promise<BackendUser> {
+    return this.request<BackendUser>(`/api/v1/users/by-email/${encodeURIComponent(email)}`, {
+      method: 'GET',
+    });
   }
 
-  async getUserApplications(applicantId: string): Promise<CreditApplication[]> {
-    return this.request<CreditApplication[]>(`/api/v1/user/applications?applicantId=${encodeURIComponent(applicantId)}`);
+  async updateUser(id: string, data: Partial<BackendUserCreate>): Promise<BackendUser> {
+    return this.request<BackendUser>(`/api/v1/users/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
   }
 
-  async getApplicationById(id: string): Promise<CreditApplication> {
-    return this.request<CreditApplication>(`/api/v1/user/applications/${id}`);
-  }
+  // =========================================================================
+  // 2. APPLICANT PROFILES
+  // =========================================================================
 
-  async submitApplication(data: ApplicationFormData): Promise<CreditApplication> {
-    return this.request<CreditApplication>('/api/v1/user/applications', {
+  async createApplicant(data: BackendApplicantProfileCreate): Promise<BackendApplicantProfile> {
+    return this.request<BackendApplicantProfile>('/api/v1/applicants', {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
-  async getAssessmentResult(id: string): Promise<CreditAssessmentResult> {
-    return this.request<CreditAssessmentResult>(`/api/v1/user/results/${id}`);
-  }
-
-  // --- ADMIN / UNDERWRITER ENDPOINTS ---
-
-  async getAdminDashboard(): Promise<{
-    portfolio: PortfolioAnalytics;
-    priorityReviewQueue: CreditApplication[];
-  }> {
-    return this.request('/api/v1/admin/dashboard');
-  }
-
-  async getAdminApplications(filter?: { status?: string; riskLevel?: string }): Promise<CreditApplication[]> {
-    const query = new URLSearchParams();
-    if (filter?.status) query.append('status', filter.status);
-    if (filter?.riskLevel) query.append('riskLevel', filter.riskLevel);
-    const qs = query.toString();
-    return this.request<CreditApplication[]>(`/api/v1/admin/applications${qs ? `?${qs}` : ''}`);
-  }
-
-  async getAdminApplicationDetail(id: string): Promise<CreditApplication> {
-    return this.request<CreditApplication>(`/api/v1/admin/applications/${id}`);
-  }
-
-  async recordReviewAction(
-    applicationId: string,
-    review: UnderwriterReviewInput
-  ): Promise<UnderwriterReviewOutcome> {
-    return this.request<UnderwriterReviewOutcome>(`/api/v1/admin/applications/${applicationId}/review`, {
-      method: 'POST',
-      body: JSON.stringify(review),
+  async getApplicantProfile(profileId: string): Promise<BackendApplicantProfile> {
+    return this.request<BackendApplicantProfile>(`/api/v1/applicants/${encodeURIComponent(profileId)}`, {
+      method: 'GET',
     });
   }
 
-  async getPortfolioAnalytics(): Promise<PortfolioAnalytics> {
-    return this.request<PortfolioAnalytics>('/api/v1/admin/analytics');
+  async getApplicantByUserId(userId: string): Promise<BackendApplicantProfile> {
+    return this.request<BackendApplicantProfile>(`/api/v1/applicants/user/${encodeURIComponent(userId)}`, {
+      method: 'GET',
+    });
   }
 
-  async getModelInsights(): Promise<ModelInsights> {
-    return this.request<ModelInsights>('/api/v1/admin/model-insights');
+  async updateApplicantProfile(
+    profileId: string,
+    data: Partial<BackendApplicantProfileCreate>
+  ): Promise<BackendApplicantProfile> {
+    return this.request<BackendApplicantProfile>(`/api/v1/applicants/${encodeURIComponent(profileId)}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // =========================================================================
+  // 3. CREDIT APPLICATIONS
+  // =========================================================================
+
+  async getApplications(params?: {
+    skip?: number;
+    limit?: number;
+    status?: string;
+    applicant_profile_id?: string;
+  }): Promise<BackendApplication[]> {
+    const query = new URLSearchParams();
+    if (params?.skip !== undefined) query.append('skip', String(params.skip));
+    if (params?.limit !== undefined) query.append('limit', String(params.limit));
+    if (params?.status) query.append('status', params.status);
+    if (params?.applicant_profile_id) query.append('applicant_profile_id', params.applicant_profile_id);
+    const qs = query.toString();
+    return this.request<BackendApplication[]>(`/api/v1/applications${qs ? `?${qs}` : ''}`, {
+      method: 'GET',
+    });
+  }
+
+  async createApplication(data: BackendApplicationCreate): Promise<BackendApplication> {
+    return this.request<BackendApplication>('/api/v1/applications', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getApplicationById(applicationId: string): Promise<BackendApplication> {
+    return this.request<BackendApplication>(`/api/v1/applications/${encodeURIComponent(applicationId)}`, {
+      method: 'GET',
+    });
+  }
+
+  async getApplicationsByApplicant(applicantProfileId: string): Promise<BackendApplication[]> {
+    return this.request<BackendApplication[]>(
+      `/api/v1/applications/applicant/${encodeURIComponent(applicantProfileId)}`,
+      { method: 'GET' }
+    );
+  }
+
+  async updateApplication(
+    applicationId: string,
+    data: Partial<BackendApplicationCreate>
+  ): Promise<BackendApplication> {
+    return this.request<BackendApplication>(`/api/v1/applications/${encodeURIComponent(applicationId)}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateApplicationStatus(
+    applicationId: string,
+    status: string,
+    note?: string
+  ): Promise<BackendApplication> {
+    const query = new URLSearchParams({ status });
+    if (note) query.append('note', note);
+    return this.request<BackendApplication>(
+      `/api/v1/applications/${encodeURIComponent(applicationId)}/status?${query.toString()}`,
+      { method: 'PATCH' }
+    );
+  }
+
+  // =========================================================================
+  // 4. CREDIT ASSESSMENTS
+  // =========================================================================
+
+  async triggerAssessment(applicationId: string, modelVersionId?: string): Promise<BackendAssessment> {
+    return this.request<BackendAssessment>(
+      `/api/v1/applications/${encodeURIComponent(applicationId)}/assess`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ model_version_id: modelVersionId }),
+      }
+    );
+  }
+
+  async getAssessmentById(assessmentId: string): Promise<BackendAssessment> {
+    return this.request<BackendAssessment>(`/api/v1/assessments/${encodeURIComponent(assessmentId)}`, {
+      method: 'GET',
+    });
+  }
+
+  async getAssessmentsByApplication(applicationId: string): Promise<BackendAssessment[]> {
+    return this.request<BackendAssessment[]>(
+      `/api/v1/applications/${encodeURIComponent(applicationId)}/assessments`,
+      { method: 'GET' }
+    );
+  }
+
+  async getLatestAssessmentByApplication(applicationId: string): Promise<BackendAssessment> {
+    return this.request<BackendAssessment>(
+      `/api/v1/applications/${encodeURIComponent(applicationId)}/assessments/latest`,
+      { method: 'GET' }
+    );
+  }
+
+  // =========================================================================
+  // 5. FINANCIAL SIGNALS
+  // =========================================================================
+
+  async recordFinancialSignals(
+    applicationId: string,
+    signals: BackendFinancialSignalCreate
+  ): Promise<BackendFinancialSignal> {
+    return this.request<BackendFinancialSignal>(
+      `/api/v1/applications/${encodeURIComponent(applicationId)}/financial-signals`,
+      {
+        method: 'POST',
+        body: JSON.stringify(signals),
+      }
+    );
+  }
+
+  async getFinancialSignals(applicationId: string): Promise<BackendFinancialSignal[]> {
+    return this.request<BackendFinancialSignal[]>(
+      `/api/v1/applications/${encodeURIComponent(applicationId)}/financial-signals`,
+      { method: 'GET' }
+    );
+  }
+
+  async getLatestFinancialSignals(applicationId: string): Promise<BackendFinancialSignal> {
+    return this.request<BackendFinancialSignal>(
+      `/api/v1/applications/${encodeURIComponent(applicationId)}/financial-signals/latest`,
+      { method: 'GET' }
+    );
+  }
+
+  // =========================================================================
+  // 6. CONSENTS
+  // =========================================================================
+
+  async createConsent(data: BackendConsentCreate): Promise<BackendConsent> {
+    return this.request<BackendConsent>('/api/v1/consents', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getConsentsByApplication(applicationId: string): Promise<BackendConsent[]> {
+    return this.request<BackendConsent[]>(
+      `/api/v1/applications/${encodeURIComponent(applicationId)}/consents`,
+      { method: 'GET' }
+    );
+  }
+
+  async getActiveConsentsByApplication(applicationId: string): Promise<BackendConsent[]> {
+    return this.request<BackendConsent[]>(
+      `/api/v1/applications/${encodeURIComponent(applicationId)}/consents/active`,
+      { method: 'GET' }
+    );
+  }
+
+  async revokeConsent(consentId: string): Promise<BackendConsent> {
+    return this.request<BackendConsent>(`/api/v1/consents/${encodeURIComponent(consentId)}/revoke`, {
+      method: 'POST',
+    });
+  }
+
+  // =========================================================================
+  // 7. UNDERWRITER REVIEWS
+  // =========================================================================
+
+  async createReview(
+    applicationId: string,
+    review: BackendUnderwriterReviewCreate
+  ): Promise<BackendUnderwriterReview> {
+    return this.request<BackendUnderwriterReview>(
+      `/api/v1/applications/${encodeURIComponent(applicationId)}/reviews`,
+      {
+        method: 'POST',
+        body: JSON.stringify(review),
+      }
+    );
+  }
+
+  async getReviewsByApplication(applicationId: string): Promise<BackendUnderwriterReview[]> {
+    return this.request<BackendUnderwriterReview[]>(
+      `/api/v1/applications/${encodeURIComponent(applicationId)}/reviews`,
+      { method: 'GET' }
+    );
+  }
+
+  async getReviewsByReviewer(reviewerId: string): Promise<BackendUnderwriterReview[]> {
+    return this.request<BackendUnderwriterReview[]>(
+      `/api/v1/reviewers/${encodeURIComponent(reviewerId)}/reviews`,
+      { method: 'GET' }
+    );
+  }
+
+  // =========================================================================
+  // 8. MODEL VERSIONS
+  // =========================================================================
+
+  async createModelVersion(data: BackendModelVersionCreate): Promise<BackendModelVersion> {
+    return this.request<BackendModelVersion>('/api/v1/model-versions', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getModelVersions(params?: {
+    skip?: number;
+    limit?: number;
+    is_active?: boolean;
+  }): Promise<BackendModelVersion[]> {
+    const query = new URLSearchParams();
+    if (params?.skip !== undefined) query.append('skip', String(params.skip));
+    if (params?.limit !== undefined) query.append('limit', String(params.limit));
+    if (params?.is_active !== undefined) query.append('is_active', String(params.is_active));
+    const qs = query.toString();
+    return this.request<BackendModelVersion[]>(`/api/v1/model-versions${qs ? `?${qs}` : ''}`, {
+      method: 'GET',
+    });
+  }
+
+  async getActiveModelVersion(modelName: string): Promise<BackendModelVersion> {
+    return this.request<BackendModelVersion>(
+      `/api/v1/model-versions/active/${encodeURIComponent(modelName)}`,
+      { method: 'GET' }
+    );
+  }
+
+  async getModelVersionById(id: string): Promise<BackendModelVersion> {
+    return this.request<BackendModelVersion>(`/api/v1/model-versions/${encodeURIComponent(id)}`, {
+      method: 'GET',
+    });
+  }
+
+  // =========================================================================
+  // 9. AUDIT LOGS
+  // =========================================================================
+
+  async getAuditLogs(params?: {
+    skip?: number;
+    limit?: number;
+    action?: string;
+    entity_type?: string;
+    entity_id?: string;
+    user_id?: string;
+  }): Promise<BackendAuditLog[]> {
+    const query = new URLSearchParams();
+    if (params?.skip !== undefined) query.append('skip', String(params.skip));
+    if (params?.limit !== undefined) query.append('limit', String(params.limit));
+    if (params?.action) query.append('action', params.action);
+    if (params?.entity_type) query.append('entity_type', params.entity_type);
+    if (params?.entity_id) query.append('entity_id', params.entity_id);
+    if (params?.user_id) query.append('user_id', params.user_id);
+    const qs = query.toString();
+    return this.request<BackendAuditLog[]>(`/api/v1/audit-logs${qs ? `?${qs}` : ''}`, {
+      method: 'GET',
+    });
+  }
+
+  async getAuditLogById(auditId: string): Promise<BackendAuditLog> {
+    return this.request<BackendAuditLog>(`/api/v1/audit-logs/${encodeURIComponent(auditId)}`, {
+      method: 'GET',
+    });
+  }
+
+  // =========================================================================
+  // 10. ADAPTER-BACKED CONVENIENCE METHODS (Frontend Domain Models)
+  // =========================================================================
+
+  async getApplicationAdapted(
+    applicationId: string,
+    applicantProfile?: BackendApplicantProfile | null
+  ): Promise<CreditApplication> {
+    const rawApp = await this.getApplicationById(applicationId);
+    let profile = applicantProfile;
+    if (!profile && rawApp.applicant_profile_id) {
+      try {
+        profile = await this.getApplicantProfile(rawApp.applicant_profile_id);
+      } catch {
+        profile = null;
+      }
+    }
+    return adaptApplication(rawApp, profile);
+  }
+
+  async getApplicationsAdapted(params?: {
+    skip?: number;
+    limit?: number;
+    status?: string;
+    applicant_profile_id?: string;
+  }): Promise<CreditApplication[]> {
+    const rawApps = await this.getApplications(params);
+    return rawApps.map((raw) => adaptApplication(raw));
+  }
+
+  async getLatestAssessmentAdapted(applicationId: string): Promise<CreditAssessmentResult> {
+    const raw = await this.getLatestAssessmentByApplication(applicationId);
+    return adaptAssessment(raw);
+  }
+
+  async getAssessmentAdapted(assessmentId: string): Promise<CreditAssessmentResult> {
+    const raw = await this.getAssessmentById(assessmentId);
+    return adaptAssessment(raw);
+  }
+
+  async recordReviewOutcomeAdapted(
+    applicationId: string,
+    review: BackendUnderwriterReviewCreate
+  ): Promise<UnderwriterReviewOutcome> {
+    const raw = await this.createReview(applicationId, review);
+    return adaptReviewOutcome(raw);
+  }
+
+  async getBorrowerProfileAdapted(
+    applicantProfileId: string,
+    user?: BackendUser | null
+  ): Promise<BorrowerProfile> {
+    const rawProfile = await this.getApplicantProfile(applicantProfileId);
+    let rawUser = user;
+    if (!rawUser && rawProfile.user_id) {
+      try {
+        rawUser = await this.getUserById(rawProfile.user_id);
+      } catch {
+        rawUser = null;
+      }
+    }
+    return adaptBorrowerProfile(rawProfile, rawUser);
   }
 }
 
@@ -238,4 +569,3 @@ export const api: ParakhApiClient = new ParakhApiClient();
 export function createApiClient(config?: ApiClientConfig): ParakhApiClient {
   return new ParakhApiClient(config);
 }
-
