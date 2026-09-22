@@ -33,8 +33,8 @@ import {
   adaptApplication,
   adaptAssessment,
   adaptReviewOutcome,
+  ApiError,
 } from '@parakh/api';
-import { getAdminApplicationById } from '@/data/mock/admin';
 import { formatCurrency } from '@/lib/utils';
 import type {
   ReviewActionType,
@@ -50,33 +50,26 @@ export default function AdminApplicationDetailPage({
   params,
 }: AdminApplicationDetailPageProps) {
   const { id } = use(params);
-  const initialApp = getAdminApplicationById(id);
   const { user } = useAuth();
 
-  const [application, setApplication] = useState(initialApp);
+  const [application, setApplication] = useState<any | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [reviewError, setReviewError] = useState<string | null>(null);
-  const [reviewAction, setReviewAction] = useState<ReviewActionType>(
-    application.review?.action || 'MANUAL_REVIEW'
-  );
-  const [selectedRisk, setSelectedRisk] = useState<RiskLevel>(
-    application.assessment?.riskLevel || 'INSUFFICIENT_EVIDENCE_MANUAL_REVIEW'
-  );
-  const [decisionNotes, setDecisionNotes] = useState(
-    application.review?.decisionNotes || ''
-  );
-  const [requestedItems, setRequestedItems] = useState<string[]>(
-    application.review?.verificationItemsRequested || [
-      'Latest 30-day UPI QR settlement report',
-    ]
-  );
+  const [reviewAction, setReviewAction] = useState<ReviewActionType>('MANUAL_REVIEW');
+  const [selectedRisk, setSelectedRisk] = useState<RiskLevel>('INSUFFICIENT_EVIDENCE_MANUAL_REVIEW');
+  const [decisionNotes, setDecisionNotes] = useState('');
+  const [requestedItems, setRequestedItems] = useState<string[]>([
+    'Latest 30-day UPI QR settlement report',
+  ]);
   const [customItem, setCustomItem] = useState('');
   const [recordSuccess, setRecordSuccess] = useState(false);
 
   const loadApplicationData = async () => {
     try {
       setIsLoading(true);
+      setError(null);
       const rawApp = await api.getApplicationById(id);
       let profile = null;
       if (rawApp.applicant_profile_id) {
@@ -104,8 +97,7 @@ export default function AdminApplicationDetailPage({
         latestReview ? adaptReviewOutcome(latestReview) : null
       );
 
-      setApplication((prev) => ({
-        ...prev,
+      const appData = {
         ...adapted,
         triggerReason:
           rawApp.status === 'MANUAL_REVIEW'
@@ -118,9 +110,14 @@ export default function AdminApplicationDetailPage({
             ? 'Urban Gig Delivery'
             : profile?.work_type === 'INFORMAL_VENDOR'
             ? 'Informal Commerce'
-            : prev.sectorTag || 'Micro-enterprise',
-      }));
+            : 'Micro-enterprise',
+      };
 
+      setApplication(appData);
+
+      if (adapted.assessment?.riskLevel) {
+        setSelectedRisk(adapted.assessment.riskLevel);
+      }
       if (latestReview) {
         setReviewAction(
           latestReview.outcome === 'REVIEWED'
@@ -133,8 +130,13 @@ export default function AdminApplicationDetailPage({
           setDecisionNotes(latestReview.notes);
         }
       }
-    } catch (err) {
-      console.warn('Could not load live application by ID, keeping baseline fallback:', err);
+    } catch (err: any) {
+      if (err instanceof ApiError && err.status === 404) {
+        setError('Application not found');
+      } else {
+        setError(err?.userMessage || err?.message || 'Failed to load application details. Please try again.');
+      }
+      setApplication(null);
     } finally {
       setIsLoading(false);
     }
@@ -144,7 +146,7 @@ export default function AdminApplicationDetailPage({
     loadApplicationData();
   }, [id]);
 
-  const assessment = application.assessment;
+  const assessment = application?.assessment;
 
   const handleToggleItem = (item: string) => {
     setRequestedItems((prev) =>
@@ -198,6 +200,53 @@ export default function AdminApplicationDetailPage({
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="py-24 text-center space-y-4 max-w-md mx-auto">
+        <div className="size-10 rounded-full border-2 border-[#472393] border-t-transparent animate-spin mx-auto dark:border-foreground" />
+        <h2 className="text-base font-semibold text-foreground">Loading Credit Review Dossier...</h2>
+        <p className="text-xs text-foreground-muted">Retrieving applicant signals, model telemetry, and review history.</p>
+      </div>
+    );
+  }
+
+  if (error || !application) {
+    return (
+      <div className="max-w-xl mx-auto py-16 px-4">
+        <Card className="p-8 border-border bg-surface space-y-4 text-center">
+          <AlertCircle className="size-10 text-red-500 mx-auto" />
+          <div className="space-y-1">
+            <h2 className="text-base font-semibold text-foreground">
+              {error === 'Application not found' ? 'Application Not Found' : 'Unable to Load Application Dossier'}
+            </h2>
+            <p className="text-xs text-foreground-secondary">
+              {error === 'Application not found'
+                ? `No credit evaluation application exists with identifier ${id}.`
+                : error}
+            </p>
+          </div>
+          <div className="flex items-center justify-center gap-3 pt-2">
+            <Link href="/admin/applications">
+              <Button variant="outline" size="sm" className="rounded-full text-xs">
+                <ArrowLeft className="size-3.5 mr-1" /> Review Queue
+              </Button>
+            </Link>
+            {error !== 'Application not found' && (
+              <Button
+                variant="default"
+                size="sm"
+                onClick={loadApplicationData}
+                className="rounded-full text-xs"
+              >
+                Retry
+              </Button>
+            )}
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <PageTransition className="space-y-6 sm:space-y-8 w-full pb-16">
       {/* 1. TOP UTILITY BAR & OFFICER STAMP */}
@@ -216,7 +265,7 @@ export default function AdminApplicationDetailPage({
         <div className="flex items-center gap-2">
           <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-surface-highlight border border-border text-xs text-foreground-secondary">
             <UserCheck className="size-3.5 opacity-70" />
-            <span>Reviewer: Priya Sharma (UW-402)</span>
+            <span>Reviewer: {user?.name || user?.email || 'Certified Reviewer'}</span>
           </div>
           <Button
             variant="ghost"
@@ -428,7 +477,7 @@ export default function AdminApplicationDetailPage({
             </p>
           </div>
           <Badge variant="outline" className="text-xs font-mono">
-            Officer: Priya Sharma
+            Officer: {user?.name || user?.email || 'Certified Reviewer'}
           </Badge>
         </div>
 

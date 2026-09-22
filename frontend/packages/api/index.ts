@@ -57,6 +57,10 @@ export interface ApiClientConfig {
   onUnauthorized?: () => void;
 }
 
+export interface ApiRequestOptions extends RequestInit {
+  maxRetries?: number;
+}
+
 export class ParakhApiClient {
   private baseUrl: string;
   private timeoutMs: number;
@@ -92,7 +96,35 @@ export class ParakhApiClient {
     this.token = null;
   }
 
-  public async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
+  public async request<T>(endpoint: string, options?: ApiRequestOptions): Promise<T> {
+    const method = (options?.method || 'GET').toUpperCase();
+    const isIdempotent = method === 'GET' || method === 'HEAD';
+    // Allow at most 1 retry for idempotent operations on transient failures (status 0, 408, 502..504)
+    // Non-idempotent operations (POST, PUT, PATCH, DELETE) are NEVER retried automatically
+    const maxRetries = isIdempotent ? (options?.maxRetries ?? 1) : 0;
+
+    let attempt = 0;
+    while (true) {
+      try {
+        return await this.executeRequest<T>(endpoint, options);
+      } catch (err: unknown) {
+        if (err instanceof ApiError) {
+          const isTransient =
+            err.status === 0 ||
+            err.status === 408 ||
+            (err.status >= 502 && err.status <= 504);
+          if (isIdempotent && isTransient && attempt < maxRetries) {
+            attempt++;
+            await new Promise((resolve) => setTimeout(resolve, 150 * attempt));
+            continue;
+          }
+        }
+        throw err;
+      }
+    }
+  }
+
+  private async executeRequest<T>(endpoint: string, options?: ApiRequestOptions): Promise<T> {
     const url = `${this.baseUrl.replace(/\/$/, '')}/${endpoint.replace(/^\//, '')}`;
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), this.timeoutMs);
@@ -122,7 +154,11 @@ export class ParakhApiClient {
         try {
           errorData = await response.json();
         } catch {
-          errorData = await response.text();
+          try {
+            errorData = await response.text();
+          } catch {
+            errorData = null;
+          }
         }
         throw ApiError.fromResponse(response.status, errorData);
       }
@@ -132,7 +168,17 @@ export class ParakhApiClient {
         return undefined as unknown as T;
       }
 
-      return (await response.json()) as T;
+      try {
+        return (await response.json()) as T;
+      } catch (parseErr: unknown) {
+        throw new ApiError(
+          'Failed to parse server response as JSON',
+          502,
+          parseErr,
+          'SCHEMA_ERROR',
+          'The server returned an invalid or malformed response.'
+        );
+      }
     } catch (err: unknown) {
       if (err instanceof ApiError) throw err;
       if (err instanceof Error && err.name === 'AbortError') {

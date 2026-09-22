@@ -13,7 +13,7 @@ class Settings(BaseSettings):
 
     APP_NAME: str = "PARAKH API"
     APP_ENV: str = "development"
-    DEBUG: bool = True
+    DEBUG: bool = False
     API_V1_PREFIX: str = "/api/v1"
     VERSION: str = "0.1.0"
 

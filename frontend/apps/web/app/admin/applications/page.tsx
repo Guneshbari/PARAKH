@@ -10,6 +10,8 @@ import {
   Printer,
   SlidersHorizontal,
   Loader2,
+  AlertCircle,
+  RefreshCw,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -19,7 +21,6 @@ import { PageTransition } from '@/components/motion/PageTransition';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { RiskBadge } from '@/components/shared/RiskBadge';
 import { api, adaptApplication } from '@parakh/api';
-import { mockAllAdminApplications } from '@/data/mock/admin';
 import { formatCurrency } from '@/lib/utils';
 
 export default function AdminApplicationsPage() {
@@ -28,44 +29,45 @@ export default function AdminApplicationsPage() {
   const [riskFilter, setRiskFilter] = useState<string>('ALL');
   const [employmentFilter, setEmploymentFilter] = useState<string>('ALL');
 
-  const [allApps, setAllApps] = useState<any[]>(mockAllAdminApplications);
+  const [allApps, setAllApps] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchApps = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const rawApps = await api.getApplications();
+      if (rawApps && rawApps.length > 0) {
+        const mapped = rawApps.map((app) => {
+          const adapted = adaptApplication(app);
+          return {
+            ...adapted,
+            applicantName: `Applicant ${app.applicant_profile_id ? app.applicant_profile_id.slice(0, 8) : app.id.slice(0, 8)}`,
+            sectorTag: adapted.purpose?.toLowerCase().includes('equipment') ? 'Micro-enterprise' : 'Urban Gig Delivery',
+            triggerReason:
+              app.status === 'MANUAL_REVIEW'
+                ? 'Alternative cashflow volatility requires reviewer sign-off'
+                : app.status === 'UNDER_REVIEW'
+                ? 'Inflow signals currently under aggregation'
+                : 'Standard credit risk evaluation',
+            submissionDate: app.created_at,
+          };
+        });
+        setAllApps(mapped);
+      } else {
+        setAllApps([]);
+      }
+    } catch (err: any) {
+      setError(err?.userMessage || err?.message || 'Failed to retrieve applications from server.');
+      setAllApps([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    let isMounted = true;
-    async function loadApps() {
-      try {
-        setIsLoading(true);
-        const rawApps = await api.getApplications();
-        if (!isMounted) return;
-        if (rawApps && rawApps.length > 0) {
-          const mapped = rawApps.map((app) => {
-            const adapted = adaptApplication(app);
-            return {
-              ...adapted,
-              applicantName: `Applicant ${app.applicant_profile_id ? app.applicant_profile_id.slice(0, 8) : app.id.slice(0, 8)}`,
-              sectorTag: adapted.purpose?.toLowerCase().includes('equipment') ? 'Micro-enterprise' : 'Urban Gig Delivery',
-              triggerReason:
-                app.status === 'MANUAL_REVIEW'
-                  ? 'Alternative cashflow volatility requires reviewer sign-off'
-                  : app.status === 'UNDER_REVIEW'
-                  ? 'Inflow signals currently under aggregation'
-                  : 'Standard credit risk evaluation',
-              submissionDate: app.created_at,
-            };
-          });
-          setAllApps(mapped);
-        }
-      } catch (err) {
-        console.warn('Could not fetch live applications for admin:', err);
-      } finally {
-        if (isMounted) setIsLoading(false);
-      }
-    }
-    loadApps();
-    return () => {
-      isMounted = false;
-    };
+    fetchApps();
   }, []);
 
   // Multi-criteria filter
@@ -264,6 +266,38 @@ export default function AdminApplicationsPage() {
           <p className="text-xs text-foreground-muted max-w-sm mx-auto">
             Retrieving live applications and review flags from PostgreSQL.
           </p>
+        </Card>
+      ) : error ? (
+        <Card className="p-12 text-center space-y-3 bg-surface border-border">
+          <AlertCircle className="size-8 text-red-500 mx-auto" />
+          <h3 className="text-base font-semibold text-foreground">Failed to Load Applications</h3>
+          <p className="text-xs text-foreground-muted max-w-sm mx-auto">
+            {error}
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={fetchApps}
+            className="rounded-full text-xs mt-2 gap-1.5"
+          >
+            <RefreshCw className="size-3.5" /> Retry
+          </Button>
+        </Card>
+      ) : allApps.length === 0 ? (
+        <Card className="p-12 text-center space-y-3 bg-surface border-border">
+          <FileText className="size-8 text-foreground-muted mx-auto" />
+          <h3 className="text-base font-semibold text-foreground">No Applications in Queue</h3>
+          <p className="text-xs text-foreground-muted max-w-sm mx-auto">
+            There are currently no credit evaluation dossiers pending review.
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={fetchApps}
+            className="rounded-full text-xs mt-2 gap-1.5"
+          >
+            <RefreshCw className="size-3.5" /> Refresh
+          </Button>
         </Card>
       ) : filteredApps.length === 0 ? (
         <Card className="p-12 text-center space-y-3 bg-surface border-border">
