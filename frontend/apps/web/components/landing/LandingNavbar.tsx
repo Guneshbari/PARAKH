@@ -2,12 +2,16 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { motion, useReducedMotion } from 'framer-motion';
 import { Sparkles, ArrowRight, Sun, Moon, Menu, X, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useTheme } from '@/components/theme/ThemeProvider';
 
 export function LandingNavbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isDark, setIsDark] = useState(true);
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+  const { isDark, toggleTheme } = useTheme();
+  const shouldReduceMotion = useReducedMotion();
 
   const navLinks = [
     { label: 'Home', href: '/', active: true },
@@ -19,79 +23,108 @@ export function LandingNavbar() {
 
   return (
     <header className="relative z-30 w-full pt-4 sm:pt-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-      <div className="flex items-center justify-between h-14 sm:h-16 px-4 sm:px-6 rounded-full bg-[#07173D]/60 backdrop-blur-md border border-white/[0.08] shadow-lg">
-        {/* =========================================
-            1. BRAND / LOGO
-           ========================================= */}
+      <div className="flex items-center justify-between h-14 sm:h-16 px-4 sm:px-6 rounded-full bg-white/92 dark:bg-[#0D0E10]/85 backdrop-blur-md border border-[rgba(15,23,42,0.08)] dark:border-border shadow-[0_4px_16px_rgba(15,23,42,0.04)] dark:shadow-xs transition-colors duration-200">
+        {/* Brand / Logo */}
         <Link href="/" className="flex items-center gap-2.5 group shrink-0">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-cyan-400 via-teal-400 to-emerald-400 text-slate-950 font-black shadow-md shadow-cyan-500/20 transition-transform group-hover:scale-105">
-            <Sparkles className="size-4.5" />
+          <div className="flex h-8.5 w-8.5 items-center justify-center rounded-xl bg-[#472393] text-white dark:bg-foreground dark:text-background font-black shadow-xs transition-transform group-hover:scale-105">
+            <Sparkles className="size-4" />
           </div>
           <div className="flex flex-col">
-            <span className="text-lg font-black tracking-tight text-white flex items-center gap-1">
+            <span className="text-base sm:text-lg font-black tracking-tight text-[#101828] dark:text-foreground flex items-center gap-1">
               PARAKH
             </span>
-            <span className="text-[10px] text-cyan-200/70 -mt-1 font-medium tracking-wide">
-              Credit for the Invisible
+            <span className="text-[10px] text-[#667085] dark:text-foreground-muted -mt-1 font-medium tracking-wide">
+              Credit for the invisible.
             </span>
           </div>
         </Link>
 
-        {/* =========================================
-            2. DESKTOP CENTER NAVIGATION LINKS
-           ========================================= */}
-        <nav className="hidden md:flex items-center gap-1.5 lg:gap-2">
-          {navLinks.map((link) => (
-            <Link
-              key={link.label}
-              href={link.href}
-              className={`relative px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                link.active
-                  ? 'text-white'
-                  : 'text-slate-300 hover:text-white hover:bg-white/[0.04]'
-              }`}
-            >
-              {link.label}
-              {link.active && (
-                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 rounded-full bg-cyan-400 shadow-[0_0_8px_#22D3EE]" />
-              )}
-            </Link>
-          ))}
+        {/* Desktop Center Navigation Links */}
+        <nav
+          className="hidden md:flex items-center gap-1 lg:gap-1.5"
+          onMouseLeave={() => setHoveredIdx(null)}
+        >
+          {navLinks.map((link, idx) => {
+            const isHovered = hoveredIdx === idx;
+            return (
+              <Link
+                key={link.label}
+                href={link.href}
+                onMouseEnter={() => setHoveredIdx(idx)}
+                onFocus={() => setHoveredIdx(idx)}
+                onBlur={() => setHoveredIdx(null)}
+                className={`relative px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#472393]/30 dark:focus-visible:ring-foreground/20 focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+                  link.active
+                    ? 'text-[#472393] dark:text-foreground font-semibold'
+                    : isHovered
+                    ? 'text-[#472393] dark:text-foreground'
+                    : 'text-[#472393] dark:text-foreground-secondary'
+                }`}
+              >
+                {/* Persistent active pill */}
+                {link.active && (
+                  <span
+                    className="absolute inset-0 rounded-full bg-[#F1ECFF] dark:bg-white/[0.09] border border-[rgba(71,35,147,0.18)] dark:border-white/15 -z-10 shadow-2xs"
+                    aria-hidden="true"
+                  />
+                )}
+
+                {/* Floating hover pill */}
+                {!link.active && isHovered && (
+                  <motion.span
+                    layoutId={shouldReduceMotion ? undefined : 'navbar-hover-pill'}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={
+                      shouldReduceMotion
+                        ? { duration: 0.05 }
+                        : { duration: 0.16, ease: 'easeOut' }
+                    }
+                    className="absolute inset-0 rounded-full bg-[#F5F1FF] dark:bg-white/[0.06] border border-[rgba(71,35,147,0.12)] dark:border-white/10 -z-10"
+                    aria-hidden="true"
+                  />
+                )}
+
+                <span className="relative z-10">{link.label}</span>
+              </Link>
+            );
+          })}
         </nav>
 
-        {/* =========================================
-            3. RIGHT ACTIONS & PORTAL SWITCHERS
-           ========================================= */}
-        <div className="hidden sm:flex items-center gap-2.5">
-          {/* Theme Toggle Pill */}
+        {/* Right Actions & Portal Links */}
+        <div className="hidden sm:flex items-center gap-2 sm:gap-2.5">
+          {/* Global Theme Toggle Pill */}
           <button
             type="button"
-            onClick={() => setIsDark(!isDark)}
+            onClick={toggleTheme}
             aria-label="Toggle Theme"
-            className="flex items-center justify-center size-8 rounded-full bg-white/[0.04] border border-white/[0.08] text-slate-300 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer"
+            className="flex items-center justify-center size-8 rounded-full bg-[#F1F5F9] dark:bg-surface-elevated border border-[rgba(15,23,42,0.08)] dark:border-border text-[#475569] dark:text-foreground-secondary hover:text-[#0F172A] dark:hover:text-foreground hover:bg-[#EEF2F6] dark:hover:bg-surface-highlight transition-colors cursor-pointer"
           >
             {isDark ? <Sun className="size-3.5" /> : <Moon className="size-3.5" />}
           </button>
 
-          {/* Borrower Portal CTA */}
-          <Link href="/user/dashboard">
+          {/* Applicant Portal CTA */}
+          <Link href="/login?role=applicant">
             <Button
-              variant="outline"
+              variant="default"
               size="sm"
-              className="rounded-full text-xs font-semibold h-8 px-3.5 bg-blue-500/10 hover:bg-blue-500/20 text-cyan-200 border-cyan-400/30 hover:border-cyan-400/50 gap-1.5 transition-all"
+              className="rounded-full text-xs font-semibold h-8 px-3.5 gap-1.5 bg-[#472393] text-white hover:bg-[#5630A3] active:bg-[#3B1D7A] border-transparent dark:bg-secondary dark:text-secondary-foreground dark:border-border dark:hover:bg-surface-elevated cursor-pointer"
             >
-              <span>Borrower Portal</span>
-              <ArrowRight className="size-3 text-cyan-400" />
+              <span>Applicant Portal</span>
+              <ArrowRight className="size-3 text-white/90 dark:text-foreground-muted" />
             </Button>
           </Link>
 
-          {/* Underwriter Portal CTA (Lime accent from reference) */}
-          <Link href="/admin/dashboard">
+          {/* Credit Reviewer CTA */}
+          <Link href="/login?role=reviewer">
             <Button
+              variant="secondary"
               size="sm"
-              className="rounded-full text-xs font-bold h-8 px-4 bg-[#C8F451] hover:bg-[#B5E03E] text-[#0A192F] shadow-sm hover:shadow-md transition-all cursor-pointer border-0"
+              className="rounded-full text-xs font-bold h-8 px-4 shadow-xs bg-white text-[#472393] border border-[rgba(71,35,147,0.22)] hover:bg-[#F6F2FF] hover:border-[rgba(71,35,147,0.35)] dark:bg-primary dark:text-primary-foreground dark:border-transparent dark:hover:bg-primary/90 cursor-pointer"
             >
-              <span>Underwriter Portal</span>
+              <ShieldCheck className="size-3.5 mr-1 text-[#472393] dark:text-primary-foreground" />
+              <span>Credit Reviewer</span>
             </Button>
           </Link>
         </div>
@@ -101,27 +134,37 @@ export function LandingNavbar() {
           type="button"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           aria-label="Open mobile menu"
-          className="flex sm:hidden p-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/[0.05]"
+          className="flex sm:hidden p-2 rounded-xl text-foreground-secondary hover:text-foreground hover:bg-surface-highlight"
         >
           {mobileMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
         </button>
       </div>
 
-      {/* =========================================
-          4. MOBILE EXPANDED MENU
-         ========================================= */}
+      {/* Mobile Expanded Menu */}
       {mobileMenuOpen && (
-        <div className="sm:hidden mt-2 p-4 rounded-2xl bg-[#091D4A]/95 backdrop-blur-xl border border-white/10 shadow-2xl space-y-3 animate-in fade-in duration-200">
+        <div className="sm:hidden mt-2 p-4 rounded-2xl bg-surface/95 dark:bg-[#0D0E10]/95 backdrop-blur-xl border border-border shadow-2xl space-y-3 animate-in fade-in duration-200">
+          <div className="flex items-center justify-between pb-2 border-b border-border">
+            <span className="text-xs font-bold text-foreground">Menu</span>
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="flex items-center gap-1.5 text-xs font-medium text-foreground-secondary px-2.5 py-1 rounded-full bg-surface-elevated border border-border"
+            >
+              {isDark ? <Sun className="size-3" /> : <Moon className="size-3" />}
+              <span>{isDark ? 'Light Mode' : 'Dark Mode'}</span>
+            </button>
+          </div>
+
           <nav className="flex flex-col gap-1">
             {navLinks.map((link) => (
               <Link
                 key={link.label}
                 href={link.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className={`px-3 py-2 rounded-xl text-sm font-medium ${
+                className={`px-3 py-2 rounded-xl text-sm font-medium transition-colors duration-150 ${
                   link.active
-                    ? 'bg-cyan-500/15 text-cyan-300 font-bold'
-                    : 'text-slate-300 hover:text-white hover:bg-white/[0.05]'
+                    ? 'bg-[#F1ECFF] text-[#472393] border border-[rgba(71,35,147,0.18)] dark:border-transparent dark:bg-surface-elevated dark:text-foreground font-bold'
+                    : 'text-[#472393] hover:text-[#472393] hover:bg-[#F5F1FF] dark:text-foreground-secondary dark:hover:text-foreground dark:hover:bg-surface-highlight'
                 }`}
               >
                 {link.label}
@@ -129,25 +172,26 @@ export function LandingNavbar() {
             ))}
           </nav>
 
-          <div className="pt-2 border-t border-white/[0.08] flex flex-col gap-2">
-            <Link href="/user/dashboard" onClick={() => setMobileMenuOpen(false)}>
+          <div className="pt-2 border-t border-border flex flex-col gap-2">
+            <Link href="/login?role=applicant" onClick={() => setMobileMenuOpen(false)}>
               <Button
-                variant="outline"
+                variant="default"
                 size="sm"
-                className="w-full justify-center rounded-xl text-xs bg-blue-500/15 text-cyan-200 border-cyan-400/30 gap-1.5 h-9"
+                className="w-full justify-center rounded-xl text-xs gap-1.5 h-9 bg-[#472393] text-white hover:bg-[#5630A3] active:bg-[#3B1D7A] border-transparent dark:bg-secondary dark:text-secondary-foreground dark:border-border dark:hover:bg-surface-elevated"
               >
-                <span>Borrower Portal</span>
-                <ArrowRight className="size-3 text-cyan-400" />
+                <span>Applicant Portal</span>
+                <ArrowRight className="size-3 text-white/90 dark:text-foreground-muted" />
               </Button>
             </Link>
 
-            <Link href="/admin/dashboard" onClick={() => setMobileMenuOpen(false)}>
+            <Link href="/login?role=reviewer" onClick={() => setMobileMenuOpen(false)}>
               <Button
+                variant="secondary"
                 size="sm"
-                className="w-full justify-center rounded-xl text-xs font-bold bg-[#C8F451] hover:bg-[#B5E03E] text-[#0A192F] h-9 border-0"
+                className="w-full justify-center rounded-xl text-xs font-bold h-9 bg-white text-[#472393] border border-[rgba(71,35,147,0.22)] hover:bg-[#F6F2FF] hover:border-[rgba(71,35,147,0.35)] dark:bg-primary dark:text-primary-foreground dark:border-transparent dark:hover:bg-primary/90"
               >
-                <ShieldCheck className="size-3.5 mr-1" />
-                <span>Underwriter Portal</span>
+                <ShieldCheck className="size-3.5 mr-1 text-[#472393] dark:text-primary-foreground" />
+                <span>Credit Reviewer</span>
               </Button>
             </Link>
           </div>

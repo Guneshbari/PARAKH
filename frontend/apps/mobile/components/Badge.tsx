@@ -1,15 +1,17 @@
 import React from 'react';
 import { View, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
-import { MobileTheme } from '../lib/theme';
+import { MobileTheme, useTheme } from '../lib/theme';
 
 export type BadgeVariant =
   | 'riskLower'
   | 'riskModerate'
   | 'riskHigher'
   | 'riskNeutral'
+  | 'default'
+  | 'secondary'
+  | 'outline'
   | 'mint'
-  | 'lavender'
-  | 'outline';
+  | 'lavender';
 
 interface BadgeProps {
   label: string;
@@ -21,73 +23,82 @@ interface BadgeProps {
 
 export function Badge({
   label,
-  variant = 'mint',
+  variant = 'secondary',
   style,
   textStyle,
   icon,
 }: BadgeProps) {
+  let colors = MobileTheme.colors;
+  try {
+    const theme = useTheme();
+    colors = theme.colors;
+  } catch {}
+
   const getBadgeColors = () => {
     switch (variant) {
       case 'riskLower':
         return {
-          bg: 'rgba(52, 211, 153, 0.15)',
-          border: 'rgba(52, 211, 153, 0.3)',
-          text: MobileTheme.colors.riskLower,
+          bg: colors.riskLowerSurface,
+          border: colors.riskLowerBorder,
+          text: colors.riskLower,
         };
       case 'riskModerate':
         return {
-          bg: 'rgba(251, 191, 36, 0.15)',
-          border: 'rgba(251, 191, 36, 0.3)',
-          text: MobileTheme.colors.riskModerate,
+          bg: colors.riskModerateSurface,
+          border: colors.riskModerateBorder,
+          text: colors.riskModerate,
         };
       case 'riskHigher':
         return {
-          bg: 'rgba(248, 113, 113, 0.15)',
-          border: 'rgba(248, 113, 113, 0.3)',
-          text: MobileTheme.colors.riskHigher,
+          bg: colors.riskHigherSurface,
+          border: colors.riskHigherBorder,
+          text: colors.riskHigher,
         };
       case 'riskNeutral':
         return {
-          bg: 'rgba(100, 116, 139, 0.15)',
-          border: 'rgba(100, 116, 139, 0.3)',
-          text: MobileTheme.colors.riskNeutral,
-        };
-      case 'lavender':
-        return {
-          bg: 'rgba(196, 181, 253, 0.15)',
-          border: 'rgba(196, 181, 253, 0.3)',
-          text: MobileTheme.colors.lavender,
+          bg: colors.riskNeutralSurface,
+          border: colors.riskNeutralBorder,
+          text: colors.riskNeutral,
         };
       case 'outline':
         return {
           bg: 'transparent',
-          border: MobileTheme.colors.border,
-          text: MobileTheme.colors.textSecondary,
+          border: colors.border,
+          text: colors.textSecondary,
         };
+      case 'secondary':
+      case 'lavender':
+        return {
+          bg: colors.surfaceElevated,
+          border: colors.border,
+          text: colors.textSecondary,
+        };
+      case 'default':
+      case 'mint':
       default:
         return {
-          bg: 'rgba(45, 212, 191, 0.15)',
-          border: 'rgba(45, 212, 191, 0.3)',
-          text: MobileTheme.colors.mint,
+          bg: colors.surfaceHighlight,
+          border: colors.borderStrong,
+          text: colors.textPrimary,
         };
     }
   };
 
-  const colors = getBadgeColors();
+  const badgeColors = getBadgeColors();
 
   return (
     <View
       style={[
         styles.badge,
         {
-          backgroundColor: colors.bg,
-          borderColor: colors.border,
+          backgroundColor: badgeColors.bg,
+          borderColor: badgeColors.border,
         },
         style,
       ]}
     >
       {icon}
-      <Text style={[styles.text, { color: colors.text }, textStyle]}>
+      <Text style={[styles.text, { color: badgeColors.text }, textStyle]}>
         {label}
       </Text>
     </View>
@@ -99,14 +110,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    gap: 6,
-    paddingVertical: 5,
-    paddingHorizontal: 12,
+    gap: 5,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
     borderRadius: MobileTheme.radii.badge,
     borderWidth: 1,
   },
   text: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '700',
     letterSpacing: 0.5,
     textTransform: 'uppercase',

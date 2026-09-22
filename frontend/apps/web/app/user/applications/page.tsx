@@ -39,23 +39,23 @@ export default function UserApplicationsPage() {
   return (
     <PageTransition className="space-y-6 sm:space-y-8 w-full pb-12">
       {/* 1. HEADER ROW */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-white/[0.06]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
               My Evaluation Applications
             </h1>
             <Badge variant="outline" className="text-xs">
               {mockUserApplications.length} Total
             </Badge>
           </div>
-          <p className="text-xs sm:text-sm text-muted-foreground">
+          <p className="text-xs sm:text-sm text-foreground-muted">
             Track your historical and active alternative credit assessments.
           </p>
         </div>
 
         <Link href="/user/applications/new">
-          <Button variant="lime" className="gap-2 font-bold px-5">
+          <Button variant="default" className="gap-2 font-semibold px-5 rounded-full cursor-pointer">
             <PlusCircle className="size-4" />
             <span>New Assessment</span>
           </Button>
@@ -66,17 +66,17 @@ export default function UserApplicationsPage() {
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
         {/* Search input */}
         <div className="relative w-full sm:w-72">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-foreground-muted" />
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by ID or purpose..."
-            className="pl-10 h-10 rounded-full bg-[#0A162E] border-white/[0.08]"
+            className="pl-10 h-10 rounded-full bg-surface border-border text-foreground placeholder:text-foreground-muted"
           />
         </div>
 
         {/* Status Filter Pills */}
-        <div className="flex flex-wrap items-center gap-1.5 bg-[#0A162E] p-1.5 rounded-full border border-white/[0.08] w-full sm:w-auto justify-start sm:justify-end">
+        <div className="flex flex-wrap items-center gap-1.5 bg-surface-highlight p-1 rounded-full border border-border w-full sm:w-auto justify-start sm:justify-end">
           {[
             { id: 'ALL', label: 'All Evaluations' },
             { id: 'COMPLETED', label: 'Completed' },
@@ -86,10 +86,10 @@ export default function UserApplicationsPage() {
             <button
               key={tab.id}
               onClick={() => setStatusFilter(tab.id)}
-              className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+              className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
                 statusFilter === tab.id
-                  ? 'bg-[#C8F451] text-[#07111F] font-bold shadow-sm'
-                  : 'text-muted-foreground hover:text-white'
+                  ? 'bg-[#472393] text-white font-semibold shadow-xs dark:bg-foreground dark:text-background'
+                  : 'text-foreground-muted hover:text-[#472393] hover:bg-[#F5F1FF] dark:hover:text-foreground dark:hover:bg-transparent'
               }`}
             >
               {tab.label}
@@ -100,10 +100,10 @@ export default function UserApplicationsPage() {
 
       {/* 3. APPLICATIONS DISPLAY */}
       {filteredApplications.length === 0 ? (
-        <Card className="p-12 text-center space-y-3 bg-[#0A162E] border-white/[0.08]">
-          <FileText className="size-8 text-muted-foreground mx-auto" />
-          <h3 className="text-base font-bold text-white">No applications match your filter</h3>
-          <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+        <Card className="p-12 text-center space-y-3">
+          <FileText className="size-8 text-foreground-muted mx-auto" />
+          <h3 className="text-base font-semibold text-foreground">No applications match your filter</h3>
+          <p className="text-xs text-foreground-muted max-w-sm mx-auto">
             Try adjusting your search terms or filter criteria.
           </p>
           <Button
@@ -130,10 +130,10 @@ export default function UserApplicationsPage() {
           </div>
 
           {/* Desktop Table View */}
-          <Card className="hidden sm:block overflow-hidden p-0 bg-[#0A162E] border-white/[0.08]">
+          <Card className="hidden sm:block overflow-hidden p-0">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-white/[0.02] border-b border-white/[0.08] text-muted-foreground font-semibold uppercase tracking-wider text-[11px]">
+                <thead className="bg-surface-highlight/40 border-b border-border text-foreground-muted font-medium uppercase tracking-wider text-[11px]">
                   <tr>
                     <th className="py-3.5 px-5">Application ID</th>
                     <th className="py-3.5 px-5">Purpose & Amount</th>
@@ -143,28 +143,28 @@ export default function UserApplicationsPage() {
                     <th className="py-3.5 px-5 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/[0.04]">
+                <tbody className="divide-y divide-border">
                   {filteredApplications.map((app) => (
                     <tr
                       key={app.id}
-                      className="hover:bg-white/[0.02] transition-colors group"
+                      className="hover:bg-surface-highlight/30 transition-colors group"
                     >
-                      <td className="py-4 px-5 font-mono font-bold text-teal-300">
+                      <td className="py-4 px-5 font-mono font-semibold text-foreground">
                         {app.id}
                       </td>
 
                       <td className="py-4 px-5">
                         <div className="space-y-0.5">
-                          <span className="font-bold text-white font-mono block">
+                          <span className="font-semibold text-foreground font-mono block">
                             {formatCurrency(app.requestedAmount)}
                           </span>
-                          <span className="text-muted-foreground text-[11px]">
+                          <span className="text-foreground-muted text-[11px]">
                             {app.purpose}
                           </span>
                         </div>
                       </td>
 
-                      <td className="py-4 px-5 text-muted-foreground">
+                      <td className="py-4 px-5 text-foreground-muted">
                         {new Date(app.submittedAt).toLocaleDateString('en-IN', {
                           month: 'short',
                           day: 'numeric',
@@ -179,7 +179,7 @@ export default function UserApplicationsPage() {
                       <td className="py-4 px-5">
                         {app.assessment ? (
                           <div className="space-y-1">
-                            <span className="font-mono font-bold text-white">
+                            <span className="font-mono font-semibold text-foreground">
                               {app.assessment.score} / 850
                             </span>
                             <div>
@@ -191,7 +191,7 @@ export default function UserApplicationsPage() {
                             </div>
                           </div>
                         ) : (
-                          <span className="text-muted-foreground font-mono">
+                          <span className="text-foreground-muted font-mono">
                             Evaluating...
                           </span>
                         )}
@@ -200,13 +200,13 @@ export default function UserApplicationsPage() {
                       <td className="py-4 px-5 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <Link href={`/user/applications/${app.id}`}>
-                            <Button variant="ghost" size="sm" className="rounded-xl text-xs text-muted-foreground hover:text-white">
+                            <Button variant="ghost" size="sm" className="rounded-full text-xs text-foreground-muted hover:text-foreground">
                               Details
                             </Button>
                           </Link>
                           {app.assessment && (
                             <Link href={`/user/results/${app.id}`}>
-                              <Button variant="outline" size="sm" className="rounded-xl text-xs text-teal-300 border-teal-500/30 hover:bg-teal-500/10">
+                              <Button variant="secondary" size="sm" className="rounded-full text-xs">
                                 Report
                               </Button>
                             </Link>

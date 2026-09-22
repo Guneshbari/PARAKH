@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Card } from './Card';
 import { Button } from './Button';
-import { MobileTheme } from '../lib/theme';
+import { MobileTheme, useTheme } from '../lib/theme';
 import { Sparkles, ArrowRight } from 'lucide-react-native';
 
 interface MobileAIInsightCardProps {
@@ -13,30 +13,40 @@ interface MobileAIInsightCardProps {
 }
 
 export function AIInsightCard({
-  title = 'PARAKH AI Insight',
+  title = 'PARAKH AI INSIGHT',
   insight,
   actionLabel,
   onAction,
 }: MobileAIInsightCardProps) {
+  let colors = MobileTheme.colors;
+  try {
+    const theme = useTheme();
+    colors = theme.colors;
+  } catch {}
+
   return (
     <Card style={styles.card}>
       <View style={styles.header}>
-        <Sparkles size={14} color={MobileTheme.colors.lavender} />
-        <Text style={styles.title}>{title}</Text>
+        <Sparkles size={13} color={colors.textPrimary} />
+        <Text style={[styles.title, { color: colors.textPrimary }]}>{title}</Text>
       </View>
 
-      <Text style={styles.insightText}>&ldquo;{insight}&rdquo;</Text>
+      <Text style={[styles.insightText, { color: colors.textSecondary }]}>
+        &ldquo;{insight}&rdquo;
+      </Text>
 
       {(actionLabel || onAction) && (
-        <View style={styles.footer}>
-          <Text style={styles.subtext}>Explainable Feature Signal</Text>
+        <View style={[styles.footer, { borderTopColor: colors.border }]}>
+          <Text style={[styles.subtext, { color: colors.textMuted }]}>
+            Explainable Feature Signal
+          </Text>
           {actionLabel && (
             <Button
               title={actionLabel}
               size="sm"
-              variant="lavender"
+              variant="secondary"
               onPress={onAction}
-              icon={<ArrowRight size={14} color="#1E1B2E" />}
+              icon={<ArrowRight size={12} color={colors.textPrimary} />}
             />
           )}
         </View>
@@ -47,8 +57,6 @@ export function AIInsightCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#131622',
-    borderColor: 'rgba(196, 181, 253, 0.2)',
     gap: 10,
   },
   header: {
@@ -57,15 +65,13 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   title: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
-    color: MobileTheme.colors.lavender,
-    letterSpacing: 0.3,
+    letterSpacing: 0.5,
   },
   insightText: {
-    fontSize: 13,
-    color: '#DDD6FE',
-    lineHeight: 19,
+    fontSize: 12,
+    lineHeight: 18,
     fontWeight: '500',
   },
   footer: {
@@ -74,11 +80,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(196, 181, 253, 0.12)',
     marginTop: 2,
+    flexWrap: 'wrap',
+    gap: 6,
   },
   subtext: {
-    fontSize: 11,
-    color: 'rgba(196, 181, 253, 0.65)',
+    fontSize: 10,
+    fontFamily: 'monospace',
   },
 });

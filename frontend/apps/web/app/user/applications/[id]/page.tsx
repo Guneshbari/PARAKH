@@ -60,7 +60,6 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailPageP
       status === 'MANUAL_REVIEW_REQUIRED' ||
       status === 'REVIEW_COMPLETED';
 
-
     return [
       {
         id: 's1',
@@ -116,16 +115,16 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailPageP
         id: 's5',
         title:
           status === 'MANUAL_REVIEW_REQUIRED'
-            ? 'Human Underwriter In-Loop Review'
+            ? 'Human Credit Reviewer In-Loop Review'
             : status === 'REVIEW_COMPLETED'
-            ? 'Underwriter Review Outcome Recorded'
-            : 'Institutional Underwriter Readout',
+            ? 'Credit Reviewer Outcome Recorded'
+            : 'Institutional Credit Review Readout',
         description:
           status === 'MANUAL_REVIEW_REQUIRED'
-            ? 'A certified credit underwriter is reviewing non-standard monsoon variances and telemetry cross-checks.'
+            ? 'A certified credit reviewer is reviewing non-standard monsoon variances and telemetry cross-checks.'
             : status === 'REVIEW_COMPLETED'
-            ? 'Underwriter verified platform continuity and recorded final assessment outcome.'
-            : 'Assessment ready for participating lender underwriter review without automated decisions.',
+            ? 'Credit reviewer verified platform continuity and recorded final assessment outcome.'
+            : 'Assessment ready for participating institutional credit reviewer without automated decisions.',
         status:
           status === 'REVIEW_COMPLETED'
             ? 'COMPLETED'
@@ -151,14 +150,14 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailPageP
   return (
     <PageTransition className="space-y-6 sm:space-y-8 w-full pb-16">
       {/* 1. TOP UTILITY BAR & NAVIGATION */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.06]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
         <div className="flex items-center gap-3">
           <Link href="/user/applications">
-            <Button variant="outline" size="sm" className="rounded-xl gap-1.5 text-xs">
+            <Button variant="outline" size="sm" className="rounded-full gap-1.5 text-xs">
               <ArrowLeft className="size-3.5" /> Back to Applications
             </Button>
           </Link>
-          <span className="text-xs text-muted-foreground font-mono">
+          <span className="text-xs text-foreground-muted font-mono">
             REF: {application.id}
           </span>
         </div>
@@ -168,16 +167,16 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailPageP
             variant="ghost"
             size="sm"
             onClick={() => window.print()}
-            className="rounded-xl gap-1.5 text-xs text-muted-foreground hover:text-white"
+            className="rounded-full gap-1.5 text-xs text-foreground-muted hover:text-foreground"
           >
             <Printer className="size-3.5" /> Print Summary
           </Button>
           {application.assessment && (
             <Link href={`/user/results/${application.id}`}>
               <Button
-                variant="lime"
+                variant="default"
                 size="sm"
-                className="gap-1.5 text-xs font-bold px-4"
+                className="gap-1.5 text-xs font-semibold px-4 rounded-full cursor-pointer shadow-xs"
               >
                 <Sparkles className="size-3.5" /> View Assessment Report
               </Button>
@@ -187,10 +186,10 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailPageP
       </div>
 
       {/* 2. APPLICATION HEADER HERO */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 p-6 rounded-2xl bg-[#0A162E] border border-white/[0.08] shadow-xl">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 p-6 rounded-2xl bg-surface dark:bg-surface-elevated border border-border-strong shadow-card-elevated">
         <div className="space-y-2">
           <div className="flex flex-wrap items-center gap-2.5">
-            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight font-mono">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight font-mono">
               {application.id}
             </h1>
             <StatusBadge status={application.status} />
@@ -202,12 +201,12 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailPageP
               />
             )}
           </div>
-          <p className="text-sm text-slate-300">
+          <p className="text-sm text-foreground-secondary">
             {application.purpose} • {application.applicantName}
           </p>
-          <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground pt-1">
+          <div className="flex flex-wrap items-center gap-4 text-xs text-foreground-muted pt-1">
             <span className="flex items-center gap-1.5">
-              <Calendar className="size-3.5 text-cyan-400" />
+              <Calendar className="size-3.5 opacity-70" />
               Submitted {new Date(application.submittedAt).toLocaleDateString('en-IN', {
                 month: 'short',
                 day: 'numeric',
@@ -216,29 +215,29 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailPageP
             </span>
             <span>•</span>
             <span className="flex items-center gap-1.5">
-              <DollarSign className="size-3.5 text-cyan-400" />
+              <DollarSign className="size-3.5 opacity-70" />
               Requested {formatCurrency(application.requestedAmount)}
             </span>
             <span>•</span>
             <span className="flex items-center gap-1.5">
-              <Building2 className="size-3.5 text-cyan-400" />
+              <Building2 className="size-3.5 opacity-70" />
               Employment: Gig Economy Worker
             </span>
           </div>
         </div>
 
         {application.assessment && (
-          <div className="flex flex-col items-start md:items-end justify-center gap-1 p-4 rounded-2xl bg-[#0E1F3D] border border-white/[0.08]">
-            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+          <div className="flex flex-col items-start md:items-end justify-center gap-1 p-4 rounded-2xl bg-surface-highlight border border-border">
+            <span className="text-[11px] font-semibold text-foreground-muted uppercase tracking-wider">
               Assessment Score
             </span>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-3xl font-black text-white font-mono">
+              <span className="text-3xl font-bold text-foreground font-mono">
                 {application.assessment.score}
               </span>
-              <span className="text-xs text-muted-foreground">/ 850</span>
+              <span className="text-xs text-foreground-muted">/ 850</span>
             </div>
-            <span className="text-[11px] text-cyan-300 font-mono">
+            <span className="text-[11px] text-foreground-secondary font-mono">
               {application.assessment.modelConfidence}% Data Confidence
             </span>
           </div>
@@ -246,15 +245,15 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailPageP
       </div>
 
       {/* 3. TIMELINE & PROGRESS TRACKER */}
-      <Card className="p-6 sm:p-8 bg-[#0A162E] border-white/[0.08] space-y-6">
+      <Card className="p-6 sm:p-8 bg-surface border-border space-y-6">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <h2 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
-              <Clock className="size-4 text-cyan-400" />
+            <h2 className="text-lg font-bold text-foreground tracking-tight flex items-center gap-2">
+              <Clock className="size-4 text-foreground-secondary" />
               Evaluation Lifecycle & Audit Trail
             </h2>
-            <p className="text-xs text-muted-foreground">
-              End-to-end transparency of alternative telemetry ingestion, volatility scoring, and underwriter checkpoints.
+            <p className="text-xs text-foreground-muted">
+              End-to-end transparency of alternative telemetry ingestion, volatility scoring, and credit reviewer checkpoints.
             </p>
           </div>
           <Badge variant="outline" className="text-[11px] font-mono">
@@ -262,7 +261,7 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailPageP
           </Badge>
         </div>
 
-        <div className="relative pl-6 sm:pl-8 border-l border-white/[0.1] space-y-8 my-4 ml-3">
+        <div className="relative pl-6 sm:pl-8 border-l border-border space-y-8 my-4 ml-3">
           {timeline.map((step) => {
             const isCompleted = step.status === 'COMPLETED';
             const isActive = step.status === 'ACTIVE';
@@ -271,12 +270,12 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailPageP
               <div key={step.id} className="relative group">
                 {/* Node icon */}
                 <div
-                  className={`absolute -left-[31px] sm:-left-[39px] top-0.5 size-6 rounded-full flex items-center justify-center text-xs transition-transform ${
+                  className={`absolute -left-[31px] sm:-left-[39px] top-0.5 size-6 rounded-full flex items-center justify-center text-xs transition-transform ring-4 ring-surface ${
                     isCompleted
-                      ? 'bg-emerald-400 text-slate-950 shadow-md shadow-emerald-500/20 ring-4 ring-[#0A162E]'
+                      ? 'bg-[#472393] text-white shadow-xs dark:bg-foreground dark:text-background'
                       : isActive
-                      ? 'bg-amber-400 text-slate-950 animate-pulse ring-4 ring-[#0A162E]'
-                      : 'bg-white/[0.06] text-muted-foreground border border-white/[0.1] ring-4 ring-[#0A162E]'
+                      ? 'bg-[#F5F1FF] border border-[rgba(71,35,147,0.35)] text-[#472393] animate-pulse dark:bg-surface-highlight dark:border-border dark:text-foreground'
+                      : 'bg-surface-highlight/50 text-foreground-muted border border-border'
                   }`}
                 >
                   {isCompleted ? (
@@ -284,7 +283,7 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailPageP
                   ) : isActive ? (
                     <Clock className="size-3.5" />
                   ) : (
-                    <span className="size-1.5 rounded-full bg-white/20" />
+                    <span className="size-1.5 rounded-full bg-foreground-muted/30" />
                   )}
                 </div>
 
@@ -292,23 +291,23 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailPageP
                 <div className="space-y-1">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                     <h3
-                      className={`text-sm font-bold ${
+                      className={`text-sm font-semibold ${
                         isCompleted
-                          ? 'text-white'
+                          ? 'text-foreground'
                           : isActive
-                          ? 'text-amber-300'
-                          : 'text-muted-foreground'
+                          ? 'text-foreground'
+                          : 'text-foreground-muted'
                       }`}
                     >
                       {step.title}
                     </h3>
                     {step.timestamp && (
-                      <span className="text-[11px] font-mono text-muted-foreground">
+                      <span className="text-[11px] font-mono text-foreground-muted">
                         {step.timestamp}
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed max-w-2xl">
+                  <p className="text-xs text-foreground-muted leading-relaxed max-w-2xl">
                     {step.description}
                   </p>
                 </div>
@@ -320,39 +319,35 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailPageP
 
       {/* 4. UNDERWRITER REVIEW CARD (Human-in-the-Loop) */}
       {application.review && (
-        <Card className="p-6 sm:p-7 bg-[#0A162E] border-white/[0.08] space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/[0.06]">
+        <Card className="p-6 sm:p-7 bg-surface border-border space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border">
             <div className="flex items-center gap-2.5">
-              <UserCheck className="size-5 text-cyan-400" />
+              <UserCheck className="size-5 text-foreground-secondary" />
               <div>
-                <h3 className="text-sm font-bold text-white">
-                  Human-in-the-Loop Underwriter Assessment
+                <h3 className="text-sm font-semibold text-foreground">
+                  Human-in-the-Loop Credit Reviewer Assessment
                 </h3>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-foreground-muted">
                   Institutional risk review conducted in accordance with PARAKH explainability standards.
                 </p>
               </div>
             </div>
             <Badge
               variant="outline"
-              className={
-                application.review.status === 'OUTCOME_RECORDED'
-                  ? 'border-teal-500/40 text-teal-300'
-                  : 'border-amber-500/40 text-amber-300'
-              }
+              className="text-xs"
             >
               {application.review.status.replace(/_/g, ' ')}
             </Badge>
           </div>
 
           <div className="space-y-3 pt-1">
-            <div className="p-4 rounded-2xl bg-[#0E1F3D] border border-white/[0.06] space-y-2">
+            <div className="p-4 rounded-2xl bg-surface-highlight/40 border border-border space-y-2">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold text-slate-200">
-                  Reviewing Underwriter: {application.review.underwriterName || 'Assigned Officer'}
+                <span className="font-semibold text-foreground">
+                  Reviewing Credit Reviewer: {application.review.underwriterName || 'Assigned Officer'}
                 </span>
                 {application.review.recordedAt && (
-                  <span className="font-mono text-muted-foreground text-[11px]">
+                  <span className="font-mono text-foreground-muted text-[11px]">
                     {new Date(application.review.recordedAt).toLocaleDateString('en-IN', {
                       month: 'short',
                       day: 'numeric',
@@ -363,7 +358,7 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailPageP
                 )}
               </div>
               {application.review.decisionNotes && (
-                <p className="text-xs text-slate-300 leading-relaxed italic">
+                <p className="text-xs text-foreground-secondary leading-relaxed italic">
                   &ldquo;{application.review.decisionNotes}&rdquo;
                 </p>
               )}
@@ -372,15 +367,15 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailPageP
             {application.review.verificationItemsRequested &&
               application.review.verificationItemsRequested.length > 0 && (
                 <div className="space-y-1.5 pt-1">
-                  <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                  <span className="text-[11px] font-semibold text-foreground-muted uppercase tracking-wider">
                     Requested Verification Evidence:
                   </span>
                   <div className="flex flex-wrap gap-2">
                     {application.review.verificationItemsRequested.map((item, idx) => (
                       <Badge
                         key={idx}
-                        variant="outline"
-                        className="text-xs py-1 px-2.5 bg-amber-500/5 text-amber-300 border-amber-500/20"
+                        variant="secondary"
+                        className="text-xs py-1 px-2.5"
                       >
                         {item}
                       </Badge>
@@ -395,72 +390,72 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailPageP
       {/* 5. APPLICATION DATA SPECIFICATION */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Financial Details */}
-        <Card className="p-6 bg-[#0A162E] border-white/[0.08] space-y-4">
-          <h3 className="text-sm font-bold text-white flex items-center gap-2">
-            <DollarSign className="size-4 text-cyan-400" />
+        <Card className="p-6 bg-surface border-border space-y-4">
+          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <DollarSign className="size-4 text-foreground-secondary" />
             Financial Request Overview
           </h3>
 
-          <div className="space-y-3 text-xs divide-y divide-white/[0.04]">
+          <div className="space-y-3 text-xs divide-y divide-border">
             <div className="flex justify-between items-center py-2">
-              <span className="text-muted-foreground">Requested Capital</span>
-              <span className="font-mono font-bold text-white">
+              <span className="text-foreground-muted">Requested Capital</span>
+              <span className="font-mono font-semibold text-foreground">
                 {formatCurrency(application.requestedAmount)}
               </span>
             </div>
             <div className="flex justify-between items-center py-2">
-              <span className="text-muted-foreground">Stated Purpose</span>
-              <span className="font-medium text-slate-200">{application.purpose}</span>
+              <span className="text-foreground-muted">Stated Purpose</span>
+              <span className="font-medium text-foreground-secondary">{application.purpose}</span>
             </div>
             <div className="flex justify-between items-center py-2">
-              <span className="text-muted-foreground">Employment Classification</span>
+              <span className="text-foreground-muted">Employment Classification</span>
               <Badge variant="outline" className="text-[10px]">
                 {application.employmentType.replace(/_/g, ' ')}
               </Badge>
             </div>
             <div className="flex justify-between items-center py-2">
-              <span className="text-muted-foreground">Monthly Inflow (Self-Reported)</span>
-              <span className="font-mono text-slate-200">₹51,200</span>
+              <span className="text-foreground-muted">Monthly Inflow (Self-Reported)</span>
+              <span className="font-mono text-foreground-secondary">₹51,200</span>
             </div>
             <div className="flex justify-between items-center py-2">
-              <span className="text-muted-foreground">Existing Commitments</span>
-              <span className="font-mono text-slate-200">₹4,500 / month (8.8%)</span>
+              <span className="text-foreground-muted">Existing Commitments</span>
+              <span className="font-mono text-foreground-secondary">₹4,500 / month (8.8%)</span>
             </div>
           </div>
         </Card>
 
         {/* Alternative Telemetry Analyzed */}
-        <Card className="p-6 bg-[#0A162E] border-white/[0.08] space-y-4">
-          <h3 className="text-sm font-bold text-white flex items-center gap-2">
-            <Layers className="size-4 text-cyan-400" />
+        <Card className="p-6 bg-surface border-border space-y-4">
+          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <Layers className="size-4 text-foreground-secondary" />
             Connected Feeds Evaluated
           </h3>
 
           <div className="space-y-2.5 text-xs">
-            <div className="p-3 rounded-xl bg-[#0E1F3D] border border-white/[0.06] flex items-center justify-between">
+            <div className="p-3 rounded-xl bg-surface-highlight/40 border border-border flex items-center justify-between">
               <div className="space-y-0.5">
-                <span className="font-bold text-white block">Swiggy Partner Telemetry</span>
-                <span className="text-muted-foreground text-[11px]">18 months • 4.85 ★ • 3,420 orders</span>
+                <span className="font-semibold text-foreground block">Swiggy Partner Telemetry</span>
+                <span className="text-foreground-muted text-[11px]">18 months • 4.85 ★ • 3,420 orders</span>
               </div>
               <Badge variant="mint" className="text-[10px] py-0 px-2">
                 Verified Feed
               </Badge>
             </div>
 
-            <div className="p-3 rounded-xl bg-[#0E1F3D] border border-white/[0.06] flex items-center justify-between">
+            <div className="p-3 rounded-xl bg-surface-highlight/40 border border-border flex items-center justify-between">
               <div className="space-y-0.5">
-                <span className="font-bold text-white block">Urban Company Pro Connect</span>
-                <span className="text-muted-foreground text-[11px]">8 months • 4.90 ★ • 312 tasks</span>
+                <span className="font-semibold text-foreground block">Urban Company Pro Connect</span>
+                <span className="text-foreground-muted text-[11px]">8 months • 4.90 ★ • 312 tasks</span>
               </div>
               <Badge variant="mint" className="text-[10px] py-0 px-2">
                 Verified Feed
               </Badge>
             </div>
 
-            <div className="p-3 rounded-xl bg-[#0E1F3D] border border-white/[0.06] flex items-center justify-between">
+            <div className="p-3 rounded-xl bg-surface-highlight/40 border border-border flex items-center justify-between">
               <div className="space-y-0.5">
-                <span className="font-bold text-white block">BBPS Micro-Repayments</span>
-                <span className="text-muted-foreground text-[11px]">98% on-time • Electricity & LPG</span>
+                <span className="font-semibold text-foreground block">BBPS Micro-Repayments</span>
+                <span className="text-foreground-muted text-[11px]">98% on-time • Electricity & LPG</span>
               </div>
               <Badge variant="mint" className="text-[10px] py-0 px-2">
                 Punctual Track
@@ -472,23 +467,23 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailPageP
 
       {/* 6. ASSESSMENT REPORT CTA (If Assessment Exists) */}
       {application.assessment && (
-        <Card className="p-6 bg-[#0A162E] border border-cyan-500/30 shadow-[0_0_25px_rgba(34,211,238,0.06)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <Card className="p-6 bg-surface border border-border shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <Sparkles className="size-4 text-cyan-400" />
-              <h3 className="text-base font-bold text-white">
+              <Sparkles className="size-4 opacity-75" />
+              <h3 className="text-base font-bold text-foreground">
                 Detailed Volatility & Explainability Dossier Ready
               </h3>
             </div>
-            <p className="text-xs text-muted-foreground max-w-xl">
+            <p className="text-xs text-foreground-muted max-w-xl">
               Examine positive vs. attention factors, visual SHAP feature contributions, and the 12-week income rebound trajectory.
             </p>
           </div>
 
           <Link href={`/user/results/${application.id}`}>
             <Button
-              variant="lime"
-              className="gap-2 font-bold px-6 shadow-md whitespace-nowrap"
+              variant="default"
+              className="gap-2 font-semibold px-6 shadow-xs rounded-full whitespace-nowrap cursor-pointer"
             >
               <span>Inspect Full Dossier</span>
               <ChevronRight className="size-4" />
@@ -498,10 +493,10 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailPageP
       )}
 
       {/* 7. REGULATORY & NON-LENDING NOTICE */}
-      <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.05] text-[11px] text-muted-foreground flex items-start gap-3">
-        <Info className="size-4 text-teal-400 shrink-0 mt-0.5" />
+      <div className="p-4 rounded-2xl bg-surface-highlight/30 border border-border text-[11px] text-foreground-muted flex items-start gap-3">
+        <Info className="size-4 text-foreground-secondary shrink-0 mt-0.5" />
         <div className="space-y-0.5">
-          <span className="font-semibold text-slate-300 block">
+          <span className="font-semibold text-foreground block">
             Assessment Transparency & Non-Lending Notice
           </span>
           <p>

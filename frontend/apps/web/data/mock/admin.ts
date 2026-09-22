@@ -115,7 +115,7 @@ export const mockPipelineStages: PipelineStage[] = [
   { id: 'p2', name: 'Data Validation', count: 13810, subtext: 'KYC & AA attested' },
   { id: 'p3', name: 'Volatility Engine', count: 13420, subtext: '12-wk cashflow computed' },
   { id: 'p4', name: 'Assessment Dossier', count: 12710, subtext: 'Explainable score ready' },
-  { id: 'p5', name: 'Underwriter Queue', count: 710, subtext: 'Manual review required' },
+  { id: 'p5', name: 'Review Queue', count: 710, subtext: 'Manual review required' },
 ];
 
 export interface OperationalAlert {
@@ -186,7 +186,7 @@ export const mockPriorityReviewQueue: (CreditApplication & {
       action: 'MANUAL_REVIEW',
       decisionNotes:
         'Evaluating seasonal monsoon variance dip against secondary platform earnings. Requesting verification of recent UPI merchant settlements.',
-      underwriterName: 'Priya Sharma (Senior Risk Underwriter)',
+      underwriterName: 'Priya Sharma (Senior Credit Reviewer)',
       recordedAt: '2026-09-17T11:20:00Z',
     },
   },
@@ -312,7 +312,7 @@ export const mockAllAdminApplications: (CreditApplication & {
       decisionNotes:
         'Human underwriter verified 18-month Swiggy activity telemetry and 12-month BBPS utility clearance cadence. Risk classified as LOWER ESTIMATED RISK with sound shock rebound velocity.',
       underwriterId: 'UW-108',
-      underwriterName: 'Rajesh Nair (Credit Underwriter)',
+      underwriterName: 'Rajesh Nair (Credit Reviewer)',
       recordedAt: '2026-08-11T16:30:00Z',
     },
   },

@@ -1,15 +1,15 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Card } from './Card';
-import { Badge } from './Badge';
-import { MobileTheme } from '../lib/theme';
+import { Badge, BadgeVariant } from './Badge';
+import { MobileTheme, useTheme } from '../lib/theme';
 
 interface MobileMetricCardProps {
   title: string;
   value: string | number;
   subtitle?: string;
   pillLabel?: string;
-  pillVariant?: 'mint' | 'lavender' | 'riskLower' | 'riskModerate' | 'outline';
+  pillVariant?: BadgeVariant;
   icon?: React.ReactNode;
   onPress?: () => void;
 }
@@ -19,23 +19,29 @@ export function MetricCard({
   value,
   subtitle,
   pillLabel,
-  pillVariant = 'mint',
+  pillVariant = 'secondary',
   icon,
   onPress,
 }: MobileMetricCardProps) {
+  let colors = MobileTheme.colors;
+  try {
+    const theme = useTheme();
+    colors = theme.colors;
+  } catch {}
+
   return (
     <Card interactive={!!onPress} onPress={onPress} style={styles.card}>
       <View style={styles.headerRow}>
-        <Text style={styles.title}>{title}</Text>
+        <Text style={[styles.title, { color: colors.textSecondary }]}>{title}</Text>
         {pillLabel && <Badge label={pillLabel} variant={pillVariant} />}
         {icon && !pillLabel && icon}
       </View>
 
-      <Text style={styles.value}>{value}</Text>
+      <Text style={[styles.value, { color: colors.textPrimary }]}>{value}</Text>
 
       {subtitle && (
-        <View style={styles.footer}>
-          <Text style={styles.subtitle}>{subtitle}</Text>
+        <View style={[styles.footer, { borderTopColor: colors.border }]}>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{subtitle}</Text>
         </View>
       )}
     </Card>
@@ -44,33 +50,31 @@ export function MetricCard({
 
 const styles = StyleSheet.create({
   card: {
-    gap: 10,
+    gap: 8,
   },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: 4,
   },
   title: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
-    color: MobileTheme.colors.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   value: {
-    fontSize: 34,
+    fontSize: 32,
     fontWeight: '900',
-    color: MobileTheme.colors.textPrimary,
     letterSpacing: -0.5,
   },
   footer: {
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: MobileTheme.colors.border,
   },
   subtitle: {
-    fontSize: 12,
-    color: MobileTheme.colors.textSecondary,
+    fontSize: 11,
   },
 });

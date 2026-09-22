@@ -165,7 +165,7 @@ export const mockUserApplications: CreditApplication[] = [
         'Evaluating seasonal monsoon variance dip against secondary platform earnings. Requesting verification of recent UPI merchant settlements before recording outcome.',
       verificationItemsRequested: ['Latest 30-day UPI QR settlement report', 'Urban Company partner rating certificate'],
       underwriterId: 'UW-402',
-      underwriterName: 'Priya Sharma (Risk Assessment Underwriter)',
+      underwriterName: 'Priya Sharma (Credit Reviewer)',
       recordedAt: '2026-09-17T11:20:00Z',
     },
   },
@@ -202,7 +202,7 @@ export const mockUserApplications: CreditApplication[] = [
       decisionNotes:
         'Human underwriter verified 18-month Swiggy activity telemetry and 12-month BBPS utility clearance cadence. Risk classified as LOWER ESTIMATED RISK with sound shock rebound velocity.',
       underwriterId: 'UW-108',
-      underwriterName: 'Rajesh Nair (Credit Underwriter)',
+      underwriterName: 'Rajesh Nair (Credit Reviewer)',
       recordedAt: '2026-08-11T16:30:00Z',
     },
   },

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import type { CreditAssessmentResult } from '@parakh/types';
 import { Card } from './Card';
 import { RiskBadge } from './RiskBadge';
-import { MobileTheme } from '../lib/theme';
+import { MobileTheme, useTheme } from '../lib/theme';
 import { Sparkles, ShieldCheck, Activity } from 'lucide-react-native';
 
 interface MobileCreditScoreCardProps {
@@ -12,47 +12,65 @@ interface MobileCreditScoreCardProps {
 }
 
 export function CreditScoreCard({ assessment, onPress }: MobileCreditScoreCardProps) {
+  let colors = MobileTheme.colors;
+  try {
+    const theme = useTheme();
+    colors = theme.colors;
+  } catch {}
+
   return (
     <Card interactive={!!onPress} onPress={onPress} style={styles.card}>
       <View style={styles.headerRow}>
         <View style={styles.titleContainer}>
-          <Sparkles size={14} color={MobileTheme.colors.mint} />
-          <Text style={styles.headerTitle}>PARAKH ASSESSMENT</Text>
+          <Sparkles size={13} color={colors.textPrimary} />
+          <Text style={[styles.headerTitle, { color: colors.textSecondary }]}>
+            ALTERNATIVE CREDIT ASSESSMENT
+          </Text>
         </View>
         <RiskBadge riskLevel={assessment.riskLevel} />
       </View>
 
       <View style={styles.scoreRow}>
-        <Text style={styles.scoreNumber}>{assessment.score}</Text>
-        <Text style={styles.scoreMax}> / {assessment.maxScore || 850}</Text>
+        <Text style={[styles.scoreNumber, { color: colors.textPrimary }]}>
+          {assessment.score}
+        </Text>
+        <Text style={[styles.scoreMax, { color: colors.textSecondary }]}>
+          / {assessment.maxScore || 850}
+        </Text>
       </View>
 
-      <View style={styles.divider} />
+      <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
       <View style={styles.metricsGrid}>
         <View style={styles.metricItem}>
-          <Text style={styles.metricLabel}>Repayment Difficulty</Text>
-          <Text style={styles.metricValue}>
+          <Text style={[styles.metricLabel, { color: colors.textSecondary }]}>
+            Repayment Stress
+          </Text>
+          <Text style={[styles.metricValue, { color: colors.textPrimary }]}>
             {assessment.estimatedRepaymentDifficulty}% Low
           </Text>
         </View>
 
         <View style={styles.metricItem}>
           <View style={styles.labelWithIcon}>
-            <ShieldCheck size={12} color={MobileTheme.colors.mint} />
-            <Text style={styles.metricLabel}>Confidence</Text>
+            <ShieldCheck size={11} color={colors.textSecondary} />
+            <Text style={[styles.metricLabel, { color: colors.textSecondary }]}>
+              Confidence
+            </Text>
           </View>
-          <Text style={[styles.metricValue, { color: MobileTheme.colors.mint }]}>
+          <Text style={[styles.metricValue, { color: colors.textPrimary }]}>
             {assessment.modelConfidence}% High
           </Text>
         </View>
 
         <View style={styles.metricItem}>
           <View style={styles.labelWithIcon}>
-            <Activity size={12} color={MobileTheme.colors.lavender} />
-            <Text style={styles.metricLabel}>Shock Recovery</Text>
+            <Activity size={11} color={colors.textSecondary} />
+            <Text style={[styles.metricLabel, { color: colors.textSecondary }]}>
+              Rebound Rate
+            </Text>
           </View>
-          <Text style={[styles.metricValue, { color: MobileTheme.colors.lavender }]}>
+          <Text style={[styles.metricValue, { color: colors.textPrimary }]}>
             {Math.round((assessment.volatilityProfile?.recoveryRateAfterLowIncome ?? 0.94) * 100)}%
           </Text>
         </View>
@@ -69,6 +87,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: 6,
   },
   titleContainer: {
     flexDirection: 'row',
@@ -76,9 +96,8 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   headerTitle: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '700',
-    color: MobileTheme.colors.textSecondary,
     letterSpacing: 0.5,
   },
   scoreRow: {
@@ -86,28 +105,28 @@ const styles = StyleSheet.create({
     alignItems: 'baseline',
   },
   scoreNumber: {
-    fontSize: 48,
+    fontSize: 46,
     fontWeight: '900',
-    color: MobileTheme.colors.textPrimary,
     letterSpacing: -1,
   },
   scoreMax: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '600',
-    color: MobileTheme.colors.textSecondary,
     marginLeft: 6,
   },
   divider: {
     height: 1,
-    backgroundColor: MobileTheme.colors.border,
     marginVertical: 4,
   },
   metricsGrid: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: 8,
   },
   metricItem: {
-    gap: 3,
+    gap: 2,
+    minWidth: 80,
   },
   labelWithIcon: {
     flexDirection: 'row',
@@ -115,12 +134,11 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   metricLabel: {
-    fontSize: 11,
-    color: MobileTheme.colors.textSecondary,
+    fontSize: 10,
+    fontWeight: '500',
   },
   metricValue: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '700',
-    color: MobileTheme.colors.textPrimary,
   },
 });
