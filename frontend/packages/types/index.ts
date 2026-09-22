@@ -160,3 +160,55 @@ export interface ModelInsights {
     auditStatus: 'FAIR' | 'NEEDS_MONITORING';
   }[];
 }
+
+// --- AUTH & IDENTITY TYPES (Canonical Backend Contract) ---
+
+export type UserRole = 'APPLICANT' | 'REVIEWER' | 'ADMIN';
+export type PortalRole = 'applicant' | 'reviewer' | 'admin';
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface TokenResponse {
+  access_token: string;
+  token_type: string;
+  expires_in: number;
+  user_id: string;
+  email: string;
+  role: UserRole;
+}
+
+export interface UserResponse {
+  id: string;
+  email: string;
+  role: UserRole;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UserCreateRequest {
+  email: string;
+  password: string;
+  role?: UserRole;
+}
+
+export function normalizeUserRole(role?: string | null): UserRole | null {
+  if (!role) return null;
+  const upper = role.toUpperCase();
+  if (upper === 'APPLICANT') return 'APPLICANT';
+  if (upper === 'REVIEWER') return 'REVIEWER';
+  if (upper === 'ADMIN') return 'ADMIN';
+  return null;
+}
+
+export function toPortalRole(role?: string | null): PortalRole | null {
+  const normalized = normalizeUserRole(role);
+  if (normalized === 'APPLICANT') return 'applicant';
+  if (normalized === 'REVIEWER') return 'reviewer';
+  if (normalized === 'ADMIN') return 'admin';
+  return null;
+}
+

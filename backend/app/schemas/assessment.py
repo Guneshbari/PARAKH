@@ -98,6 +98,26 @@ class CreditAssessmentResponse(CreditAssessmentBase):
         if score_val is None:
             score_val = getattr(data, "credit_score", None)
 
+        raw_key_factors = getattr(data, "_transient_key_factors", None) or getattr(data, "key_factors", None)
+        if not raw_key_factors:
+            raw_key_factors = []
+            if getattr(data, "repayment_reliability", None) is not None:
+                raw_key_factors.append(f"Repayment reliability indicator: {data.repayment_reliability}")
+            if getattr(data, "income_stability", None) is not None:
+                raw_key_factors.append(f"Income stability index: {data.income_stability}")
+            if getattr(data, "utilization", None) is not None:
+                raw_key_factors.append(f"Credit utilization proxy: {data.utilization}")
+            if not raw_key_factors:
+                raw_key_factors = ["Credit evaluation completed based on alternative platform data"]
+
+        raw_explanation = getattr(data, "_transient_explanation", None) or getattr(data, "explanation", None)
+        if not raw_explanation:
+            raw_explanation = {
+                "score": score_val,
+                "risk_level": getattr(data.risk_level, "value", str(data.risk_level)) if getattr(data, "risk_level", None) else None,
+                "confidence": str(getattr(data, "confidence", "")) if getattr(data, "confidence", None) is not None else None,
+            }
+
         return {
             "id": getattr(data, "id", None),
             "application_id": getattr(data, "application_id", None),
@@ -114,8 +134,8 @@ class CreditAssessmentResponse(CreditAssessmentBase):
             "assessment_status": getattr(data, "assessment_status", "COMPLETED"),
             "model_name": mv_name_str or getattr(data, "model_name", None),
             "model_version": mv_version_str,
-            "key_factors": getattr(data, "_transient_key_factors", None) or getattr(data, "key_factors", []),
-            "explanation": getattr(data, "_transient_explanation", None) or getattr(data, "explanation", {}),
+            "key_factors": raw_key_factors,
+            "explanation": raw_explanation,
             "assessed_at": getattr(data, "assessed_at", None),
             "created_at": getattr(data, "created_at", None),
         }

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { use, useState } from 'react';
+import React, { use, useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   ArrowLeft,
@@ -15,6 +15,7 @@ import {
   Info,
   Send,
   FileCheck,
+  Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -25,7 +26,15 @@ import { RiskBadge } from '@/components/shared/RiskBadge';
 import { AIInsightCard } from '@/components/shared/AIInsightCard';
 import { FeatureContributionCard } from '@/components/shared/FeatureContributionCard';
 import { CashflowVolatilityChart } from '@/components/shared/CashflowVolatilityChart';
-import { getAdminApplicationById } from '@/data/mock/admin';
+import { useAuth } from '@/components/auth/AuthContext';
+import {
+  api,
+  reverseAdaptReviewAction,
+  adaptApplication,
+  adaptAssessment,
+  adaptReviewOutcome,
+  ApiError,
+} from '@parakh/api';
 import { formatCurrency } from '@/lib/utils';
 import type {
   ReviewActionType,
@@ -41,27 +50,103 @@ export default function AdminApplicationDetailPage({
   params,
 }: AdminApplicationDetailPageProps) {
   const { id } = use(params);
-  const initialApp = getAdminApplicationById(id);
+  const { user } = useAuth();
 
-  const [application, setApplication] = useState(initialApp);
-  const [reviewAction, setReviewAction] = useState<ReviewActionType>(
-    application.review?.action || 'MANUAL_REVIEW'
-  );
-  const [selectedRisk, setSelectedRisk] = useState<RiskLevel>(
-    application.assessment?.riskLevel || 'INSUFFICIENT_EVIDENCE_MANUAL_REVIEW'
-  );
-  const [decisionNotes, setDecisionNotes] = useState(
-    application.review?.decisionNotes || ''
-  );
-  const [requestedItems, setRequestedItems] = useState<string[]>(
-    application.review?.verificationItemsRequested || [
-      'Latest 30-day UPI QR settlement report',
-    ]
-  );
+  const [application, setApplication] = useState<any | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [reviewError, setReviewError] = useState<string | null>(null);
+  const [reviewAction, setReviewAction] = useState<ReviewActionType>('MANUAL_REVIEW');
+  const [selectedRisk, setSelectedRisk] = useState<RiskLevel>('INSUFFICIENT_EVIDENCE_MANUAL_REVIEW');
+  const [decisionNotes, setDecisionNotes] = useState('');
+  const [requestedItems, setRequestedItems] = useState<string[]>([
+    'Latest 30-day UPI QR settlement report',
+  ]);
   const [customItem, setCustomItem] = useState('');
   const [recordSuccess, setRecordSuccess] = useState(false);
 
-  const assessment = application.assessment;
+  const loadApplicationData = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const rawApp = await api.getApplicationById(id);
+      let profile = null;
+      if (rawApp.applicant_profile_id) {
+        try {
+          profile = await api.getApplicantProfile(rawApp.applicant_profile_id);
+        } catch {}
+      }
+
+      let assessment = null;
+      try {
+        assessment = await api.getLatestAssessmentByApplication(id);
+      } catch {}
+
+      let reviews: any[] = [];
+      try {
+        reviews = await api.getReviewsByApplication(id);
+      } catch {}
+
+      const latestReview = reviews && reviews.length > 0 ? reviews[reviews.length - 1] : null;
+
+      const adapted = adaptApplication(
+        rawApp,
+        profile,
+        assessment ? adaptAssessment(assessment) : null,
+        latestReview ? adaptReviewOutcome(latestReview) : null
+      );
+
+      const appData = {
+        ...adapted,
+        triggerReason:
+          rawApp.status === 'MANUAL_REVIEW'
+            ? 'Alternative cashflow volatility requires reviewer sign-off'
+            : rawApp.status === 'UNDER_REVIEW'
+            ? 'Inflow signals currently under aggregation'
+            : 'Standard credit risk evaluation',
+        sectorTag:
+          profile?.work_type === 'GIG_WORKER'
+            ? 'Urban Gig Delivery'
+            : profile?.work_type === 'INFORMAL_VENDOR'
+            ? 'Informal Commerce'
+            : 'Micro-enterprise',
+      };
+
+      setApplication(appData);
+
+      if (adapted.assessment?.riskLevel) {
+        setSelectedRisk(adapted.assessment.riskLevel);
+      }
+      if (latestReview) {
+        setReviewAction(
+          latestReview.outcome === 'REVIEWED'
+            ? 'RECORD_OUTCOME'
+            : latestReview.outcome === 'ADDITIONAL_INFORMATION_REQUIRED'
+            ? 'REQUEST_VERIFICATION'
+            : 'MANUAL_REVIEW'
+        );
+        if (latestReview.notes) {
+          setDecisionNotes(latestReview.notes);
+        }
+      }
+    } catch (err: any) {
+      if (err instanceof ApiError && err.status === 404) {
+        setError('Application not found');
+      } else {
+        setError(err?.userMessage || err?.message || 'Failed to load application details. Please try again.');
+      }
+      setApplication(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadApplicationData();
+  }, [id]);
+
+  const assessment = application?.assessment;
 
   const handleToggleItem = (item: string) => {
     setRequestedItems((prev) =>
@@ -76,47 +161,91 @@ export default function AdminApplicationDetailPage({
     }
   };
 
-  const handleSaveReview = (e: React.FormEvent) => {
+  const handleSaveReview = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const outcome: UnderwriterReviewOutcome = {
-      status:
-        reviewAction === 'RECORD_OUTCOME'
-          ? 'OUTCOME_RECORDED'
-          : reviewAction === 'REQUEST_VERIFICATION'
-          ? 'VERIFICATION_REQUESTED'
-          : 'MANUAL_REVIEW_IN_PROGRESS',
-      action: reviewAction,
-      decisionNotes:
-        decisionNotes ||
-        'Credit review performed in accordance with PARAKH explainability policy.',
-      verificationItemsRequested:
-        reviewAction === 'REQUEST_VERIFICATION' ? requestedItems : undefined,
-      underwriterName: 'Priya Sharma (Senior Credit Reviewer)',
-      underwriterId: 'UW-402',
-      recordedAt: new Date().toISOString(),
-    };
+    try {
+      setIsSubmitting(true);
+      setReviewError(null);
+      const outcome = reverseAdaptReviewAction(reviewAction);
+      const reviewerId = user?.id || '00000000-0000-0000-0000-000000000000';
 
-    setApplication((prev) => ({
-      ...prev,
-      status:
-        reviewAction === 'RECORD_OUTCOME'
-          ? 'REVIEW_COMPLETED'
-          : reviewAction === 'REQUEST_VERIFICATION'
-          ? 'DATA_VALIDATION'
-          : 'MANUAL_REVIEW_REQUIRED',
-      assessment: prev.assessment
-        ? {
-            ...prev.assessment,
-            riskLevel: selectedRisk,
-          }
-        : undefined,
-      review: outcome,
-    }));
+      await api.createReview(id, {
+        reviewer_id: reviewerId,
+        outcome: outcome,
+        notes:
+          decisionNotes ||
+          'Credit review performed in accordance with PARAKH explainability policy.',
+      });
 
-    setRecordSuccess(true);
-    setTimeout(() => setRecordSuccess(false), 4000);
+      if (reviewAction === 'RECORD_OUTCOME') {
+        try {
+          await api.updateApplicationStatus(id, 'COMPLETED');
+        } catch {}
+      } else if (reviewAction === 'REQUEST_VERIFICATION') {
+        try {
+          await api.updateApplicationStatus(id, 'UNDER_REVIEW');
+        } catch {}
+      }
+
+      await loadApplicationData();
+
+      setRecordSuccess(true);
+      setTimeout(() => setRecordSuccess(false), 4000);
+    } catch (err: any) {
+      console.error('Failed to submit review:', err);
+      setReviewError(err?.message || 'Failed to submit review to backend.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="py-24 text-center space-y-4 max-w-md mx-auto">
+        <div className="size-10 rounded-full border-2 border-[#472393] border-t-transparent animate-spin mx-auto dark:border-foreground" />
+        <h2 className="text-base font-semibold text-foreground">Loading Credit Review Dossier...</h2>
+        <p className="text-xs text-foreground-muted">Retrieving applicant signals, model telemetry, and review history.</p>
+      </div>
+    );
+  }
+
+  if (error || !application) {
+    return (
+      <div className="max-w-xl mx-auto py-16 px-4">
+        <Card className="p-8 border-border bg-surface space-y-4 text-center">
+          <AlertCircle className="size-10 text-red-500 mx-auto" />
+          <div className="space-y-1">
+            <h2 className="text-base font-semibold text-foreground">
+              {error === 'Application not found' ? 'Application Not Found' : 'Unable to Load Application Dossier'}
+            </h2>
+            <p className="text-xs text-foreground-secondary">
+              {error === 'Application not found'
+                ? `No credit evaluation application exists with identifier ${id}.`
+                : error}
+            </p>
+          </div>
+          <div className="flex items-center justify-center gap-3 pt-2">
+            <Link href="/admin/applications">
+              <Button variant="outline" size="sm" className="rounded-full text-xs">
+                <ArrowLeft className="size-3.5 mr-1" /> Review Queue
+              </Button>
+            </Link>
+            {error !== 'Application not found' && (
+              <Button
+                variant="default"
+                size="sm"
+                onClick={loadApplicationData}
+                className="rounded-full text-xs"
+              >
+                Retry
+              </Button>
+            )}
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <PageTransition className="space-y-6 sm:space-y-8 w-full pb-16">
@@ -136,7 +265,7 @@ export default function AdminApplicationDetailPage({
         <div className="flex items-center gap-2">
           <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-surface-highlight border border-border text-xs text-foreground-secondary">
             <UserCheck className="size-3.5 opacity-70" />
-            <span>Reviewer: Priya Sharma (UW-402)</span>
+            <span>Reviewer: {user?.name || user?.email || 'Certified Reviewer'}</span>
           </div>
           <Button
             variant="ghost"
@@ -348,7 +477,7 @@ export default function AdminApplicationDetailPage({
             </p>
           </div>
           <Badge variant="outline" className="text-xs font-mono">
-            Officer: Priya Sharma
+            Officer: {user?.name || user?.email || 'Certified Reviewer'}
           </Badge>
         </div>
 
@@ -498,12 +627,20 @@ export default function AdminApplicationDetailPage({
             />
           </div>
 
+          {/* Error Banner */}
+          {reviewError && (
+            <div className="p-4 rounded-2xl bg-destructive/10 border border-destructive/20 text-destructive text-xs flex items-center gap-2.5">
+              <AlertCircle className="size-4 shrink-0" />
+              <span>{reviewError}</span>
+            </div>
+          )}
+
           {/* Success Banner */}
           {recordSuccess && (
             <div className="p-4 rounded-2xl bg-surface-highlight border border-border text-foreground text-xs flex items-center gap-2.5">
               <CheckCircle2 className="size-4 shrink-0" />
               <span>
-                Underwriting decision committed to audit ledger successfully. Status updated to{' '}
+                Underwriting decision committed to PostgreSQL audit ledger successfully. Status updated to{' '}
                 <strong className="text-foreground">
                   {application.status.replace(/_/g, ' ')}
                 </strong>
@@ -515,7 +652,13 @@ export default function AdminApplicationDetailPage({
           {/* Form Actions */}
           <div className="flex items-center justify-between pt-2">
             <Link href="/admin/applications">
-              <Button variant="ghost" size="sm" className="rounded-full text-xs text-foreground-muted hover:text-foreground">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                disabled={isSubmitting}
+                className="rounded-full text-xs text-foreground-muted hover:text-foreground"
+              >
                 Cancel
               </Button>
             </Link>
@@ -524,10 +667,18 @@ export default function AdminApplicationDetailPage({
               type="submit"
               variant="default"
               size="sm"
-              disabled={decisionNotes.trim().length < 10}
+              disabled={isSubmitting || decisionNotes.trim().length < 10}
               className="rounded-full text-xs font-semibold gap-1.5 px-6 shadow-xs cursor-pointer"
             >
-              <Send className="size-3.5" /> Commit Audit Decision
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="size-3.5 animate-spin" /> Committing Audit...
+                </>
+              ) : (
+                <>
+                  <Send className="size-3.5" /> Commit Audit Decision
+                </>
+              )}
             </Button>
           </div>
         </form>

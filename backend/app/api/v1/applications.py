@@ -1,5 +1,5 @@
 """Alternative credit assessment application API routes."""
-from typing import List
+from typing import List, Optional
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from app.api.deps import get_application_service, get_current_active_user
@@ -15,6 +15,30 @@ from app.services.applicant import ApplicantService
 from app.services.application import ApplicationService
 
 router = APIRouter(prefix="/applications", tags=["applications"])
+
+
+@router.get(
+    "",
+    response_model=List[ApplicationResponse],
+    status_code=status.HTTP_200_OK,
+    summary="List All Applications",
+    description="Fetch all credit applications with optional status filter. Requires REVIEWER or ADMIN role.",
+)
+def list_all_applications(
+    status_filter: Optional[ApplicationStatus] = Query(None, alias="status", description="Filter applications by status"),
+    skip: int = Query(0, ge=0, description="Pagination offset"),
+    limit: int = Query(100, ge=1, le=500, description="Max items to return"),
+    current_user: User = Depends(get_current_active_user),
+    application_service: ApplicationService = Depends(get_application_service),
+) -> List[ApplicationResponse]:
+    """List applications with role authorization for reviewers and administrators."""
+    if current_user.role not in (UserRole.REVIEWER, UserRole.ADMIN):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied: only reviewers and administrators can list all applications.",
+        )
+    apps = application_service.list_all_applications(status=status_filter, skip=skip, limit=limit)
+    return [ApplicationResponse.model_validate(a) for a in apps]
 
 
 @router.post(

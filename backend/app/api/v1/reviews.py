@@ -32,13 +32,15 @@ def create_review(
     review_service: ReviewService = Depends(get_review_service),
 ) -> ReviewOutcomeResponse:
     """Record human officer review outcome with reviewer authorization."""
-    if current_user.role == UserRole.REVIEWER and review_in.reviewer_id != current_user.id:
+    if current_user.role == UserRole.REVIEWER and review_in.reviewer_id and review_in.reviewer_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Reviewers can only submit reviews under their own reviewer ID.",
         )
     data = review_in.model_dump()
     data["application_id"] = application_id
+    if current_user.role == UserRole.REVIEWER or not data.get("reviewer_id"):
+        data["reviewer_id"] = current_user.id
     review = review_service.create_review(data)
     return ReviewOutcomeResponse.model_validate(review)
 

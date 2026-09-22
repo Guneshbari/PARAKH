@@ -13,7 +13,7 @@ class Settings(BaseSettings):
 
     APP_NAME: str = "PARAKH API"
     APP_ENV: str = "development"
-    DEBUG: bool = True
+    DEBUG: bool = False
     API_V1_PREFIX: str = "/api/v1"
     VERSION: str = "0.1.0"
 
@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "parakh-super-secret-key-change-in-production-0987654321"
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440  # 24 hours
-
+    # Assessment Engine Selection ("mock" or "ml")
+    ASSESSMENT_ENGINE: str = "mock"
 
 settings = Settings()

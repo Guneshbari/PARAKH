@@ -64,14 +64,14 @@ function SignupFormContent() {
       setShakeKey((k) => k + 1);
       return;
     }
-    if (!emailOrPhone.trim()) {
-      setError('Please enter your mobile phone or email.');
+    if (!emailOrPhone.trim() || !emailOrPhone.includes('@')) {
+      setError('Please enter a valid email address.');
       setAuthStatus('error');
       setShakeKey((k) => k + 1);
       return;
     }
-    if (password.length < 6) {
-      setError('Password must contain at least 6 characters.');
+    if (password.length < 8) {
+      setError('Password must contain at least 8 characters.');
       setAuthStatus('error');
       setShakeKey((k) => k + 1);
       return;
