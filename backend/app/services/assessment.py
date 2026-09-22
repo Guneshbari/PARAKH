@@ -225,7 +225,7 @@ class AssessmentService:
             if active_mv:
                 mv_id = active_mv.id
             else:
-                mvs = self.model_version_repo.list_versions(active_only=False, db=self.db)
+                mvs = self.model_version_repo.list_versions(db=self.db)
                 if mvs:
                     mv_id = mvs[0].id
                 else:
