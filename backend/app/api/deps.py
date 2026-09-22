@@ -6,7 +6,7 @@ import jwt
 from sqlalchemy.orm import Session
 
 from app.assessment.base import AssessmentEngine
-from app.assessment.mock import MockAssessmentEngine
+from app.assessment.factory import create_assessment_engine
 from app.core.audit_events import AuditAction, AuditOutcome
 from app.core.config import settings
 from app.core.database import get_db
@@ -52,8 +52,8 @@ __all__ = [
 
 
 def get_assessment_engine() -> AssessmentEngine:
-    """Dependency returning the configured AssessmentEngine instance (MockAssessmentEngine)."""
-    return MockAssessmentEngine()
+    """Dependency returning the configured AssessmentEngine instance based on configuration."""
+    return create_assessment_engine()
 
 
 def get_user_service(db: Session = Depends(get_db)) -> UserService:

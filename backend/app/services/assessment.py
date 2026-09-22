@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Optional, Union
 from sqlalchemy.orm import Session
 from app.assessment.base import AssessmentEngine
 from app.assessment.exceptions import AssessmentEngineError, AssessmentOutputError
+from app.assessment.pipeline import FeaturePipeline, PassthroughFeaturePipeline
 from app.assessment.schemas import AssessmentInput, AssessmentResult
 from app.core.audit_events import AuditAction, AuditOutcome
 from app.models.assessment import CreditAssessment
@@ -43,8 +44,9 @@ class AssessmentService:
         engine: Optional[AssessmentEngine] = None,
         audit_service: Optional[AuditService] = None,
         consent_service: Optional[Any] = None,
+        feature_pipeline: Optional[FeaturePipeline] = None,
     ) -> None:
-        """Initialize AssessmentService with required repositories, optional engine, and audit service."""
+        """Initialize AssessmentService with required repositories, optional engine, audit service, and feature pipeline."""
         self.db = db
         self.assessment_repo = assessment_repo or AssessmentRepository(db=db)
         self.app_repo = app_repo or ApplicationRepository(db=db)
@@ -53,6 +55,7 @@ class AssessmentService:
         self.engine = engine
         self.audit_service = audit_service or AuditService(db=db)
         self.consent_service = consent_service
+        self.feature_pipeline = feature_pipeline or PassthroughFeaturePipeline()
 
     def create_assessment(
         self,
@@ -194,6 +197,7 @@ class AssessmentService:
         application_id: Union[uuid.UUID, str],
         model_version_id: Optional[Union[uuid.UUID, str]] = None,
         engine: Optional[AssessmentEngine] = None,
+        feature_pipeline: Optional[FeaturePipeline] = None,
         enforce_consent: bool = False,
         auto_commit: bool = True,
     ) -> CreditAssessment:
@@ -257,17 +261,35 @@ class AssessmentService:
                         "No active or registered ModelVersion found to associate with assessment."
                     )
 
-        # Build AssessmentInput via adapter
+        # Build AssessmentInput via adapter and feature pipeline
         profile = getattr(app, "applicant_profile", None)
         latest_signal = self.signal_repo.get_latest(app.id, db=self.db) if self.signal_repo else None
         if latest_signal is None:
             signals = getattr(app, "financial_signals", None)
             latest_signal = signals[-1] if signals else None
 
+        active_pipeline = feature_pipeline or self.feature_pipeline
+        signals_seq = []
+        if self.signal_repo:
+            signals_seq = self.signal_repo.get_by_application(app.id, db=self.db)
+        if not signals_seq and latest_signal is not None:
+            signals_seq = [latest_signal]
+
+        derived_features = (
+            active_pipeline.extract_features(
+                signals=signals_seq,
+                application=app,
+                applicant_profile=profile,
+            )
+            if active_pipeline
+            else {}
+        )
+
         input_data = AssessmentInput.from_domain_objects(
             application=app,
             applicant_profile=profile,
             financial_signal=latest_signal,
+            derived_features=derived_features,
         )
 
         # Invoke engine

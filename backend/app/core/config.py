@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "parakh-super-secret-key-change-in-production-0987654321"
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440  # 24 hours
-
+    # Assessment Engine Selection ("mock" or "ml")
+    ASSESSMENT_ENGINE: str = "mock"
 
 settings = Settings()
