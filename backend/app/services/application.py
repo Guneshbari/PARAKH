@@ -33,8 +33,14 @@ VALID_STATUS_TRANSITIONS: Dict[ApplicationStatus, Set[ApplicationStatus]] = {
         ApplicationStatus.ASSESSED,
         ApplicationStatus.MANUAL_REVIEW,
     },
-    ApplicationStatus.MANUAL_REVIEW: {ApplicationStatus.ASSESSED},
-    ApplicationStatus.ASSESSED: {ApplicationStatus.COMPLETED},
+    ApplicationStatus.MANUAL_REVIEW: {
+        ApplicationStatus.ASSESSED,
+        ApplicationStatus.COMPLETED,
+    },
+    ApplicationStatus.ASSESSED: {
+        ApplicationStatus.COMPLETED,
+        ApplicationStatus.MANUAL_REVIEW,
+    },
     ApplicationStatus.COMPLETED: set(),
 }
 
@@ -162,6 +168,24 @@ class ApplicationService:
         return self.app_repo.list_by_applicant(
             applicant_profile_id, skip=skip, limit=limit, db=self.db
         )
+
+    def list_all_applications(
+        self,
+        status: Optional[Union[ApplicationStatus, str]] = None,
+        skip: int = 0,
+        limit: int = 100,
+    ) -> List[Application]:
+        """List all applications with optional status filtering for reviewers and administrators.
+
+        Args:
+            status: Optional ApplicationStatus enum or string to filter by.
+            skip: Offset count.
+            limit: Maximum items to return.
+
+        Returns:
+            List[Application]: Matching applications.
+        """
+        return self.app_repo.list_all(status=status, skip=skip, limit=limit, db=self.db)
 
     def update_application(
         self,

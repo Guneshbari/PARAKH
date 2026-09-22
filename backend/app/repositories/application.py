@@ -77,6 +77,33 @@ class ApplicationRepository(BaseRepository[Application]):
         )
         return list(session.scalars(stmt).all())
 
+    def list_all(
+        self,
+        status: Optional[Union[ApplicationStatus, str]] = None,
+        skip: int = 0,
+        limit: int = 100,
+        db: Optional[Session] = None,
+    ) -> List[Application]:
+        """List all applications with optional status filtering, ordered by creation date descending.
+
+        Args:
+            status: Optional ApplicationStatus enum or string to filter by.
+            skip: Offset count.
+            limit: Maximum items to return.
+            db: Optional session override.
+
+        Returns:
+            List[Application]: Matching applications.
+        """
+        session = self._get_db(db)
+        stmt = select(Application)
+        if status is not None:
+            if isinstance(status, str):
+                status = ApplicationStatus(status)
+            stmt = stmt.where(Application.status == status)
+        stmt = stmt.order_by(Application.created_at.desc()).offset(skip).limit(limit)
+        return list(session.scalars(stmt).all())
+
     def update(
         self,
         db_obj: Application,
