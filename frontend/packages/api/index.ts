@@ -405,11 +405,15 @@ export class ParakhApiClient {
     applicationId: string,
     review: BackendUnderwriterReviewCreate
   ): Promise<BackendUnderwriterReview> {
+    const payload = {
+      application_id: applicationId,
+      ...review,
+    };
     return this.request<BackendUnderwriterReview>(
       `/api/v1/applications/${encodeURIComponent(applicationId)}/reviews`,
       {
         method: 'POST',
-        body: JSON.stringify(review),
+        body: JSON.stringify(payload),
       }
     );
   }

@@ -245,6 +245,7 @@ export interface BackendConsentResponse {
 // --- Review Transport Models ---
 
 export interface BackendReviewOutcomeCreate {
+  application_id?: string;
   reviewer_id: string;
   outcome: BackendReviewOutcomeType;
   notes?: string;

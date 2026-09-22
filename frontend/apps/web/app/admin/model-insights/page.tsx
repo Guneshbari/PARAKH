@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Sparkles,
   FileCheck,
@@ -11,15 +11,40 @@ import {
   Calendar,
   Cpu,
   Download,
+  AlertTriangle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { PageTransition } from '@/components/motion/PageTransition';
+import { api, type BackendModelVersion } from '@parakh/api';
 import { mockModelInsights } from '@/data/mock/admin';
 
 export default function AdminModelInsightsPage() {
   const insights = mockModelInsights;
+  const [modelVersions, setModelVersions] = useState<BackendModelVersion[]>([]);
+  const [activeModel, setActiveModel] = useState<BackendModelVersion | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchModelData() {
+      try {
+        const versions = await api.getModelVersions();
+        if (!isMounted) return;
+        if (versions && versions.length > 0) {
+          setModelVersions(versions);
+          const active = versions.find((v) => v.is_active) || versions[0];
+          setActiveModel(active);
+        }
+      } catch (err) {
+        console.warn('Could not fetch model versions from backend:', err);
+      }
+    }
+    fetchModelData();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleDownloadModelCard = () => {
     const cardData = {
@@ -100,10 +125,12 @@ export default function AdminModelInsightsPage() {
             <Cpu className="size-3.5 text-foreground-secondary" />
             <span>Architecture</span>
           </div>
-          <span className="text-sm font-bold text-foreground block">
-            GB Volatility Trees
+          <span className="text-sm font-bold text-foreground block truncate" title={activeModel?.algorithm || 'GB Volatility Trees'}>
+            {activeModel ? activeModel.algorithm : 'GB Volatility Trees'}
           </span>
-          <span className="text-[10px] text-foreground-secondary block">Calibrated Ridge Blend</span>
+          <span className="text-[10px] text-foreground-secondary block truncate" title={activeModel?.model_name || 'Calibrated Ridge Blend'}>
+            {activeModel ? activeModel.model_name : 'Calibrated Ridge Blend'}
+          </span>
         </div>
 
         <div className="p-4 rounded-2xl bg-surface border border-border shadow-card space-y-1">
@@ -123,13 +150,15 @@ export default function AdminModelInsightsPage() {
             <span>Last Retrained</span>
           </div>
           <span className="text-sm font-bold text-foreground block">
-            {new Date(insights.lastTrainedAt).toLocaleDateString('en-IN', {
+            {new Date(activeModel?.created_at || insights.lastTrainedAt).toLocaleDateString('en-IN', {
               month: 'short',
               day: 'numeric',
               year: 'numeric',
             })}
           </span>
-          <span className="text-[10px] text-foreground-secondary block">Active Production Baseline</span>
+          <span className="text-[10px] text-foreground-secondary block">
+            {activeModel ? `Version ${activeModel.version}` : 'Active Production Baseline'}
+          </span>
         </div>
 
         <div className="p-4 rounded-2xl bg-surface border border-border shadow-card space-y-1">
@@ -141,6 +170,19 @@ export default function AdminModelInsightsPage() {
             Fairlearn 0.97
           </span>
           <span className="text-[10px] text-foreground-secondary block">Zero Protected Disparities</span>
+        </div>
+      </div>
+
+      {/* TRAINING PIPELINE / AUDIT IN PROGRESS NOTICE */}
+      <div className="p-4 rounded-2xl bg-surface-highlight/40 border border-border text-xs flex items-start gap-3">
+        <AlertTriangle className="size-4 text-amber-500 shrink-0 mt-0.5" />
+        <div className="space-y-1">
+          <span className="font-semibold text-foreground block">
+            ML Training Pipeline & Fairlearn Demographic Audit in Progress
+          </span>
+          <p className="text-foreground-muted text-[11px] leading-relaxed">
+            LightGBM and Logistic Regression synthetic feature calibration is actively being trained by Person 2 & 3. In the interim, live assessments are scored through the deterministic <strong className="text-foreground">{activeModel?.model_name || 'MockAssessmentEngine'}</strong> registered in PostgreSQL. The metrics below represent the baseline validation benchmark and target statutory thresholds.
+          </p>
         </div>
       </div>
 
@@ -278,60 +320,101 @@ export default function AdminModelInsightsPage() {
             <FileCheck className="size-4 text-foreground-secondary" />
             Model Version Lineage & Regulatory Audit Log
           </h2>
-          <span className="text-xs font-mono text-foreground-muted">4 Iterations Logged</span>
+          <span className="text-xs font-mono text-foreground-muted">
+            {modelVersions.length > 0 ? `${modelVersions.length} Iterations Registered` : '4 Iterations Logged'}
+          </span>
         </div>
 
         <div className="space-y-3 pt-1 text-xs">
-          <div className="p-3.5 rounded-2xl bg-surface-highlight/40 border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div className="space-y-0.5">
-              <div className="flex items-center gap-2">
-                <span className="font-mono font-semibold text-foreground">v2.4-volatility-prod</span>
-                <Badge variant="mint" className="text-[9px] py-0 px-1.5">
-                  Current Active
-                </Badge>
+          {modelVersions.length > 0 ? (
+            modelVersions.map((mv) => (
+              <div
+                key={mv.id}
+                className={`p-3.5 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-2 ${
+                  mv.is_active
+                    ? 'bg-surface-highlight/40 border-border'
+                    : 'bg-surface-highlight/20 border-border'
+                }`}
+              >
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono font-semibold text-foreground">
+                      {mv.model_name} (v{mv.version})
+                    </span>
+                    <Badge
+                      variant={mv.is_active ? 'mint' : 'outline'}
+                      className="text-[9px] py-0 px-1.5"
+                    >
+                      {mv.is_active ? 'Current Active' : 'Archived'}
+                    </Badge>
+                  </div>
+                  <p className="text-foreground-secondary text-[11px]">
+                    {mv.description || `Algorithm: ${mv.algorithm}`}
+                  </p>
+                </div>
+                <span className="font-mono text-foreground-muted text-[11px] shrink-0">
+                  {new Date(mv.created_at).toLocaleDateString('en-IN', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                  })}
+                </span>
               </div>
-              <p className="text-foreground-secondary text-[11px]">
-                Introduced localized monsoon precipitation multipliers; tuned rebound window to 10–14 days.
-              </p>
-            </div>
-            <span className="font-mono text-foreground-muted text-[11px] shrink-0">
-              Sep 10, 2026
-            </span>
-          </div>
+            ))
+          ) : (
+            <>
+              <div className="p-3.5 rounded-2xl bg-surface-highlight/40 border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono font-semibold text-foreground">v2.4-volatility-prod</span>
+                    <Badge variant="mint" className="text-[9px] py-0 px-1.5">
+                      Current Active
+                    </Badge>
+                  </div>
+                  <p className="text-foreground-secondary text-[11px]">
+                    Introduced localized monsoon precipitation multipliers; tuned rebound window to 10–14 days.
+                  </p>
+                </div>
+                <span className="font-mono text-foreground-muted text-[11px] shrink-0">
+                  Sep 10, 2026
+                </span>
+              </div>
 
-          <div className="p-3.5 rounded-2xl bg-surface-highlight/20 border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div className="space-y-0.5">
-              <div className="flex items-center gap-2">
-                <span className="font-mono font-semibold text-foreground">v2.3-telemetry-sync</span>
-                <Badge variant="outline" className="text-[9px] py-0 px-1.5">
-                  Archived
-                </Badge>
+              <div className="p-3.5 rounded-2xl bg-surface-highlight/20 border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono font-semibold text-foreground">v2.3-telemetry-sync</span>
+                    <Badge variant="outline" className="text-[9px] py-0 px-1.5">
+                      Archived
+                    </Badge>
+                  </div>
+                  <p className="text-foreground-muted text-[11px]">
+                    Integrated Urban Company multi-tier task rating telemetry; calibrated AA cashflow weight.
+                  </p>
+                </div>
+                <span className="font-mono text-foreground-muted text-[11px] shrink-0">
+                  Jul 24, 2026
+                </span>
               </div>
-              <p className="text-foreground-muted text-[11px]">
-                Integrated Urban Company multi-tier task rating telemetry; calibrated AA cashflow weight.
-              </p>
-            </div>
-            <span className="font-mono text-foreground-muted text-[11px] shrink-0">
-              Jul 24, 2026
-            </span>
-          </div>
 
-          <div className="p-3.5 rounded-2xl bg-surface-highlight/20 border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div className="space-y-0.5">
-              <div className="flex items-center gap-2">
-                <span className="font-mono font-semibold text-foreground">v2.2-bbps-cadence</span>
-                <Badge variant="outline" className="text-[9px] py-0 px-1.5">
-                  Archived
-                </Badge>
+              <div className="p-3.5 rounded-2xl bg-surface-highlight/20 border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono font-semibold text-foreground">v2.2-bbps-cadence</span>
+                    <Badge variant="outline" className="text-[9px] py-0 px-1.5">
+                      Archived
+                    </Badge>
+                  </div>
+                  <p className="text-foreground-muted text-[11px]">
+                    Expanded NPCI BBPS biller network telemetry ingestion to include electricity and LPG cylinder cadence.
+                  </p>
+                </div>
+                <span className="font-mono text-foreground-muted text-[11px] shrink-0">
+                  May 12, 2026
+                </span>
               </div>
-              <p className="text-foreground-muted text-[11px]">
-                Expanded NPCI BBPS biller network telemetry ingestion to include electricity and LPG cylinder cadence.
-              </p>
-            </div>
-            <span className="font-mono text-foreground-muted text-[11px] shrink-0">
-              May 12, 2026
-            </span>
-          </div>
+            </>
+          )}
         </div>
       </Card>
 

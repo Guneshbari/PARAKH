@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Search,
@@ -9,6 +9,7 @@ import {
   FileText,
   Printer,
   SlidersHorizontal,
+  Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -17,6 +18,7 @@ import { Input } from '@/components/ui/input';
 import { PageTransition } from '@/components/motion/PageTransition';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { RiskBadge } from '@/components/shared/RiskBadge';
+import { api, adaptApplication } from '@parakh/api';
 import { mockAllAdminApplications } from '@/data/mock/admin';
 import { formatCurrency } from '@/lib/utils';
 
@@ -26,7 +28,45 @@ export default function AdminApplicationsPage() {
   const [riskFilter, setRiskFilter] = useState<string>('ALL');
   const [employmentFilter, setEmploymentFilter] = useState<string>('ALL');
 
-  const allApps = mockAllAdminApplications;
+  const [allApps, setAllApps] = useState<any[]>(mockAllAdminApplications);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadApps() {
+      try {
+        setIsLoading(true);
+        const rawApps = await api.getApplications();
+        if (!isMounted) return;
+        if (rawApps && rawApps.length > 0) {
+          const mapped = rawApps.map((app) => {
+            const adapted = adaptApplication(app);
+            return {
+              ...adapted,
+              applicantName: `Applicant ${app.applicant_profile_id ? app.applicant_profile_id.slice(0, 8) : app.id.slice(0, 8)}`,
+              sectorTag: adapted.purpose?.toLowerCase().includes('equipment') ? 'Micro-enterprise' : 'Urban Gig Delivery',
+              triggerReason:
+                app.status === 'MANUAL_REVIEW'
+                  ? 'Alternative cashflow volatility requires reviewer sign-off'
+                  : app.status === 'UNDER_REVIEW'
+                  ? 'Inflow signals currently under aggregation'
+                  : 'Standard credit risk evaluation',
+              submissionDate: app.created_at,
+            };
+          });
+          setAllApps(mapped);
+        }
+      } catch (err) {
+        console.warn('Could not fetch live applications for admin:', err);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    }
+    loadApps();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Multi-criteria filter
   const filteredApps = allApps.filter((app) => {
@@ -217,7 +257,15 @@ export default function AdminApplicationsPage() {
       </Card>
 
       {/* 4. APPLICATIONS TABLE / CARD DISPLAY */}
-      {filteredApps.length === 0 ? (
+      {isLoading ? (
+        <Card className="p-12 text-center space-y-3 bg-surface border-border">
+          <Loader2 className="size-8 animate-spin text-foreground mx-auto" />
+          <h3 className="text-base font-semibold text-foreground">Loading credit dossiers from backend...</h3>
+          <p className="text-xs text-foreground-muted max-w-sm mx-auto">
+            Retrieving live applications and review flags from PostgreSQL.
+          </p>
+        </Card>
+      ) : filteredApps.length === 0 ? (
         <Card className="p-12 text-center space-y-3 bg-surface border-border">
           <FileText className="size-8 text-foreground-muted mx-auto" />
           <h3 className="text-base font-semibold text-foreground">No applications match your filter criteria</h3>

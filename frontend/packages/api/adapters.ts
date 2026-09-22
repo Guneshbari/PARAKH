@@ -12,6 +12,7 @@ import type {
   FactorSummary,
   SHAPContribution,
   VolatilityProfile,
+  ReviewActionType,
 } from '@parakh/types';
 import type {
   BackendRiskLevel,
@@ -128,6 +129,22 @@ export function adaptReviewOutcomeStatus(backendOutcome?: string | null): Underw
       return 'VERIFICATION_REQUESTED';
     default:
       return 'PENDING';
+  }
+}
+
+/**
+ * Reverse mapping from frontend ReviewActionType to FastAPI ReviewOutcomeType.
+ */
+export function reverseAdaptReviewAction(action?: ReviewActionType | string | null): BackendReviewOutcomeType {
+  switch (action) {
+    case 'RECORD_OUTCOME':
+      return 'REVIEWED';
+    case 'MANUAL_REVIEW':
+      return 'ESCALATED';
+    case 'REQUEST_VERIFICATION':
+      return 'ADDITIONAL_INFORMATION_REQUIRED';
+    default:
+      return 'REVIEWED';
   }
 }
 

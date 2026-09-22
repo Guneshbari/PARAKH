@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Users,
@@ -17,6 +17,7 @@ import {
   Info,
   X,
   Send,
+  Loader2,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -37,6 +38,8 @@ import { MetricCard } from '@/components/shared/MetricCard';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { RiskBadge } from '@/components/shared/RiskBadge';
 import { useTheme } from '@/components/theme/ThemeProvider';
+import { useAuth } from '@/components/auth/AuthContext';
+import { api, reverseAdaptReviewAction, adaptApplication } from '@parakh/api';
 import {
   mockPortfolioAnalytics,
   mockScoreDistributionBuckets,
@@ -50,6 +53,13 @@ import type { ReviewActionType, UnderwriterReviewOutcome } from '@parakh/types';
 export default function AdminDashboardPage() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+  const { user } = useAuth();
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [reviewError, setReviewError] = useState<string | null>(null);
+  const [totalEvaluatedCount, setTotalEvaluatedCount] = useState(mockPortfolioAnalytics.totalEvaluated);
+  const [pipelineStagesData, setPipelineStagesData] = useState(mockPipelineStages);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
@@ -64,7 +74,10 @@ export default function AdminDashboardPage() {
   const [reviewSuccess, setReviewSuccess] = useState(false);
   const [activeQueue, setActiveQueue] = useState(mockPriorityReviewQueue);
 
-  const stats = mockPortfolioAnalytics;
+  const stats = {
+    ...mockPortfolioAnalytics,
+    totalEvaluated: totalEvaluatedCount,
+  };
 
   // Filter priority queue
   const filteredQueue = activeQueue.filter((item) => {
@@ -82,43 +95,100 @@ export default function AdminDashboardPage() {
     return matchesSearch && matchesFilter;
   });
 
-  const handleOpenReview = (item: (typeof mockPriorityReviewQueue)[0]) => {
+  const loadQueue = async () => {
+    try {
+      setIsLoading(true);
+      const rawApps = await api.getApplications();
+      if (rawApps && rawApps.length > 0) {
+        const mappedQueue = rawApps.map((app) => {
+          const adapted = adaptApplication(app);
+          return {
+            ...adapted,
+            applicantName: `Applicant ${app.applicant_profile_id ? app.applicant_profile_id.slice(0, 8) : app.id.slice(0, 8)}`,
+            sectorTag: adapted.purpose?.toLowerCase().includes('equipment') ? 'Micro-enterprise' : 'Informal Commerce',
+            triggerReason:
+              app.status === 'MANUAL_REVIEW'
+                ? 'Alternative cashflow volatility requires reviewer sign-off'
+                : app.status === 'UNDER_REVIEW'
+                ? 'Inflow signals currently under aggregation'
+                : 'Standard credit risk evaluation',
+          };
+        });
+        setActiveQueue(mappedQueue);
+        setTotalEvaluatedCount(rawApps.length);
+
+        const stageCounts = {
+          SUBMITTED: rawApps.filter((a) => a.status === 'SUBMITTED').length,
+          DATA_VALIDATION: rawApps.filter((a) => a.status === 'UNDER_REVIEW').length,
+          FINANCIAL_ANALYSIS: 0,
+          ASSESSMENT_COMPLETED: rawApps.filter((a) => a.status === 'ASSESSED').length,
+          MANUAL_REVIEW_REQUIRED: rawApps.filter((a) => a.status === 'MANUAL_REVIEW').length,
+          REVIEW_COMPLETED: rawApps.filter((a) => a.status === 'COMPLETED').length,
+        };
+
+        setPipelineStagesData((prev) =>
+          prev.map((stage) => ({
+            ...stage,
+            count: (stageCounts as any)[stage.id] ?? stage.count,
+          }))
+        );
+      }
+    } catch (err) {
+      console.warn('Could not load live applications for dashboard:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadQueue();
+  }, []);
+
+  const handleOpenReview = (item: (typeof activeQueue)[0]) => {
     setSelectedCase(item);
     setReviewNotes(item.review?.decisionNotes || '');
     setReviewAction(item.review?.action || 'MANUAL_REVIEW');
     setReviewSuccess(false);
+    setReviewError(null);
   };
 
-  const handleRecordReviewOutcome = (e: React.FormEvent) => {
+  const handleRecordReviewOutcome = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedCase) return;
 
-    const outcome: UnderwriterReviewOutcome = {
-      status: reviewAction === 'RECORD_OUTCOME' ? 'OUTCOME_RECORDED' : 'MANUAL_REVIEW_IN_PROGRESS',
-      action: reviewAction,
-      decisionNotes: reviewNotes || 'Credit reviewer notes recorded.',
-      underwriterName: 'Priya Sharma (Senior Credit Reviewer)',
-      underwriterId: 'UW-402',
-      recordedAt: new Date().toISOString(),
-    };
+    try {
+      setIsSubmitting(true);
+      setReviewError(null);
+      const outcome = reverseAdaptReviewAction(reviewAction);
+      const reviewerId = user?.id || '00000000-0000-0000-0000-000000000000';
 
-    setActiveQueue((prev) =>
-      prev.map((c) =>
-        c.id === selectedCase.id
-          ? {
-              ...c,
-              status: reviewAction === 'RECORD_OUTCOME' ? 'REVIEW_COMPLETED' : c.status,
-              review: outcome,
-            }
-          : c
-      )
-    );
+      await api.createReview(selectedCase.id, {
+        reviewer_id: reviewerId,
+        outcome: outcome,
+        notes: reviewNotes || 'Credit reviewer notes recorded.',
+      });
 
-    setReviewSuccess(true);
-    setTimeout(() => {
-      setSelectedCase(null);
-      setReviewSuccess(false);
-    }, 1500);
+      if (reviewAction === 'RECORD_OUTCOME') {
+        try {
+          await api.updateApplicationStatus(selectedCase.id, 'COMPLETED');
+        } catch {
+          // ignore transition error if already completed
+        }
+      }
+
+      await loadQueue();
+
+      setReviewSuccess(true);
+      setTimeout(() => {
+        setSelectedCase(null);
+        setReviewSuccess(false);
+      }, 1500);
+    } catch (err: any) {
+      console.error('Failed to submit review:', err);
+      setReviewError(err?.message || 'Failed to submit review to backend.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const chartBarColor = isDark ? '#FFFFFF' : '#472393';
@@ -368,7 +438,7 @@ export default function AdminDashboardPage() {
           </div>
 
           <div className="space-y-4 pt-1">
-            {mockPipelineStages.map((stage, idx) => {
+            {pipelineStagesData.map((stage, idx) => {
               const percentage = ((stage.count / stats.totalEvaluated) * 100).toFixed(1);
               return (
                 <div key={stage.id} className="space-y-1.5">
@@ -647,73 +717,88 @@ export default function AdminDashboardPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {filteredQueue.map((item) => (
-                <tr key={item.id} className="hover:bg-surface-highlight/30 transition-colors group">
-                  <td className="py-3.5 px-4 font-mono font-semibold text-foreground">
-                    {item.id}
-                  </td>
-
-                  <td className="py-3.5 px-4">
-                    <div className="space-y-0.5">
-                      <span className="font-semibold text-foreground block">{item.applicantName}</span>
-                      <span className="text-[11px] text-foreground-muted">{item.sectorTag}</span>
-                    </div>
-                  </td>
-
-                  <td className="py-3.5 px-4">
-                    <div className="space-y-0.5">
-                      <span className="font-mono font-semibold text-foreground block">
-                        {formatCurrency(item.requestedAmount)}
-                      </span>
-                      <span className="text-[10px] text-foreground-muted">{item.purpose}</span>
-                    </div>
-                  </td>
-
-                  <td className="py-3.5 px-4 max-w-xs">
-                    <span className="text-foreground-secondary text-xs block truncate" title={item.triggerReason}>
-                      {item.triggerReason}
-                    </span>
-                  </td>
-
-                  <td className="py-3.5 px-4">
-                    <div className="space-y-1">
-                      <StatusBadge status={item.status} />
-                      {item.assessment && (
-                        <div>
-                          <RiskBadge
-                            riskLevel={item.assessment.riskLevel}
-                            showIcon={false}
-                            className="text-[10px] py-0 px-2"
-                          />
-                        </div>
-                      )}
-                    </div>
-                  </td>
-
-                  <td className="py-3.5 px-4 text-right">
-                    <div className="flex items-center justify-end gap-1.5">
-                      <Link href={`/user/applications/${item.id}`}>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="rounded-full text-xs h-7 px-2.5 text-foreground-muted hover:text-foreground"
-                        >
-                          Lifecycle
-                        </Button>
-                      </Link>
-
-                      <Button
-                        variant="default"
-                        size="sm"
-                        onClick={() => handleOpenReview(item)}
-                        className="rounded-full text-xs h-7 px-3 font-semibold shadow-xs cursor-pointer"
-                      >
-                        Review
-                      </Button>
-                    </div>
+              {isLoading ? (
+                <tr>
+                  <td colSpan={6} className="py-10 text-center text-foreground-muted">
+                    <Loader2 className="size-5 animate-spin mx-auto mb-2 text-foreground" />
+                    <span>Loading priority review queue from backend...</span>
                   </td>
                 </tr>
-              ))}
+              ) : filteredQueue.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-8 text-center text-foreground-muted">
+                    No credit dossiers currently match the selected queue filter.
+                  </td>
+                </tr>
+              ) : (
+                filteredQueue.map((item) => (
+                  <tr key={item.id} className="hover:bg-surface-highlight/30 transition-colors group">
+                    <td className="py-3.5 px-4 font-mono font-semibold text-foreground">
+                      {item.id}
+                    </td>
+
+                    <td className="py-3.5 px-4">
+                      <div className="space-y-0.5">
+                        <span className="font-semibold text-foreground block">{item.applicantName}</span>
+                        <span className="text-[11px] text-foreground-muted">{item.sectorTag}</span>
+                      </div>
+                    </td>
+
+                    <td className="py-3.5 px-4">
+                      <div className="space-y-0.5">
+                        <span className="font-mono font-semibold text-foreground block">
+                          {formatCurrency(item.requestedAmount)}
+                        </span>
+                        <span className="text-[10px] text-foreground-muted">{item.purpose}</span>
+                      </div>
+                    </td>
+
+                    <td className="py-3.5 px-4 max-w-xs">
+                      <span className="text-foreground-secondary text-xs block truncate" title={item.triggerReason}>
+                        {item.triggerReason}
+                      </span>
+                    </td>
+
+                    <td className="py-3.5 px-4">
+                      <div className="space-y-1">
+                        <StatusBadge status={item.status} />
+                        {item.assessment && (
+                          <div>
+                            <RiskBadge
+                              riskLevel={item.assessment.riskLevel}
+                              showIcon={false}
+                              className="text-[10px] py-0 px-2"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </td>
+
+                    <td className="py-3.5 px-4 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <Link href={`/admin/applications/${item.id}`}>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="rounded-full text-xs h-7 px-2.5 text-foreground-muted hover:text-foreground"
+                          >
+                            Dossier
+                          </Button>
+                        </Link>
+
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={() => handleOpenReview(item)}
+                          className="rounded-full text-xs h-7 px-3 font-semibold shadow-xs cursor-pointer"
+                        >
+                          Review
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -804,10 +889,17 @@ export default function AdminDashboardPage() {
                 />
               </div>
 
+              {reviewError && (
+                <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs flex items-center gap-2">
+                  <AlertCircle className="size-4 shrink-0" />
+                  <span>{reviewError}</span>
+                </div>
+              )}
+
               {reviewSuccess && (
                 <div className="p-3 rounded-xl bg-surface-highlight border border-border text-foreground text-xs flex items-center gap-2">
                   <CheckCircle2 className="size-4 shrink-0" />
-                  <span>Review outcome recorded to audit ledger successfully.</span>
+                  <span>Review outcome recorded to PostgreSQL audit ledger successfully.</span>
                 </div>
               )}
 
@@ -816,6 +908,7 @@ export default function AdminDashboardPage() {
                   type="button"
                   variant="ghost"
                   size="sm"
+                  disabled={isSubmitting}
                   onClick={() => setSelectedCase(null)}
                   className="rounded-full text-xs text-foreground-muted hover:text-foreground"
                 >
@@ -825,9 +918,18 @@ export default function AdminDashboardPage() {
                   type="submit"
                   variant="default"
                   size="sm"
+                  disabled={isSubmitting}
                   className="rounded-full text-xs font-semibold gap-1.5 shadow-xs cursor-pointer"
                 >
-                  <Send className="size-3.5" /> Save Audit Record
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="size-3.5 animate-spin" /> Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="size-3.5" /> Save Audit Record
+                    </>
+                  )}
                 </Button>
               </div>
             </form>
