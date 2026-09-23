@@ -81,6 +81,7 @@ class CreditRiskPreprocessor(BaseEstimator, TransformerMixin):
         leverage_clip_bounds: Tuple[float, float] = (0.0, 5.0),
         add_missing_indicators: bool = True,
         include_raw_loan_features: bool = True,
+        selected_features: Optional[List[str]] = None,
     ) -> None:
         """Initialize preprocessing hyperparameters.
 
@@ -91,6 +92,7 @@ class CreditRiskPreprocessor(BaseEstimator, TransformerMixin):
             leverage_clip_bounds: Lower and upper clipping bounds for leverage ratios (default [0.0, 5.0]).
             add_missing_indicators: Whether to generate binary missingness flags for imputed columns.
             include_raw_loan_features: Whether to include raw loan and profile features (amount, tenure, etc.).
+            selected_features: Optional explicit list of feature names to include in the output matrix.
         """
         self.scaler_type = scaler_type
         self.apply_log_transform = apply_log_transform
@@ -98,6 +100,7 @@ class CreditRiskPreprocessor(BaseEstimator, TransformerMixin):
         self.leverage_clip_bounds = leverage_clip_bounds
         self.add_missing_indicators = add_missing_indicators
         self.include_raw_loan_features = include_raw_loan_features
+        self.selected_features = selected_features
 
         # Fitted state
         self.is_fitted_: bool = False
@@ -132,15 +135,27 @@ class CreditRiskPreprocessor(BaseEstimator, TransformerMixin):
             for col in RAW_NUMERIC_COLUMNS:
                 if col not in all_numeric_candidates and col in X.columns:
                     all_numeric_candidates.append(col)
+        for col in X.columns:
+            if col.startswith("feat_eng_") and col not in all_numeric_candidates:
+                all_numeric_candidates.append(col)
 
         self.numeric_feature_names_in_ = [
             c for c in all_numeric_candidates if c in X.columns and c not in EXCLUDED_NON_PREDICTORS
         ]
 
+        if self.selected_features is not None:
+            self.numeric_feature_names_in_ = [
+                c for c in self.numeric_feature_names_in_ if c in self.selected_features
+            ]
+
         if self.include_raw_loan_features:
             self.categorical_feature_names_in_ = [
                 c for c in CATEGORICAL_INPUT_COLUMNS if c in X.columns and c not in EXCLUDED_NON_PREDICTORS
             ]
+            if self.selected_features is not None:
+                self.categorical_feature_names_in_ = [
+                    c for c in self.categorical_feature_names_in_ if c in self.selected_features
+                ]
         else:
             self.categorical_feature_names_in_ = []
 
