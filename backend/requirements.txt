@@ -8,3 +8,11 @@ psycopg[binary]
 alembic
 pyjwt
 bcrypt
+
+# ML inference runtime dependencies
+lightgbm
+scikit-learn
+shap
+pandas
+pyarrow
+joblib
