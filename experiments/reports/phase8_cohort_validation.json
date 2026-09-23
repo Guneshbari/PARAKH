@@ -1,0 +1,186 @@
+{
+  "evaluation_partition": "test",
+  "disclaimer": "NOTICE: Cohorts represent synthetic behavioral dynamics for prototype evaluation. Metrics describe model generalization across simulated volatility patterns and must not be interpreted as empirical real-world subgroup discrimination or compliance.",
+  "cohorts": {
+    "Declining": {
+      "cohort_name": "Declining",
+      "sample_count": 347,
+      "default_count": 126,
+      "empirical_default_rate": 0.3631,
+      "baseline_model": {
+        "roc_auc": 0.9502,
+        "pr_auc": 0.9279,
+        "brier_score": 0.086,
+        "precision": 0.8522,
+        "recall": 0.7778,
+        "f1": 0.8133,
+        "true_positives": 98,
+        "false_positives": 17,
+        "true_negatives": 204,
+        "false_negatives": 28
+      },
+      "volatility_aware_model": {
+        "roc_auc": 0.9498,
+        "pr_auc": 0.9294,
+        "brier_score": 0.0875,
+        "precision": 0.8684,
+        "recall": 0.7857,
+        "f1": 0.825,
+        "true_positives": 99,
+        "false_positives": 15,
+        "true_negatives": 206,
+        "false_negatives": 27
+      },
+      "deltas_volatility_minus_baseline": {
+        "pr_auc_delta": 0.0015,
+        "roc_auc_delta": -0.0004,
+        "brier_delta": 0.0015,
+        "recall_delta": 0.0079
+      }
+    },
+    "Healthy Volatile": {
+      "cohort_name": "Healthy Volatile",
+      "sample_count": 415,
+      "default_count": 3,
+      "empirical_default_rate": 0.0072,
+      "baseline_model": {
+        "roc_auc": 0.9976,
+        "pr_auc": 0.7556,
+        "brier_score": 0.0042,
+        "precision": 1.0,
+        "recall": 0.3333,
+        "f1": 0.5,
+        "true_positives": 1,
+        "false_positives": 0,
+        "true_negatives": 412,
+        "false_negatives": 2
+      },
+      "volatility_aware_model": {
+        "roc_auc": 0.9984,
+        "pr_auc": 0.8667,
+        "brier_score": 0.0052,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "true_positives": 0,
+        "false_positives": 0,
+        "true_negatives": 412,
+        "false_negatives": 3
+      },
+      "deltas_volatility_minus_baseline": {
+        "pr_auc_delta": 0.1111,
+        "roc_auc_delta": 0.0008,
+        "brier_delta": 0.001,
+        "recall_delta": -0.3333
+      }
+    },
+    "High Obligation": {
+      "cohort_name": "High Obligation",
+      "sample_count": 173,
+      "default_count": 13,
+      "empirical_default_rate": 0.0751,
+      "baseline_model": {
+        "roc_auc": 0.9163,
+        "pr_auc": 0.5535,
+        "brier_score": 0.0492,
+        "precision": 1.0,
+        "recall": 0.2308,
+        "f1": 0.375,
+        "true_positives": 3,
+        "false_positives": 0,
+        "true_negatives": 160,
+        "false_negatives": 10
+      },
+      "volatility_aware_model": {
+        "roc_auc": 0.9582,
+        "pr_auc": 0.7933,
+        "brier_score": 0.0309,
+        "precision": 0.8889,
+        "recall": 0.6154,
+        "f1": 0.7273,
+        "true_positives": 8,
+        "false_positives": 1,
+        "true_negatives": 159,
+        "false_negatives": 5
+      },
+      "deltas_volatility_minus_baseline": {
+        "pr_auc_delta": 0.2398,
+        "roc_auc_delta": 0.0419,
+        "brier_delta": -0.0183,
+        "recall_delta": 0.3846
+      }
+    },
+    "Irregular": {
+      "cohort_name": "Irregular",
+      "sample_count": 299,
+      "default_count": 96,
+      "empirical_default_rate": 0.3211,
+      "baseline_model": {
+        "roc_auc": 0.9027,
+        "pr_auc": 0.8355,
+        "brier_score": 0.1146,
+        "precision": 0.7922,
+        "recall": 0.6354,
+        "f1": 0.7052,
+        "true_positives": 61,
+        "false_positives": 16,
+        "true_negatives": 187,
+        "false_negatives": 35
+      },
+      "volatility_aware_model": {
+        "roc_auc": 0.9115,
+        "pr_auc": 0.8449,
+        "brier_score": 0.111,
+        "precision": 0.7882,
+        "recall": 0.6979,
+        "f1": 0.7403,
+        "true_positives": 67,
+        "false_positives": 18,
+        "true_negatives": 185,
+        "false_negatives": 29
+      },
+      "deltas_volatility_minus_baseline": {
+        "pr_auc_delta": 0.0094,
+        "roc_auc_delta": 0.0088,
+        "brier_delta": -0.0036,
+        "recall_delta": 0.0625
+      }
+    },
+    "Stable": {
+      "cohort_name": "Stable",
+      "sample_count": 464,
+      "default_count": 10,
+      "empirical_default_rate": 0.0216,
+      "baseline_model": {
+        "roc_auc": 0.9839,
+        "pr_auc": 0.6483,
+        "brier_score": 0.0127,
+        "precision": 1.0,
+        "recall": 0.4,
+        "f1": 0.5714,
+        "true_positives": 4,
+        "false_positives": 0,
+        "true_negatives": 454,
+        "false_negatives": 6
+      },
+      "volatility_aware_model": {
+        "roc_auc": 0.9663,
+        "pr_auc": 0.6033,
+        "brier_score": 0.0143,
+        "precision": 1.0,
+        "recall": 0.1,
+        "f1": 0.1818,
+        "true_positives": 1,
+        "false_positives": 0,
+        "true_negatives": 454,
+        "false_negatives": 9
+      },
+      "deltas_volatility_minus_baseline": {
+        "pr_auc_delta": -0.045,
+        "roc_auc_delta": -0.0176,
+        "brier_delta": 0.0016,
+        "recall_delta": -0.3
+      }
+    }
+  }
+}
