@@ -1,0 +1,26 @@
+==============================================================================
+PARAKH SYNTHETIC DATASET VALIDATION REPORT — Status: PASS
+==============================================================================
+Timestamp:          2026-09-23T14:30:07.840132+00:00
+Total Applications: 12000
+Unique Applicants:  10000
+Unique Applications:12000
+Scored Records:     11407
+Unscored Records:   593
+Defaults Count:     1486
+Observed Default Rate: 13.03% (Frozen Expectation: 10.0% - 15.0%)
+------------------------------------------------------------------------------
+COHORT PROPORTIONS:
+  - Healthy Volatile    :  2976 (24.80%, Expected: 25.00%)
+  - Stable              :  3040 (25.33%, Expected: 25.00%)
+  - Declining           :  2385 (19.88%, Expected: 20.00%)
+  - Irregular           :  1803 (15.02%, Expected: 15.00%)
+  - High Obligation     :  1203 (10.03%, Expected: 10.00%)
+  - Insufficient Data   :   593 ( 4.94%, Expected:  5.00%)
+------------------------------------------------------------------------------
+LEAKAGE CHECKS:     PASSED
+IMPOSSIBLE COMBOS:  0 Violations
+DETERMINISM TEST:   PASSED
+ERRORS DETECTED:    0
+WARNINGS DETECTED:  0
+==============================================================================

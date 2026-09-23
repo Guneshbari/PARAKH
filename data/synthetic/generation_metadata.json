@@ -1,0 +1,15 @@
+{
+  "master_seed": 42,
+  "total_applications": 12000,
+  "unique_applicants": 10000,
+  "repeat_applicants": 2000,
+  "canonical_schema_columns": 52,
+  "parquet_path": "data/synthetic/synthetic_credit_applications.parquet",
+  "generation_timestamp": "2026-09-23T14:30:08.834842+00:00",
+  "elapsed_seconds": 14.45,
+  "overall_validation_status": "PASS",
+  "default_rate": 0.1303,
+  "scored_count": 11407,
+  "unscored_count": 593,
+  "default_count": 1486
+}
