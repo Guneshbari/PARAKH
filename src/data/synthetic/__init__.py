@@ -79,11 +79,41 @@ from src.data.synthetic.target_generator import (
     generate_forward_outcomes,
     validate_forward_outcome,
 )
+from src.data.synthetic.exceptions import (
+    GeneratorError,
+    ConfigurationError,
+    SchemaError,
+    ValidationError,
+    TemporalLeakageError,
+    ImpossibleCombinationError,
+    MissingnessViolationError,
+    ReproducibilityError,
+    IdentityValidationError,
+    CohortValidationError,
+    TargetValidationError,
+    FeatureRangeError,
+)
 from src.data.synthetic.assembly import (
     assemble_application_record,
     assemble_dataset,
     validate_assembled_record,
     validate_assembled_dataset,
+)
+from src.data.synthetic.validators import (
+    ValidationErrorDetail,
+    DatasetValidationReport,
+    validate_record_schema,
+    validate_identities_and_relations,
+    validate_cohort_distribution,
+    validate_feature_semantics,
+    validate_target_semantics,
+    validate_temporal_distribution,
+    validate_impossible_combinations,
+    validate_missingness,
+    validate_leakage_suite,
+    validate_determinism,
+    validate_dataset,
+    validate_dataset_strict,
 )
 
 __all__ = [
@@ -133,6 +163,10 @@ __all__ = [
     "ImpossibleCombinationError",
     "MissingnessViolationError",
     "ReproducibilityError",
+    "IdentityValidationError",
+    "CohortValidationError",
+    "TargetValidationError",
+    "FeatureRangeError",
     # Generators
     "generate_cohort_assignments",
     "generate_deterministic_uuid",
@@ -163,5 +197,20 @@ __all__ = [
     "assemble_dataset",
     "validate_assembled_record",
     "validate_assembled_dataset",
+    # Validation & Leakage
+    "ValidationErrorDetail",
+    "DatasetValidationReport",
+    "validate_record_schema",
+    "validate_identities_and_relations",
+    "validate_cohort_distribution",
+    "validate_feature_semantics",
+    "validate_target_semantics",
+    "validate_temporal_distribution",
+    "validate_impossible_combinations",
+    "validate_missingness",
+    "validate_leakage_suite",
+    "validate_determinism",
+    "validate_dataset",
+    "validate_dataset_strict",
 ]
 

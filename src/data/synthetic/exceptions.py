@@ -54,3 +54,23 @@ class MissingnessViolationError(ValidationError):
 class ReproducibilityError(ValidationError):
     """Raised when identical seeds fail to reproduce identical outputs."""
     pass
+
+
+class IdentityValidationError(ValidationError):
+    """Raised when identity format, uniqueness, or relational integrity fails."""
+    pass
+
+
+class CohortValidationError(ValidationError):
+    """Raised when cohort classification, proportions, or values fail validation."""
+    pass
+
+
+class TargetValidationError(ValidationError):
+    """Raised when target encoding, risk probability, or default consistency fails."""
+    pass
+
+
+class FeatureRangeError(ValidationError):
+    """Raised when a feature value violates its physical bounds or data type."""
+    pass
