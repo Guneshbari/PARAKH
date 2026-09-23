@@ -199,6 +199,25 @@ class DerivedFeatures:
 
 
 @dataclass
+class ApplicationFeatures:
+    """Stage G/H output: Complete intermediate feature vector for an application."""
+    application_id: str
+    applicant_profile_id: str
+    cutoff_timestamp: str
+    features: DerivedFeatures
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary containing identifiers and all 40 derived features."""
+        result: Dict[str, Any] = {
+            "application_id": self.application_id,
+            "applicant_profile_id": self.applicant_profile_id,
+            "cutoff_timestamp": self.cutoff_timestamp,
+        }
+        result.update(self.features.__dict__)
+        return result
+
+
+@dataclass
 class ForwardOutcome:
     """Stage I/J output: Forward cashflow simulation and default classification."""
     application_id: str

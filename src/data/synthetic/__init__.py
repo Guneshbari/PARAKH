@@ -25,6 +25,7 @@ from src.data.synthetic.schemas import (
     HistoricalTelemetry,
     ApplicationHistoricalData,
     DerivedFeatures,
+    ApplicationFeatures,
     ForwardOutcome,
     FinalRecord,
     PopulationData,
@@ -65,6 +66,10 @@ from src.data.synthetic.telemetry_generator import (
     format_utc_iso,
     generate_application_history,
 )
+from src.data.synthetic.feature_derivation import (
+    derive_application_features,
+    validate_derived_features,
+)
 
 __all__ = [
     # Config
@@ -86,6 +91,7 @@ __all__ = [
     "HistoricalTelemetry",
     "ApplicationHistoricalData",
     "DerivedFeatures",
+    "ApplicationFeatures",
     "ForwardOutcome",
     "FinalRecord",
     "PopulationData",
@@ -127,5 +133,7 @@ __all__ = [
     "get_application_rng",
     "format_utc_iso",
     "generate_application_history",
+    "derive_application_features",
+    "validate_derived_features",
 ]
 
