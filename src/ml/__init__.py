@@ -12,6 +12,7 @@ from src.ml.constants import (
 from src.ml.models.base import BaseRiskModel, NotFittedError
 from src.ml.models.baseline import LogisticRegressionBaseline
 from src.ml.models.prediction import PredictionResult
+from src.ml.models.volatility_aware import VolatilityAwareRiskModel
 
 __all__ = [
     "DEFAULT_RANDOM_SEED",
@@ -22,5 +23,6 @@ __all__ = [
     "BaseRiskModel",
     "NotFittedError",
     "LogisticRegressionBaseline",
+    "VolatilityAwareRiskModel",
     "PredictionResult",
 ]

@@ -8,3 +8,4 @@ seaborn
 jupyter
 shap
 joblib
+lightgbm

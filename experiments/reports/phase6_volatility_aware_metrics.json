@@ -1,0 +1,22 @@
+{
+  "model_name": "volatility-aware-risk-model",
+  "model_version": "1.0.0",
+  "evaluation_split": "validation",
+  "sample_count": 1697,
+  "positive_samples": 214,
+  "negative_samples": 1483,
+  "positive_rate": 0.1261,
+  "roc_auc": 0.9796,
+  "pr_auc": 0.909,
+  "brier_score": 0.0328,
+  "expected_calibration_error_uniform": 0.014,
+  "maximum_calibration_error_uniform": 0.1917,
+  "threshold": 0.5,
+  "precision": 0.892,
+  "recall": 0.7336,
+  "f1": 0.8051,
+  "true_positives": 157,
+  "false_positives": 19,
+  "true_negatives": 1464,
+  "false_negatives": 57
+}

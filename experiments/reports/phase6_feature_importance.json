@@ -1,0 +1,455 @@
+{
+  "model_name": "volatility-aware-risk-model",
+  "model_version": "1.0.0",
+  "feature_count": 64,
+  "feature_importances": [
+    {
+      "rank": 1,
+      "feature": "feat_liq_net_margin",
+      "split_importance": 522,
+      "gain_importance": 29942.2413,
+      "normalized_gain": 0.528968
+    },
+    {
+      "rank": 2,
+      "feature": "requested_loan_amount",
+      "split_importance": 239,
+      "gain_importance": 6058.7743,
+      "normalized_gain": 0.107036
+    },
+    {
+      "rank": 3,
+      "feature": "feat_liq_burn_months",
+      "split_importance": 408,
+      "gain_importance": 5034.5874,
+      "normalized_gain": 0.088942
+    },
+    {
+      "rank": 4,
+      "feature": "average_working_days",
+      "split_importance": 530,
+      "gain_importance": 3565.5967,
+      "normalized_gain": 0.062991
+    },
+    {
+      "rank": 5,
+      "feature": "feat_ten_trips_completed",
+      "split_importance": 185,
+      "gain_importance": 1148.3999,
+      "normalized_gain": 0.020288
+    },
+    {
+      "rank": 6,
+      "feature": "feat_act_active_days_ratio",
+      "split_importance": 172,
+      "gain_importance": 876.0555,
+      "normalized_gain": 0.015477
+    },
+    {
+      "rank": 7,
+      "feature": "feat_bur_loan_to_income",
+      "split_importance": 85,
+      "gain_importance": 691.5093,
+      "normalized_gain": 0.012216
+    },
+    {
+      "rank": 8,
+      "feature": "feat_inc_downside_var",
+      "split_importance": 98,
+      "gain_importance": 516.9133,
+      "normalized_gain": 0.009132
+    },
+    {
+      "rank": 9,
+      "feature": "feat_bur_dti_ratio",
+      "split_importance": 108,
+      "gain_importance": 490.2362,
+      "normalized_gain": 0.008661
+    },
+    {
+      "rank": 10,
+      "feature": "feat_act_weekend_intensity",
+      "split_importance": 142,
+      "gain_importance": 474.6123,
+      "normalized_gain": 0.008385
+    },
+    {
+      "rank": 11,
+      "feature": "feat_bur_total_dti",
+      "split_importance": 93,
+      "gain_importance": 433.3515,
+      "normalized_gain": 0.007656
+    },
+    {
+      "rank": 12,
+      "feature": "feat_bur_installment_dti",
+      "split_importance": 111,
+      "gain_importance": 423.848,
+      "normalized_gain": 0.007488
+    },
+    {
+      "rank": 13,
+      "feature": "feat_pay_utility_on_time",
+      "split_importance": 143,
+      "gain_importance": 417.0152,
+      "normalized_gain": 0.007367
+    },
+    {
+      "rank": 14,
+      "feature": "loan_tenure_months",
+      "split_importance": 65,
+      "gain_importance": 389.6281,
+      "normalized_gain": 0.006883
+    },
+    {
+      "rank": 15,
+      "feature": "feat_liq_buffer_to_loan",
+      "split_importance": 73,
+      "gain_importance": 387.0119,
+      "normalized_gain": 0.006837
+    },
+    {
+      "rank": 16,
+      "feature": "feat_trend_slope_90d",
+      "split_importance": 82,
+      "gain_importance": 328.632,
+      "normalized_gain": 0.005806
+    },
+    {
+      "rank": 17,
+      "feature": "feat_eng_buffer_burn_coverage",
+      "split_importance": 59,
+      "gain_importance": 322.0307,
+      "normalized_gain": 0.005689
+    },
+    {
+      "rank": 18,
+      "feature": "feat_ten_platform_rating",
+      "split_importance": 91,
+      "gain_importance": 279.3185,
+      "normalized_gain": 0.004935
+    },
+    {
+      "rank": 19,
+      "feature": "feat_inc_iqr_ratio",
+      "split_importance": 77,
+      "gain_importance": 268.7436,
+      "normalized_gain": 0.004748
+    },
+    {
+      "rank": 20,
+      "feature": "feat_rec_bounceback_ratio",
+      "split_importance": 58,
+      "gain_importance": 247.8507,
+      "normalized_gain": 0.004379
+    },
+    {
+      "rank": 21,
+      "feature": "feat_eng_vol_to_bounceback",
+      "split_importance": 42,
+      "gain_importance": 245.4738,
+      "normalized_gain": 0.004337
+    },
+    {
+      "rank": 22,
+      "feature": "feat_ten_years_working",
+      "split_importance": 92,
+      "gain_importance": 240.5102,
+      "normalized_gain": 0.004249
+    },
+    {
+      "rank": 23,
+      "feature": "feat_ten_cancellation_rate",
+      "split_importance": 82,
+      "gain_importance": 237.3599,
+      "normalized_gain": 0.004193
+    },
+    {
+      "rank": 24,
+      "feature": "feat_act_max_idle_streak",
+      "split_importance": 49,
+      "gain_importance": 226.1659,
+      "normalized_gain": 0.003996
+    },
+    {
+      "rank": 25,
+      "feature": "feat_eng_installment_floor_coverage",
+      "split_importance": 74,
+      "gain_importance": 225.7559,
+      "normalized_gain": 0.003988
+    },
+    {
+      "rank": 26,
+      "feature": "feat_int_vol_x_recovery",
+      "split_importance": 53,
+      "gain_importance": 219.2115,
+      "normalized_gain": 0.003873
+    },
+    {
+      "rank": 27,
+      "feature": "feat_int_vol_x_buffer",
+      "split_importance": 47,
+      "gain_importance": 211.3526,
+      "normalized_gain": 0.003734
+    },
+    {
+      "rank": 28,
+      "feature": "feat_eng_vol_to_baseline",
+      "split_importance": 54,
+      "gain_importance": 207.3401,
+      "normalized_gain": 0.003663
+    },
+    {
+      "rank": 29,
+      "feature": "feat_inc_p25_90d",
+      "split_importance": 44,
+      "gain_importance": 206.5458,
+      "normalized_gain": 0.003649
+    },
+    {
+      "rank": 30,
+      "feature": "feat_eng_vol_cushion_ratio",
+      "split_importance": 34,
+      "gain_importance": 198.7533,
+      "normalized_gain": 0.003511
+    },
+    {
+      "rank": 31,
+      "feature": "feat_int_trend_x_dti",
+      "split_importance": 46,
+      "gain_importance": 184.8292,
+      "normalized_gain": 0.003265
+    },
+    {
+      "rank": 32,
+      "feature": "feat_inc_mean_90d",
+      "split_importance": 43,
+      "gain_importance": 179.9065,
+      "normalized_gain": 0.003178
+    },
+    {
+      "rank": 33,
+      "feature": "feat_eng_vol_x_trend",
+      "split_importance": 58,
+      "gain_importance": 177.8541,
+      "normalized_gain": 0.003142
+    },
+    {
+      "rank": 34,
+      "feature": "feat_eng_dti_risk_multiplier",
+      "split_importance": 55,
+      "gain_importance": 174.2383,
+      "normalized_gain": 0.003078
+    },
+    {
+      "rank": 35,
+      "feature": "feat_eng_recovery_velocity",
+      "split_importance": 50,
+      "gain_importance": 171.697,
+      "normalized_gain": 0.003033
+    },
+    {
+      "rank": 36,
+      "feature": "feat_trend_momentum_30_90",
+      "split_importance": 46,
+      "gain_importance": 154.6453,
+      "normalized_gain": 0.002732
+    },
+    {
+      "rank": 37,
+      "feature": "feat_inc_cv_90d",
+      "split_importance": 38,
+      "gain_importance": 150.8744,
+      "normalized_gain": 0.002665
+    },
+    {
+      "rank": 38,
+      "feature": "feat_inc_trimmed_mean",
+      "split_importance": 43,
+      "gain_importance": 143.2025,
+      "normalized_gain": 0.00253
+    },
+    {
+      "rank": 39,
+      "feature": "feat_eng_downside_to_median",
+      "split_importance": 44,
+      "gain_importance": 133.2551,
+      "normalized_gain": 0.002354
+    },
+    {
+      "rank": 40,
+      "feature": "feat_inc_median_90d",
+      "split_importance": 39,
+      "gain_importance": 125.0803,
+      "normalized_gain": 0.00221
+    },
+    {
+      "rank": 41,
+      "feature": "feat_int_resilience_idx",
+      "split_importance": 24,
+      "gain_importance": 97.3621,
+      "normalized_gain": 0.00172
+    },
+    {
+      "rank": 42,
+      "feature": "feat_act_zero_earn_weeks",
+      "split_importance": 5,
+      "gain_importance": 78.4946,
+      "normalized_gain": 0.001387
+    },
+    {
+      "rank": 43,
+      "feature": "feat_inc_min_max_ratio",
+      "split_importance": 13,
+      "gain_importance": 72.1968,
+      "normalized_gain": 0.001275
+    },
+    {
+      "rank": 44,
+      "feature": "loan_purpose_WORKING_CAPITAL",
+      "split_importance": 24,
+      "gain_importance": 71.5686,
+      "normalized_gain": 0.001264
+    },
+    {
+      "rank": 45,
+      "feature": "feat_trend_consec_drops",
+      "split_importance": 17,
+      "gain_importance": 56.0244,
+      "normalized_gain": 0.00099
+    },
+    {
+      "rank": 46,
+      "feature": "feat_rec_max_drawdown",
+      "split_importance": 10,
+      "gain_importance": 34.7583,
+      "normalized_gain": 0.000614
+    },
+    {
+      "rank": 47,
+      "feature": "loan_purpose_VEHICLE_MAINTENANCE",
+      "split_importance": 9,
+      "gain_importance": 25.6815,
+      "normalized_gain": 0.000454
+    },
+    {
+      "rank": 48,
+      "feature": "gig_work_type_DELIVERY",
+      "split_importance": 5,
+      "gain_importance": 13.3902,
+      "normalized_gain": 0.000237
+    },
+    {
+      "rank": 49,
+      "feature": "feat_rec_days_to_recover",
+      "split_importance": 5,
+      "gain_importance": 12.7206,
+      "normalized_gain": 0.000225
+    },
+    {
+      "rank": 50,
+      "feature": "loan_purpose_EQUIPMENT_PURCHASE",
+      "split_importance": 4,
+      "gain_importance": 9.4887,
+      "normalized_gain": 0.000168
+    },
+    {
+      "rank": 51,
+      "feature": "gig_work_type_RIDE_HAILING",
+      "split_importance": 4,
+      "gain_importance": 8.0426,
+      "normalized_gain": 0.000142
+    },
+    {
+      "rank": 52,
+      "feature": "gig_work_type_LOGISTICS",
+      "split_importance": 2,
+      "gain_importance": 4.8563,
+      "normalized_gain": 8.6e-05
+    },
+    {
+      "rank": 53,
+      "feature": "gig_work_type_HOME_SERVICES",
+      "split_importance": 2,
+      "gain_importance": 3.5101,
+      "normalized_gain": 6.2e-05
+    },
+    {
+      "rank": 54,
+      "feature": "feat_suf_group_count",
+      "split_importance": 1,
+      "gain_importance": 3.4879,
+      "normalized_gain": 6.2e-05
+    },
+    {
+      "rank": 55,
+      "feature": "loan_purpose_PERSONAL_EMERGENCY",
+      "split_importance": 1,
+      "gain_importance": 3.0209,
+      "normalized_gain": 5.3e-05
+    },
+    {
+      "rank": 56,
+      "feature": "feat_suf_observed_days",
+      "split_importance": 0,
+      "gain_importance": 0.0,
+      "normalized_gain": 0.0
+    },
+    {
+      "rank": 57,
+      "feature": "feat_suf_missing_ratio",
+      "split_importance": 0,
+      "gain_importance": 0.0,
+      "normalized_gain": 0.0
+    },
+    {
+      "rank": 58,
+      "feature": "feat_suf_payout_count",
+      "split_importance": 0,
+      "gain_importance": 0.0,
+      "normalized_gain": 0.0
+    },
+    {
+      "rank": 59,
+      "feature": "feat_pay_repay_reliability",
+      "split_importance": 0,
+      "gain_importance": 0.0,
+      "normalized_gain": 0.0
+    },
+    {
+      "rank": 60,
+      "feature": "feat_pay_max_bill_delay",
+      "split_importance": 0,
+      "gain_importance": 0.0,
+      "normalized_gain": 0.0
+    },
+    {
+      "rank": 61,
+      "feature": "years_working",
+      "split_importance": 0,
+      "gain_importance": 0.0,
+      "normalized_gain": 0.0
+    },
+    {
+      "rank": 62,
+      "feature": "gig_work_type_FREELANCE_MICRO",
+      "split_importance": 0,
+      "gain_importance": 0.0,
+      "normalized_gain": 0.0
+    },
+    {
+      "rank": 63,
+      "feature": "gig_work_type_OTHER",
+      "split_importance": 0,
+      "gain_importance": 0.0,
+      "normalized_gain": 0.0
+    },
+    {
+      "rank": 64,
+      "feature": "loan_purpose_OTHER",
+      "split_importance": 0,
+      "gain_importance": 0.0,
+      "normalized_gain": 0.0
+    }
+  ]
+}
