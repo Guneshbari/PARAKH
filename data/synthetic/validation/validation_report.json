@@ -1,0 +1,680 @@
+{
+  "validation_timestamp": "2026-09-23T14:30:07.840132+00:00",
+  "row_count": 12000,
+  "unique_applicants": 10000,
+  "unique_applications": 12000,
+  "cohort_counts": {
+    "Healthy Volatile": 2976,
+    "Stable": 3040,
+    "Declining": 2385,
+    "Irregular": 1803,
+    "High Obligation": 1203,
+    "Insufficient Data": 593
+  },
+  "cohort_proportions": {
+    "Healthy Volatile": 0.248,
+    "Stable": 0.25333333333333335,
+    "Declining": 0.19875,
+    "Irregular": 0.15025,
+    "High Obligation": 0.10025,
+    "Insufficient Data": 0.049416666666666664
+  },
+  "scored_count": 11407,
+  "unscored_count": 593,
+  "default_count": 1486,
+  "default_rate": 0.1303,
+  "feature_missingness": {
+    "applicant_profile_id": 0,
+    "application_id": 0,
+    "cutoff_timestamp": 0,
+    "cohort_archetype": 0,
+    "gig_work_type": 0,
+    "years_working": 0,
+    "average_working_days": 0,
+    "requested_loan_amount": 0,
+    "loan_tenure_months": 0,
+    "loan_purpose": 0,
+    "feat_inc_median_90d": 0,
+    "feat_inc_p25_90d": 0,
+    "feat_inc_cv_90d": 0,
+    "feat_inc_downside_var": 0,
+    "feat_trend_slope_90d": 0,
+    "feat_trend_momentum_30_90": 0,
+    "feat_act_active_days_ratio": 0,
+    "feat_act_zero_earn_weeks": 0,
+    "feat_rec_bounceback_ratio": 0,
+    "feat_rec_days_to_recover": 0,
+    "feat_liq_buffer_to_loan": 0,
+    "feat_liq_burn_months": 0,
+    "feat_bur_dti_ratio": 0,
+    "feat_bur_installment_dti": 0,
+    "feat_bur_total_dti": 0,
+    "feat_suf_observed_days": 0,
+    "feat_suf_payout_count": 0,
+    "feat_suf_group_count": 0,
+    "feat_suf_missing_ratio": 0,
+    "feat_inc_mean_90d": 0,
+    "feat_inc_trimmed_mean": 0,
+    "feat_inc_iqr_ratio": 0,
+    "feat_inc_min_max_ratio": 0,
+    "feat_trend_consec_drops": 0,
+    "feat_act_max_idle_streak": 0,
+    "feat_act_weekend_intensity": 0,
+    "feat_rec_max_drawdown": 0,
+    "feat_ten_years_working": 0,
+    "feat_ten_platform_rating": 0,
+    "feat_ten_trips_completed": 0,
+    "feat_ten_cancellation_rate": 0,
+    "feat_liq_net_margin": 0,
+    "feat_pay_utility_on_time": 0,
+    "feat_pay_max_bill_delay": 0,
+    "feat_pay_repay_reliability": 0,
+    "feat_bur_loan_to_income": 0,
+    "feat_int_vol_x_recovery": 0,
+    "feat_int_vol_x_buffer": 0,
+    "feat_int_trend_x_dti": 0,
+    "feat_int_resilience_idx": 0,
+    "target_default_flag": 593,
+    "repayment_risk_probability": 593
+  },
+  "feature_ranges": {
+    "years_working": {
+      "min": 0.01,
+      "max": 16.62,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        0.0,
+        50.0
+      ],
+      "mean": 2.6376
+    },
+    "average_working_days": {
+      "min": 0.0,
+      "max": 31.0,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        0,
+        31
+      ],
+      "mean": 22.4404
+    },
+    "requested_loan_amount": {
+      "min": 5500.0,
+      "max": 196500.0,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        500.0,
+        500000.0
+      ],
+      "mean": 40317.9583
+    },
+    "loan_tenure_months": {
+      "min": 6.0,
+      "max": 12.0,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        1,
+        60
+      ],
+      "mean": 9.8742
+    },
+    "feat_inc_median_90d": {
+      "min": 405.32,
+      "max": 46060.86,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        0.0,
+        500000.0
+      ],
+      "mean": 7144.8964
+    },
+    "feat_inc_p25_90d": {
+      "min": 0.0,
+      "max": 38386.5,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        0.0,
+        500000.0
+      ],
+      "mean": 5703.7083
+    },
+    "feat_inc_cv_90d": {
+      "min": 0.0,
+      "max": 1.2028,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        0.0,
+        5.0
+      ],
+      "mean": 0.3133
+    },
+    "feat_inc_downside_var": {
+      "min": 0.0,
+      "max": 181060042.68,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        0.0,
+        10000000000.0
+      ],
+      "mean": 3526002.5297
+    },
+    "feat_trend_slope_90d": {
+      "min": -11083.14,
+      "max": 4781.99,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        -50000.0,
+        50000.0
+      ],
+      "mean": -68.7935
+    },
+    "feat_trend_momentum_30_90": {
+      "min": 0.1387,
+      "max": 2.0283,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        0.0,
+        5.0
+      ],
+      "mean": 0.9353
+    },
+    "feat_act_active_days_ratio": {
+      "min": 0.0333,
+      "max": 0.9667,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        0.0,
+        1.0
+      ],
+      "mean": 0.6802
+    },
+    "feat_act_zero_earn_weeks": {
+      "min": 0.0,
+      "max": 5.0,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        0,
+        13
+      ],
+      "mean": 0.3412
+    },
+    "feat_rec_bounceback_ratio": {
+      "min": 0.0,
+      "max": 8.2466,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        0.0,
+        10.0
+      ],
+      "mean": 1.1874
+    },
+    "feat_rec_days_to_recover": {
+      "min": 0.0,
+      "max": 42.0,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        0.0,
+        90.0
+      ],
+      "mean": 9.5499
+    },
+    "feat_liq_buffer_to_loan": {
+      "min": 0.0,
+      "max": 6.7017,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        0.0,
+        50.0
+      ],
+      "mean": 0.386
+    },
+    "feat_liq_burn_months": {
+      "min": 0.0,
+      "max": 5.7328,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        0.0,
+        60.0
+      ],
+      "mean": 0.7502
+    },
+    "feat_bur_dti_ratio": {
+      "min": 0.0,
+      "max": 1.2285,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        0.0,
+        20.0
+      ],
+      "mean": 0.1249
+    },
+    "feat_bur_installment_dti": {
+      "min": 0.0292,
+      "max": 1.0841,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        0.0,
+        20.0
+      ],
+      "mean": 0.1842
+    },
+    "feat_bur_total_dti": {
+      "min": 0.0292,
+      "max": 2.0193,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        0.0,
+        20.0
+      ],
+      "mean": 0.309
+    },
+    "feat_suf_observed_days": {
+      "min": 5.0,
+      "max": 90.0,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        0,
+        90
+      ],
+      "mean": 86.2829
+    },
+    "feat_suf_payout_count": {
+      "min": 1.0,
+      "max": 13.0,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        0,
+        90
+      ],
+      "mean": 12.4241
+    },
+    "feat_suf_group_count": {
+      "min": 1.0,
+      "max": 5.0,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        0,
+        5
+      ],
+      "mean": 4.7668
+    },
+    "feat_suf_missing_ratio": {
+      "min": 0.0,
+      "max": 0.0,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        0.0,
+        1.0
+      ],
+      "mean": 0.0
+    },
+    "feat_inc_mean_90d": {
+      "min": 549.12,
+      "max": 42080.76,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        0.0,
+        500000.0
+      ],
+      "mean": 6992.7945
+    },
+    "feat_inc_trimmed_mean": {
+      "min": 496.88,
+      "max": 44799.7,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        0.0,
+        500000.0
+      ],
+      "mean": 7078.4766
+    },
+    "feat_inc_iqr_ratio": {
+      "min": 0.0,
+      "max": 5.1287,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        0.0,
+        10.0
+      ],
+      "mean": 0.5064
+    },
+    "feat_inc_min_max_ratio": {
+      "min": 0.0,
+      "max": 1.0,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        0.0,
+        1.0
+      ],
+      "mean": 0.3476
+    },
+    "feat_trend_consec_drops": {
+      "min": 0.0,
+      "max": 10.0,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        0,
+        13
+      ],
+      "mean": 2.3827
+    },
+    "feat_act_max_idle_streak": {
+      "min": 1.0,
+      "max": 87.0,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        0,
+        90
+      ],
+      "mean": 8.4916
+    },
+    "feat_act_weekend_intensity": {
+      "min": 0.0,
+      "max": 0.7076,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        0.0,
+        1.0
+      ],
+      "mean": 0.2958
+    },
+    "feat_rec_max_drawdown": {
+      "min": 0.0,
+      "max": 1.0,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        0.0,
+        1.0
+      ],
+      "mean": 0.6417
+    },
+    "feat_ten_years_working": {
+      "min": 0.01,
+      "max": 16.62,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        0.0,
+        50.0
+      ],
+      "mean": 2.6376
+    },
+    "feat_ten_platform_rating": {
+      "min": 1.54,
+      "max": 5.0,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        1.0,
+        5.0
+      ],
+      "mean": 4.2324
+    },
+    "feat_ten_trips_completed": {
+      "min": 36.0,
+      "max": 1212.0,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        0,
+        100000
+      ],
+      "mean": 832.5332
+    },
+    "feat_ten_cancellation_rate": {
+      "min": 0.0,
+      "max": 0.4219,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        0.0,
+        1.0
+      ],
+      "mean": 0.0681
+    },
+    "feat_liq_net_margin": {
+      "min": -2.0,
+      "max": 0.7269,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        -2.0,
+        1.0
+      ],
+      "mean": 0.0947
+    },
+    "feat_pay_utility_on_time": {
+      "min": 0.1962,
+      "max": 0.9998,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        0.0,
+        1.0
+      ],
+      "mean": 0.8557
+    },
+    "feat_pay_max_bill_delay": {
+      "min": 0.0,
+      "max": 24.0,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        0,
+        180
+      ],
+      "mean": 4.3288
+    },
+    "feat_pay_repay_reliability": {
+      "min": 0.1962,
+      "max": 0.9998,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        0.0,
+        1.0
+      ],
+      "mean": 0.8557
+    },
+    "feat_bur_loan_to_income": {
+      "min": 0.0265,
+      "max": 0.7553,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        0.0,
+        10.0
+      ],
+      "mean": 0.1312
+    },
+    "feat_int_vol_x_recovery": {
+      "min": 0.0,
+      "max": 40.7232,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        0.0,
+        450.0
+      ],
+      "mean": 3.3821
+    },
+    "feat_int_vol_x_buffer": {
+      "min": 0.0,
+      "max": 10.478,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        0.0,
+        50.0
+      ],
+      "mean": 0.9869
+    },
+    "feat_int_trend_x_dti": {
+      "min": -12880.83,
+      "max": 5027.31,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        -50000.0,
+        50000.0
+      ],
+      "mean": -94.7893
+    },
+    "feat_int_resilience_idx": {
+      "min": 0.0,
+      "max": 66.85,
+      "count": 12000,
+      "missing_count": 0,
+      "out_of_range_count": 0,
+      "bounds": [
+        0.0,
+        100.0
+      ],
+      "mean": 4.5732
+    },
+    "repayment_risk_probability": {
+      "min": 0.0001,
+      "max": 0.9999,
+      "count": 11407,
+      "missing_count": 593,
+      "out_of_range_count": 0,
+      "bounds": [
+        0.0,
+        1.0
+      ],
+      "mean": 0.1482
+    }
+  },
+  "categorical_distributions": {
+    "cohort_archetype": {
+      "Healthy Volatile": 2976,
+      "Irregular": 1803,
+      "Insufficient Data": 593,
+      "High Obligation": 1203,
+      "Stable": 3040,
+      "Declining": 2385,
+      "__unexpected__": 0
+    },
+    "gig_work_type": {
+      "LOGISTICS": 1433,
+      "DELIVERY": 4788,
+      "FREELANCE_MICRO": 374,
+      "HOME_SERVICES": 957,
+      "OTHER": 230,
+      "RIDE_HAILING": 4218,
+      "__unexpected__": 0
+    },
+    "loan_purpose": {
+      "WORKING_CAPITAL": 3616,
+      "EQUIPMENT_PURCHASE": 1775,
+      "OTHER": 370,
+      "PERSONAL_EMERGENCY": 873,
+      "VEHICLE_MAINTENANCE": 5366,
+      "__unexpected__": 0
+    }
+  },
+  "temporal_checks": {
+    "t0_min": "2025-01-01T00:07:51+00:00",
+    "t0_max": "2026-09-22T20:12:59+00:00",
+    "repeat_applicants_count": 2000,
+    "repeat_intervals_count": 2000,
+    "min_repeat_interval_days": 120.0,
+    "max_repeat_interval_days": 270.0
+  },
+  "leakage_checks": {
+    "passed": true,
+    "tests_run": 5,
+    "test_results": {
+      "test_a_post_t0_event": true,
+      "test_b_future_target": true,
+      "test_c_target_in_feature": true,
+      "test_d_cutoff_boundary": true,
+      "test_e_application_isolation": true
+    }
+  },
+  "impossible_combination_checks": {
+    "violations_count": 0,
+    "details": []
+  },
+  "determinism_result": {
+    "passed": true,
+    "details": "Passed: 100% bit-for-bit reproducibility verified"
+  },
+  "overall_status": "PASS",
+  "validation_errors": [],
+  "validation_warnings": []
+}
