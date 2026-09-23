@@ -146,15 +146,19 @@ LOAN_AMOUNT_LOGNORMAL_MU: float = math.log(20000.0)
 LOAN_AMOUNT_LOGNORMAL_SIGMA: float = 0.55
 LOAN_AMOUNT_ROUND_BASE: float = 500.0
 
-# Loan Tenures (Months) and Proportions
-LOAN_TENURES: Tuple[int, ...] = (1, 2, 3, 4, 6, 12)
+# Loan Sizing Affordability Multiples (Approved P2-T10 Frozen Parameters)
+LOAN_MULTIPLE_MIN: float = 1.0
+LOAN_MULTIPLE_MAX: float = 1.75
+
+# Existing Monthly Debt Scaling Factor (Approved P2-T10 Frozen Parameters)
+EXISTING_DEBT_MULTIPLIER: float = 0.50
+
+# Loan Tenures (Months) and Proportions (Approved P2-T10 Affordability Revision)
+LOAN_TENURES: Tuple[int, ...] = (1, 2, 3, 4, 6, 9, 12)
 LOAN_TENURE_PROPORTIONS: Dict[int, float] = {
-    1: 0.10,
-    2: 0.20,
-    3: 0.35,
-    4: 0.15,
-    6: 0.15,
-    12: 0.05,
+    6: 0.20,
+    9: 0.30,
+    12: 0.50,
 }
 
 # Contractual EMI Interest Rate (Reducing-Balance Amortization)

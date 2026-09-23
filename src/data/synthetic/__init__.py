@@ -115,6 +115,14 @@ from src.data.synthetic.validators import (
     validate_dataset,
     validate_dataset_strict,
 )
+from src.data.synthetic.dataset_generator import (
+    GenerationResult,
+    create_canonical_pyarrow_schema,
+    serialize_applications_parquet,
+    serialize_raw_artifacts,
+    serialize_validation_artifacts,
+    generate_full_synthetic_dataset,
+)
 
 __all__ = [
     # Config
@@ -212,5 +220,12 @@ __all__ = [
     "validate_determinism",
     "validate_dataset",
     "validate_dataset_strict",
+    # Final Dataset Generator (P2-T10)
+    "GenerationResult",
+    "create_canonical_pyarrow_schema",
+    "serialize_applications_parquet",
+    "serialize_raw_artifacts",
+    "serialize_validation_artifacts",
+    "generate_full_synthetic_dataset",
 ]
 

@@ -27,6 +27,7 @@ from src.data.synthetic.config import (
     LIVING_EXPENSE_MONTHLY_SIGMA,
     LIVING_EXPENSE_MONTHLY_MIN,
     LIVING_EXPENSE_MONTHLY_MAX,
+    EXISTING_DEBT_MULTIPLIER,
 )
 from src.data.synthetic.exceptions import ConfigurationError
 from src.data.synthetic.random_state import RandomStateManager, Substream
@@ -150,7 +151,8 @@ def generate_single_profile(
             dti = rng.gammavariate(5.0, 0.12)  # Mean ~0.60
         else:
             dti = rng.gammavariate(2.2, 0.10)  # Mean ~0.22
-        existing_monthly_debt = round(min(max(dti * monthly_income, 0.0), 100000.0), 2)
+        raw_debt = round(min(max(dti * monthly_income, 0.0), 100000.0), 2)
+        existing_monthly_debt = round(raw_debt * EXISTING_DEBT_MULTIPLIER, 2)
 
     # 7. Starting Cashflow Buffer (Table 6.2: LogNormal buffer-to-loan proxy)
     if cohort_archetype == COHORT_HEALTHY_VOLATILE:

@@ -11,6 +11,8 @@ Samples application-level loan financing terms:
 import math
 import random
 
+from typing import Optional, Union
+
 from src.data.synthetic.applicant_generator import generate_deterministic_uuid
 from src.data.synthetic.config import (
     COHORT_HIGH_OBLIGATION,
@@ -19,6 +21,8 @@ from src.data.synthetic.config import (
     LOAN_AMOUNT_LOGNORMAL_MU,
     LOAN_AMOUNT_LOGNORMAL_SIGMA,
     LOAN_AMOUNT_ROUND_BASE,
+    LOAN_MULTIPLE_MIN,
+    LOAN_MULTIPLE_MAX,
     LOAN_TENURES,
     LOAN_TENURE_PROPORTIONS,
     LOAN_PURPOSES,
@@ -28,26 +32,36 @@ from src.data.synthetic.config import (
 from src.data.synthetic.schemas import ApplicantProfile, Application
 
 
-def sample_loan_amount(cohort_archetype: str, rng: random.Random) -> float:
+def sample_loan_amount(
+    profile_or_cohort: Union[ApplicantProfile, str, float],
+    rng: random.Random,
+    monthly_income_baseline: Optional[float] = None,
+) -> float:
     """
-    Sample principal loan financing amount requested in INR.
-    High Obligation cohort requests higher financing (mu = ln(35000)).
+    Sample principal loan financing amount requested in INR (Approved P2-T10 Affordability Revision):
+    loan_amount = monthly_income_baseline * loan_multiple
+    loan_multiple ~ Uniform(1.5, 2.5)
     Rounded to nearest ₹500, clipped to [500, 500000].
     """
-    if cohort_archetype == COHORT_HIGH_OBLIGATION:
-        mu = math.log(35000.0)
+    if isinstance(profile_or_cohort, ApplicantProfile):
+        monthly_base = profile_or_cohort.baseline_weekly_income * 4.33
+    elif monthly_income_baseline is not None:
+        monthly_base = monthly_income_baseline
+    elif isinstance(profile_or_cohort, (int, float)):
+        monthly_base = float(profile_or_cohort)
     else:
-        mu = LOAN_AMOUNT_LOGNORMAL_MU
+        monthly_base = 20000.0
 
-    raw = rng.lognormvariate(mu, LOAN_AMOUNT_LOGNORMAL_SIGMA)
-    rounded = round(raw / LOAN_AMOUNT_ROUND_BASE) * LOAN_AMOUNT_ROUND_BASE
+    loan_multiple = rng.uniform(LOAN_MULTIPLE_MIN, LOAN_MULTIPLE_MAX)
+    raw_loan = monthly_base * loan_multiple
+    rounded = round(raw_loan / LOAN_AMOUNT_ROUND_BASE) * LOAN_AMOUNT_ROUND_BASE
     return float(min(max(rounded, LOAN_AMOUNT_MIN), LOAN_AMOUNT_MAX))
 
 
 def sample_loan_tenure(rng: random.Random) -> int:
     """
     Sample discrete contractual loan repayment tenure in months.
-    Values: [1, 2, 3, 4, 6, 12] with frozen probabilities.
+    Values: [6, 9, 12] with approved probabilities [0.20, 0.30, 0.50].
     """
     tenures = list(LOAN_TENURE_PROPORTIONS.keys())
     weights = list(LOAN_TENURE_PROPORTIONS.values())
@@ -73,7 +87,7 @@ def generate_single_application(
     Generates a single Application record for an applicant profile at cutoff timestamp t0.
     """
     application_id = generate_deterministic_uuid(rng)
-    loan_amount = sample_loan_amount(applicant_profile.cohort_archetype, rng)
+    loan_amount = sample_loan_amount(applicant_profile, rng)
     tenure_months = sample_loan_tenure(rng)
     loan_purpose = sample_loan_purpose(rng)
 

@@ -960,19 +960,19 @@ def validate_temporal_distribution(
             for i in range(len(sorted_apps) - 1):
                 cur_app, cur_t0 = sorted_apps[i]
                 nxt_app, nxt_t0 = sorted_apps[i + 1]
-                delta_days = (nxt_t0 - cur_t0).total_seconds() / 86400.0
-                repeat_intervals.append(delta_days)
+                delta_days = (nxt_t0.date() - cur_t0.date()).days
+                repeat_intervals.append(float(delta_days))
                 if delta_days < REPEAT_INTERVAL_DAYS_MIN:
                     errors.append(
                         ValidationErrorDetail(
                             validator="TemporalValidator",
                             record_id=nxt_app,
                             field_name="cutoff_timestamp",
-                            actual_value=f"{delta_days:.1f} days",
+                            actual_value=f"{delta_days} days",
                             expected_rule=f">= {REPEAT_INTERVAL_DAYS_MIN} days",
                             message=(
                                 f"Repeat applicant '{applicant_id}': Applications '{cur_app}' and '{nxt_app}' "
-                                f"have spacing of {delta_days:.1f} days, violating minimum requirement of {REPEAT_INTERVAL_DAYS_MIN} days"
+                                f"have spacing of {delta_days} days, violating minimum requirement of {REPEAT_INTERVAL_DAYS_MIN} days"
                             ),
                         )
                     )

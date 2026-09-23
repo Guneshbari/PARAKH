@@ -351,10 +351,10 @@ def validate_assembled_dataset(records: List[AssembledApplicationRecord]) -> Non
             for i in range(len(apps_sorted) - 1):
                 t1 = datetime.fromisoformat(apps_sorted[i].cutoff_timestamp.replace("Z", "+00:00"))
                 t2 = datetime.fromisoformat(apps_sorted[i + 1].cutoff_timestamp.replace("Z", "+00:00"))
-                delta_days = (t2 - t1).total_seconds() / 86400.0
+                delta_days = (t2.date() - t1.date()).days
 
                 if delta_days < REPEAT_INTERVAL_DAYS_MIN:
                     raise TemporalLeakageError(
-                        f"Repeat applicant '{prof_id}' has application interval {delta_days:.1f} days, "
+                        f"Repeat applicant '{prof_id}' has application interval {delta_days} days, "
                         f"violating minimum spacing of {REPEAT_INTERVAL_DAYS_MIN} days"
                     )
