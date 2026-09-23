@@ -225,6 +225,18 @@ class ForwardOutcome:
     consecutive_negative_days: int
     target_default_flag: Optional[int]          # 0, 1, or None (if Insufficient Data)
     repayment_risk_probability: Optional[float] # Continuous [0.0, 1.0] or None
+    cutoff_timestamp: Optional[str] = None      # ISO-8601 UTC string (t0)
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary representation."""
+        return {
+            "application_id": self.application_id,
+            "cutoff_timestamp": self.cutoff_timestamp,
+            "prediction_horizon_days": self.prediction_horizon_days,
+            "consecutive_negative_days": self.consecutive_negative_days,
+            "target_default_flag": self.target_default_flag,
+            "repayment_risk_probability": self.repayment_risk_probability,
+        }
 
 
 @dataclass

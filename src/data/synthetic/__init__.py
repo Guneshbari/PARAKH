@@ -70,6 +70,14 @@ from src.data.synthetic.feature_derivation import (
     derive_application_features,
     validate_derived_features,
 )
+from src.data.synthetic.target_generator import (
+    get_target_rng,
+    compute_prediction_horizon,
+    simulate_single_forward_path,
+    simulate_forward_outcome,
+    generate_forward_outcomes,
+    validate_forward_outcome,
+)
 
 __all__ = [
     # Config
@@ -135,5 +143,12 @@ __all__ = [
     "generate_application_history",
     "derive_application_features",
     "validate_derived_features",
+    # Target Generator
+    "get_target_rng",
+    "compute_prediction_horizon",
+    "simulate_single_forward_path",
+    "simulate_forward_outcome",
+    "generate_forward_outcomes",
+    "validate_forward_outcome",
 ]
 
