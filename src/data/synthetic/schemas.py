@@ -240,6 +240,60 @@ class ForwardOutcome:
 
 
 @dataclass
+class AssembledApplicationRecord:
+    """
+    Stage K input / Stage H-J assembly: Unified intermediate application-level record.
+    Represents an application with its identity, temporal cutoff t0, raw metadata,
+    frozen 40-feature vector, and forward target outcome.
+    """
+    application_id: str
+    applicant_profile_id: str
+    cutoff_timestamp: str
+    cohort_archetype: str
+    gig_work_type: str
+    years_working: Optional[float]
+    average_working_days: Optional[int]
+    requested_loan_amount: float
+    loan_tenure_months: int
+    loan_purpose: Optional[str]
+    features: DerivedFeatures
+    target_default_flag: Optional[int]
+    repayment_risk_probability: Optional[float]
+    prediction_horizon_days: int = 90
+    consecutive_negative_days: int = 0
+
+    def to_dict(self) -> Dict[str, Any]:
+        """
+        Serializes into the canonical 52-column dictionary adhering strictly to
+        FINAL_DATASET_SCHEMA ordering and naming conventions.
+        """
+        result: Dict[str, Any] = {
+            # 1. Metadata (4 columns)
+            "applicant_profile_id": self.applicant_profile_id,
+            "application_id": self.application_id,
+            "cutoff_timestamp": self.cutoff_timestamp,
+            "cohort_archetype": self.cohort_archetype,
+            # 2. Raw Profile & Loan Context (6 columns)
+            "gig_work_type": self.gig_work_type,
+            "years_working": self.years_working,
+            "average_working_days": self.average_working_days,
+            "requested_loan_amount": self.requested_loan_amount,
+            "loan_tenure_months": self.loan_tenure_months,
+            "loan_purpose": self.loan_purpose,
+        }
+        # 3. 40 Derived Features
+        result.update(self.features.__dict__)
+        # 4. Target Columns (2 columns)
+        result["target_default_flag"] = self.target_default_flag
+        result["repayment_risk_probability"] = self.repayment_risk_probability
+        return result
+
+    def to_final_record(self) -> "FinalRecord":
+        """Converts to FinalRecord for serialization."""
+        return FinalRecord(fields=self.to_dict())
+
+
+@dataclass
 class FinalRecord:
     """Complete application row ready for Parquet serialization (52 fields)."""
     fields: Dict[str, Any] = field(default_factory=dict)

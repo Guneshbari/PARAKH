@@ -27,6 +27,7 @@ from src.data.synthetic.schemas import (
     DerivedFeatures,
     ApplicationFeatures,
     ForwardOutcome,
+    AssembledApplicationRecord,
     FinalRecord,
     PopulationData,
     ColumnDefinition,
@@ -78,6 +79,12 @@ from src.data.synthetic.target_generator import (
     generate_forward_outcomes,
     validate_forward_outcome,
 )
+from src.data.synthetic.assembly import (
+    assemble_application_record,
+    assemble_dataset,
+    validate_assembled_record,
+    validate_assembled_dataset,
+)
 
 __all__ = [
     # Config
@@ -101,6 +108,7 @@ __all__ = [
     "DerivedFeatures",
     "ApplicationFeatures",
     "ForwardOutcome",
+    "AssembledApplicationRecord",
     "FinalRecord",
     "PopulationData",
     "ColumnDefinition",
@@ -150,5 +158,10 @@ __all__ = [
     "simulate_forward_outcome",
     "generate_forward_outcomes",
     "validate_forward_outcome",
+    # Assembly
+    "assemble_application_record",
+    "assemble_dataset",
+    "validate_assembled_record",
+    "validate_assembled_dataset",
 ]
 
