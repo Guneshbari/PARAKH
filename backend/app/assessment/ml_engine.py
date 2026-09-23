@@ -22,14 +22,14 @@ class MLModelOutput(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    risk_probability: Decimal = Field(
-        ...,
+    risk_probability: Optional[Decimal] = Field(
+        None,
         ge=0,
         le=1,
-        description="Model estimated probability of default bounded [0, 1]",
+        description="Model estimated probability of default bounded [0, 1] (nullable for insufficient evidence)",
     )
-    confidence: Decimal = Field(
-        ...,
+    confidence: Optional[Decimal] = Field(
+        None,
         ge=0,
         le=1,
         description="Model evaluation confidence bounded [0, 1]",
@@ -168,9 +168,9 @@ class MLAssessmentEngine(AssessmentEngine):
                 f"ML model returned {type(output).__name__}, expected MLModelOutput."
             )
 
-        # Map or compute score [300, 850] from risk_probability if not explicitly provided
+        # Map or compute score [300, 850] from risk_probability if not explicitly provided and not insufficient evidence
         score = output.credit_score
-        if score is None:
+        if score is None and output.risk_level != RiskLevel.INSUFFICIENT and output.risk_probability is not None:
             risk_prob_float = float(output.risk_probability)
             score = int(round(300 + (1.0 - risk_prob_float) * 550))
             score = max(0, min(1000, score))
@@ -178,12 +178,15 @@ class MLAssessmentEngine(AssessmentEngine):
         # Map risk level if not explicitly provided by the model
         risk_level = output.risk_level
         if risk_level is None:
-            if score >= 700:
-                risk_level = RiskLevel.LOWER
-            elif score >= 550:
-                risk_level = RiskLevel.MODERATE
+            if score is not None:
+                if score >= 700:
+                    risk_level = RiskLevel.LOWER
+                elif score >= 550:
+                    risk_level = RiskLevel.MODERATE
+                else:
+                    risk_level = RiskLevel.HIGHER
             else:
-                risk_level = RiskLevel.HIGHER
+                risk_level = RiskLevel.INSUFFICIENT
 
         # Construct standard AssessmentResult
         return AssessmentResult(

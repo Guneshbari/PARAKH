@@ -401,9 +401,13 @@ class MLModelAdapter(MLModel):
         risk_prob = (
             Decimal(str(round(pred.repayment_risk_probability, 4)))
             if pred.repayment_risk_probability is not None
-            else Decimal("0.5000")
+            else None
         )
-        conf = Decimal(str(round(pred.confidence_or_data_sufficiency, 4)))
+        conf = (
+            Decimal(str(round(pred.confidence_or_data_sufficiency, 4)))
+            if pred.confidence_or_data_sufficiency is not None
+            else None
+        )
         score = pred.presentation_score  # None if insufficient
         risk_level = RiskLevel(pred.risk_tier)
 
