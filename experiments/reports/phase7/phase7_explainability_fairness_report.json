@@ -1,0 +1,53 @@
+{
+  "provenance": {
+    "phase": "Phase 7 \u2014 Explainability & Fairness",
+    "evaluated_at": "2026-09-23T18:13:24.514934+00:00",
+    "dataset": "data/synthetic/synthetic_credit_applications.parquet",
+    "validation_sample_count": 1697,
+    "models_audited": {
+      "phase_5_baseline": "baseline-logistic-regression",
+      "phase_6_volatility_aware": "volatility-aware-risk-model"
+    }
+  },
+  "executive_findings": {
+    "global_shap": {
+      "top_5_features": [
+        "feat_liq_net_margin",
+        "feat_liq_burn_months",
+        "requested_loan_amount",
+        "average_working_days",
+        "feat_ten_trips_completed"
+      ],
+      "volatility_interaction_active": true
+    },
+    "fairness_summary": {
+      "cohort_demographic_parity_ratio": {
+        "baseline": 0.7205,
+        "volatility_aware": 0.7147
+      },
+      "cohort_equal_opportunity_difference": {
+        "baseline": 0.3991,
+        "volatility_aware": 0.4754
+      },
+      "sector_demographic_parity_ratio": {
+        "baseline": 0.9196,
+        "volatility_aware": 0.9296
+      }
+    },
+    "limitations": [
+      "Dataset is synthetic and lacks verified real-world protected demographic attributes.",
+      "Subgroup differences reflect engineered cohort dynamics and do not prove or disprove real fair-lending compliance.",
+      "Feature attributions (SHAP) describe mathematical associations and do not imply physical causality.",
+      "Test set remained strictly held out and was not utilized during explainability or fairness auditing."
+    ]
+  },
+  "artifact_paths": {
+    "global_shap_importance": "experiments/reports/phase7/global_shap_importance.json",
+    "shap_interactions": "experiments/reports/phase7/shap_interactions.json",
+    "representative_cases": "experiments/reports/phase7/representative_case_explanations.json",
+    "logistic_coefficients": "experiments/reports/phase7/logistic_coefficient_analysis.json",
+    "fairness_cohorts": "experiments/reports/phase7/fairness_cohort_metrics.json",
+    "fairness_platforms": "experiments/reports/phase7/fairness_platform_metrics.json",
+    "plain_language_catalog": "experiments/reports/phase7/plain_language_explanations.json"
+  }
+}

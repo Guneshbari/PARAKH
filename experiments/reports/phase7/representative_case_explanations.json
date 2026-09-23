@@ -1,0 +1,1440 @@
+{
+  "generated_at": "2026-09-23T18:13:24.429826+00:00",
+  "case_count": 6,
+  "cases": {
+    "case_1_healthy_volatile_non_default": {
+      "case_label": "Healthy Volatile (Correctly Classified Non-Default)",
+      "application_id": "00447c00-e6a6-41f1-8403-7a92ca66e0c4",
+      "applicant_profile_id": "56197905-d246-47fa-a97b-09d2a9d63f0e",
+      "cohort_archetype": "Healthy Volatile",
+      "gig_work_type": "LOGISTICS",
+      "loan_purpose": "WORKING_CAPITAL",
+      "requested_loan_amount": 21000.0,
+      "actual_outcome": 0,
+      "volatility_aware_model": {
+        "predicted_probability": 0.0015,
+        "predicted_class_threshold_0_5": 0,
+        "base_value_log_odds": -4.861827,
+        "top_risk_reducing_factors": [
+          {
+            "feature_name": "feat_liq_burn_months",
+            "feature_value": 1.003129467217865,
+            "attribution_value": -1.388482,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Liq Burn Months presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_liq_net_margin",
+            "feature_value": -0.32485169387655055,
+            "attribution_value": -0.607976,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Liq Net Margin presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "average_working_days",
+            "feature_value": 0.6666666666666666,
+            "attribution_value": -0.389189,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Average Working Days presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_bur_total_dti",
+            "feature_value": -0.45755116870534096,
+            "attribution_value": -0.121505,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Bur Total Dti presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_bur_installment_dti",
+            "feature_value": -0.2120515179392823,
+            "attribution_value": -0.068597,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Bur Installment Dti presents an favorable pattern for credit assessment."
+          }
+        ],
+        "top_risk_increasing_factors": [
+          {
+            "feature_name": "requested_loan_amount",
+            "feature_value": -0.7450564606418102,
+            "attribution_value": 0.475401,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Requested Loan Amount presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_pay_utility_on_time",
+            "feature_value": -1.824167872648336,
+            "attribution_value": 0.173732,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Feat Pay Utility On Time presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_ten_trips_completed",
+            "feature_value": 0.06551724137931035,
+            "attribution_value": 0.088481,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Feat Ten Trips Completed presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_inc_trimmed_mean",
+            "feature_value": -0.3453480330083959,
+            "attribution_value": 0.053402,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Feat Inc Trimmed Mean presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_act_active_days_ratio",
+            "feature_value": 0.0,
+            "attribution_value": 0.051118,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Feat Act Active Days Ratio presents an elevated pattern for credit assessment."
+          }
+        ]
+      },
+      "baseline_logistic_model": {
+        "predicted_probability": 0.0005,
+        "predicted_class_threshold_0_5": 0,
+        "base_value_log_odds": -5.737968,
+        "top_risk_reducing_factors": [
+          {
+            "feature_name": "feat_liq_burn_months",
+            "feature_value": 1.003129467217865,
+            "attribution_value": -4.477087,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Liq Burn Months presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "average_working_days",
+            "feature_value": 0.6666666666666666,
+            "attribution_value": -1.492089,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Average Working Days presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_eng_installment_floor_coverage",
+            "feature_value": 0.4606506269556382,
+            "attribution_value": -0.509026,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Eng Installment Floor Coverage presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_inc_median_90d",
+            "feature_value": -0.35870270766774814,
+            "attribution_value": -0.241445,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Inc Median 90D presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_bur_total_dti",
+            "feature_value": -0.45755116870534096,
+            "attribution_value": -0.225244,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Bur Total Dti presents an favorable pattern for credit assessment."
+          }
+        ],
+        "top_risk_increasing_factors": [
+          {
+            "feature_name": "requested_loan_amount",
+            "feature_value": -0.7450564606418102,
+            "attribution_value": 2.074157,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Requested Loan Amount presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_liq_buffer_to_loan",
+            "feature_value": 2.118600129617628,
+            "attribution_value": 1.626406,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Feat Liq Buffer To Loan presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_inc_mean_90d",
+            "feature_value": -0.36474693959224713,
+            "attribution_value": 1.467228,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Feat Inc Mean 90D presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "loan_purpose_WORKING_CAPITAL",
+            "feature_value": 1.0,
+            "attribution_value": 0.280767,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Loan Purpose Working Capital presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_ten_trips_completed",
+            "feature_value": 0.06551724137931035,
+            "attribution_value": 0.102074,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Feat Ten Trips Completed presents an elevated pattern for credit assessment."
+          }
+        ]
+      },
+      "borrower_facing_explanation": {
+        "key_protective_factors": [
+          {
+            "factor_name": "Living expense reserve runway",
+            "technical_feature": "feat_liq_burn_months",
+            "impact_direction": "associated with lower predicted risk",
+            "feature_value_display": "1.00 months",
+            "borrower_explanation": "Substantial living cost reserves provide ample time to absorb temporary work gaps.",
+            "underwriting_context": "The model placed 1.388 log-odds weight on this factor, interpreting it as associated with lower predicted risk."
+          },
+          {
+            "factor_name": "Net cash retained after operating expenses",
+            "technical_feature": "feat_liq_net_margin",
+            "impact_direction": "associated with lower predicted risk",
+            "feature_value_display": "-0.32 \u20b9 / week",
+            "borrower_explanation": "Strong retained net margins demonstrate genuine disposable cashflow for repayment.",
+            "underwriting_context": "The model placed 0.608 log-odds weight on this factor, interpreting it as associated with lower predicted risk."
+          },
+          {
+            "factor_name": "Average monthly active working days",
+            "technical_feature": "average_working_days",
+            "impact_direction": "associated with lower predicted risk",
+            "feature_value_display": "0.67 days",
+            "borrower_explanation": "Regular platform presence correlates with established, sustainable earning patterns.",
+            "underwriting_context": "The model placed 0.389 log-odds weight on this factor, interpreting it as associated with lower predicted risk."
+          },
+          {
+            "factor_name": "Total debt obligations relative to income",
+            "technical_feature": "feat_bur_total_dti",
+            "impact_direction": "associated with lower predicted risk",
+            "feature_value_display": "-0.46 ratio",
+            "borrower_explanation": "Modest aggregate debt burden leaves comfortable cashflow cushion for new credit.",
+            "underwriting_context": "The model placed 0.122 log-odds weight on this factor, interpreting it as associated with lower predicted risk."
+          }
+        ],
+        "key_risk_factors": [
+          {
+            "factor_name": "Requested loan principal",
+            "technical_feature": "requested_loan_amount",
+            "impact_direction": "associated with higher predicted risk",
+            "feature_value_display": "-0.75 \u20b9",
+            "borrower_explanation": "Large borrowing facility requires higher weekly debt servicing commitment.",
+            "underwriting_context": "The model placed 0.475 log-odds weight on this factor, interpreting it as associated with higher predicted risk."
+          },
+          {
+            "factor_name": "On-time utility and bill settlement rate",
+            "technical_feature": "feat_pay_utility_on_time",
+            "impact_direction": "associated with higher predicted risk",
+            "feature_value_display": "-1.82 ratio",
+            "borrower_explanation": "Irregular bill settlements indicate cashflow strain or administrative disorganization.",
+            "underwriting_context": "The model placed 0.174 log-odds weight on this factor, interpreting it as associated with higher predicted risk."
+          },
+          {
+            "factor_name": "Total lifetime completed deliveries or trips",
+            "technical_feature": "feat_ten_trips_completed",
+            "impact_direction": "associated with higher predicted risk",
+            "feature_value_display": "0.07 count",
+            "borrower_explanation": "Limited task volume indicates early-stage platform familiarity.",
+            "underwriting_context": "The model placed 0.088 log-odds weight on this factor, interpreting it as associated with higher predicted risk."
+          },
+          {
+            "factor_name": "Inc Trimmed Mean",
+            "technical_feature": "feat_inc_trimmed_mean",
+            "impact_direction": "associated with higher predicted risk",
+            "feature_value_display": "-0.35",
+            "borrower_explanation": "The observed Inc Trimmed Mean indicates elevated repayment risk under current borrowing parameters.",
+            "underwriting_context": "The model placed 0.053 log-odds weight on this factor, interpreting it as associated with higher predicted risk."
+          }
+        ],
+        "disclaimer": "Notice: These explanations describe empirical statistical associations identified by the prototype risk assessment model. Feature attributions indicate correlation with repayment likelihood and do not establish direct causality. This assessment is not an automated adverse action decision and does not substitute for individualized underwriting review."
+      }
+    },
+    "case_2_declining_default": {
+      "case_label": "Declining (Correctly Classified Default)",
+      "application_id": "069216a8-db62-4223-901e-59a41235657c",
+      "applicant_profile_id": "3e1f5f51-83f0-4e06-95a7-3084f04ed8fc",
+      "cohort_archetype": "Declining",
+      "gig_work_type": "RIDE_HAILING",
+      "loan_purpose": "VEHICLE_MAINTENANCE",
+      "requested_loan_amount": 17500.0,
+      "actual_outcome": 1,
+      "volatility_aware_model": {
+        "predicted_probability": 0.9559,
+        "predicted_class_threshold_0_5": 1,
+        "base_value_log_odds": -4.861827,
+        "top_risk_reducing_factors": [
+          {
+            "feature_name": "loan_tenure_months",
+            "feature_value": 1.0,
+            "attribution_value": -0.112721,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Loan Tenure Months presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_ten_platform_rating",
+            "feature_value": 0.28070175438596395,
+            "attribution_value": -0.064732,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Ten Platform Rating presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_ten_trips_completed",
+            "feature_value": -0.7793103448275862,
+            "attribution_value": -0.062116,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Ten Trips Completed presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_act_weekend_intensity",
+            "feature_value": -1.0582901554404138,
+            "attribution_value": -0.044202,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Act Weekend Intensity presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "loan_purpose_WORKING_CAPITAL",
+            "feature_value": 0.0,
+            "attribution_value": -0.024042,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Loan Purpose Working Capital presents an favorable pattern for credit assessment."
+          }
+        ],
+        "top_risk_increasing_factors": [
+          {
+            "feature_name": "feat_liq_net_margin",
+            "feature_value": -2.1670833946168555,
+            "attribution_value": 4.549113,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Feat Liq Net Margin presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "requested_loan_amount",
+            "feature_value": -0.9907876983007932,
+            "attribution_value": 1.509277,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Requested Loan Amount presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_act_active_days_ratio",
+            "feature_value": -0.7142245072836334,
+            "attribution_value": 0.295331,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Feat Act Active Days Ratio presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "average_working_days",
+            "feature_value": -0.16666666666666666,
+            "attribution_value": 0.286709,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Average Working Days presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_inc_downside_var",
+            "feature_value": -1.0928733855470576,
+            "attribution_value": 0.262626,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Feat Inc Downside Var presents an elevated pattern for credit assessment."
+          }
+        ]
+      },
+      "baseline_logistic_model": {
+        "predicted_probability": 0.8385,
+        "predicted_class_threshold_0_5": 1,
+        "base_value_log_odds": -5.737968,
+        "top_risk_reducing_factors": [
+          {
+            "feature_name": "feat_ten_trips_completed",
+            "feature_value": -0.7793103448275862,
+            "attribution_value": -1.214141,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Ten Trips Completed presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_inc_median_90d",
+            "feature_value": -1.3085174571582967,
+            "attribution_value": -0.88077,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Inc Median 90D presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_act_active_days_ratio",
+            "feature_value": -0.7142245072836334,
+            "attribution_value": -0.699732,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Act Active Days Ratio presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_inc_p25_90d",
+            "feature_value": -1.120604549696295,
+            "attribution_value": -0.161732,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Inc P25 90D presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_inc_cv_90d",
+            "feature_value": 0.40828062104657836,
+            "attribution_value": -0.110597,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Inc Cv 90D presents an favorable pattern for credit assessment."
+          }
+        ],
+        "top_risk_increasing_factors": [
+          {
+            "feature_name": "feat_inc_mean_90d",
+            "feature_value": -1.288302944790784,
+            "attribution_value": 5.182316,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Feat Inc Mean 90D presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "requested_loan_amount",
+            "feature_value": -0.9907876983007932,
+            "attribution_value": 2.758246,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Requested Loan Amount presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_liq_burn_months",
+            "feature_value": -0.13846926554108874,
+            "attribution_value": 0.618005,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Feat Liq Burn Months presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_eng_installment_floor_coverage",
+            "feature_value": -0.4567429373073279,
+            "attribution_value": 0.504708,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Feat Eng Installment Floor Coverage presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "average_working_days",
+            "feature_value": -0.16666666666666666,
+            "attribution_value": 0.373022,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Average Working Days presents an elevated pattern for credit assessment."
+          }
+        ]
+      },
+      "borrower_facing_explanation": {
+        "key_protective_factors": [
+          {
+            "factor_name": "Requested loan repayment tenure",
+            "technical_feature": "loan_tenure_months",
+            "impact_direction": "associated with lower predicted risk",
+            "feature_value_display": "1.00 months",
+            "borrower_explanation": "Appropriate amortization period keeps weekly installments manageable.",
+            "underwriting_context": "The model placed 0.113 log-odds weight on this factor, interpreting it as associated with lower predicted risk."
+          },
+          {
+            "factor_name": "Customer and platform service rating",
+            "technical_feature": "feat_ten_platform_rating",
+            "impact_direction": "associated with lower predicted risk",
+            "feature_value_display": "0.28 stars (1-5)",
+            "borrower_explanation": "Consistently high customer ratings support prioritized task allocation on platforms.",
+            "underwriting_context": "The model placed 0.065 log-odds weight on this factor, interpreting it as associated with lower predicted risk."
+          },
+          {
+            "factor_name": "Total lifetime completed deliveries or trips",
+            "technical_feature": "feat_ten_trips_completed",
+            "impact_direction": "associated with lower predicted risk",
+            "feature_value_display": "-0.78 count",
+            "borrower_explanation": "Substantial completed task volume proves experienced platform navigation.",
+            "underwriting_context": "The model placed 0.062 log-odds weight on this factor, interpreting it as associated with lower predicted risk."
+          },
+          {
+            "factor_name": "Weekend earning concentration",
+            "technical_feature": "feat_act_weekend_intensity",
+            "impact_direction": "associated with lower predicted risk",
+            "feature_value_display": "-1.06 ratio",
+            "borrower_explanation": "Balanced earning distribution across weekdays and weekends.",
+            "underwriting_context": "The model placed 0.044 log-odds weight on this factor, interpreting it as associated with lower predicted risk."
+          }
+        ],
+        "key_risk_factors": [
+          {
+            "factor_name": "Net cash retained after operating expenses",
+            "technical_feature": "feat_liq_net_margin",
+            "impact_direction": "associated with higher predicted risk",
+            "feature_value_display": "-2.17 \u20b9 / week",
+            "borrower_explanation": "Compressed operating margins leave limited discretionary income for loan repayment.",
+            "underwriting_context": "The model placed 4.549 log-odds weight on this factor, interpreting it as associated with higher predicted risk."
+          },
+          {
+            "factor_name": "Requested loan principal",
+            "technical_feature": "requested_loan_amount",
+            "impact_direction": "associated with higher predicted risk",
+            "feature_value_display": "-0.99 \u20b9",
+            "borrower_explanation": "Large borrowing facility requires higher weekly debt servicing commitment.",
+            "underwriting_context": "The model placed 1.509 log-odds weight on this factor, interpreting it as associated with higher predicted risk."
+          },
+          {
+            "factor_name": "Active working days engagement ratio",
+            "technical_feature": "feat_act_active_days_ratio",
+            "impact_direction": "associated with higher predicted risk",
+            "feature_value_display": "-0.71 ratio",
+            "borrower_explanation": "Sporadic platform activity reduces aggregate earning opportunities.",
+            "underwriting_context": "The model placed 0.295 log-odds weight on this factor, interpreting it as associated with higher predicted risk."
+          },
+          {
+            "factor_name": "Average monthly active working days",
+            "technical_feature": "average_working_days",
+            "impact_direction": "associated with higher predicted risk",
+            "feature_value_display": "-0.17 days",
+            "borrower_explanation": "Infrequent active days restrict aggregate monthly cashflow generation.",
+            "underwriting_context": "The model placed 0.287 log-odds weight on this factor, interpreting it as associated with higher predicted risk."
+          }
+        ],
+        "disclaimer": "Notice: These explanations describe empirical statistical associations identified by the prototype risk assessment model. Feature attributions indicate correlation with repayment likelihood and do not establish direct causality. This assessment is not an automated adverse action decision and does not substitute for individualized underwriting review."
+      }
+    },
+    "case_3_borderline_diagnostic": {
+      "case_label": "Borderline Diagnostic Prediction (Near Threshold 0.50)",
+      "application_id": "52fdbbb3-389e-487d-86b0-e41ef401e2bc",
+      "applicant_profile_id": "9a315add-647d-478a-b3dd-2d21ab7fc908",
+      "cohort_archetype": "Declining",
+      "gig_work_type": "LOGISTICS",
+      "loan_purpose": "WORKING_CAPITAL",
+      "requested_loan_amount": 18000.0,
+      "actual_outcome": 1,
+      "volatility_aware_model": {
+        "predicted_probability": 0.4822,
+        "predicted_class_threshold_0_5": 0,
+        "base_value_log_odds": -4.861827,
+        "top_risk_reducing_factors": [
+          {
+            "feature_name": "feat_ten_trips_completed",
+            "feature_value": -0.9413793103448276,
+            "attribution_value": -0.218218,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Ten Trips Completed presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_bur_total_dti",
+            "feature_value": -0.23180331839651208,
+            "attribution_value": -0.137237,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Bur Total Dti presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_bur_dti_ratio",
+            "feature_value": -0.5633802816901409,
+            "attribution_value": -0.102643,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Bur Dti Ratio presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_eng_dti_risk_multiplier",
+            "feature_value": -0.18540476494444147,
+            "attribution_value": -0.073395,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Eng Dti Risk Multiplier presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_ten_years_working",
+            "feature_value": -0.5454545454545455,
+            "attribution_value": -0.044151,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Ten Years Working presents an favorable pattern for credit assessment."
+          }
+        ],
+        "top_risk_increasing_factors": [
+          {
+            "feature_name": "feat_liq_net_margin",
+            "feature_value": -1.2110604500661863,
+            "attribution_value": 2.126544,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Feat Liq Net Margin presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "requested_loan_amount",
+            "feature_value": -0.9528194177484604,
+            "attribution_value": 1.371572,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Requested Loan Amount presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "average_working_days",
+            "feature_value": -0.8333333333333334,
+            "attribution_value": 0.773492,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Average Working Days presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_rec_bounceback_ratio",
+            "feature_value": -1.9271913289349674,
+            "attribution_value": 0.229361,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Feat Rec Bounceback Ratio presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_eng_vol_cushion_ratio",
+            "feature_value": 0.16971669303917092,
+            "attribution_value": 0.122104,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Feat Eng Vol Cushion Ratio presents an elevated pattern for credit assessment."
+          }
+        ]
+      },
+      "baseline_logistic_model": {
+        "predicted_probability": 0.7199,
+        "predicted_class_threshold_0_5": 1,
+        "base_value_log_odds": -5.737968,
+        "top_risk_reducing_factors": [
+          {
+            "feature_name": "feat_ten_trips_completed",
+            "feature_value": -0.9413793103448276,
+            "attribution_value": -1.466639,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Ten Trips Completed presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_act_active_days_ratio",
+            "feature_value": -0.8568980291345331,
+            "attribution_value": -0.83951,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Act Active Days Ratio presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_inc_median_90d",
+            "feature_value": -0.9082449412066522,
+            "attribution_value": -0.611345,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Inc Median 90D presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_bur_dti_ratio",
+            "feature_value": -0.5633802816901409,
+            "attribution_value": -0.212248,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Bur Dti Ratio presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "gig_work_type_LOGISTICS",
+            "feature_value": 1.0,
+            "attribution_value": -0.143138,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Gig Work Type Logistics presents an favorable pattern for credit assessment."
+          }
+        ],
+        "top_risk_increasing_factors": [
+          {
+            "feature_name": "feat_inc_mean_90d",
+            "feature_value": -0.9891763673387289,
+            "attribution_value": 3.979052,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Feat Inc Mean 90D presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "requested_loan_amount",
+            "feature_value": -0.9528194177484604,
+            "attribution_value": 2.652547,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Requested Loan Amount presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "average_working_days",
+            "feature_value": -0.8333333333333334,
+            "attribution_value": 1.865111,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Average Working Days presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_eng_installment_floor_coverage",
+            "feature_value": -0.36008463485513303,
+            "attribution_value": 0.397899,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Feat Eng Installment Floor Coverage presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_liq_burn_months",
+            "feature_value": -0.08731599891820885,
+            "attribution_value": 0.389702,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Feat Liq Burn Months presents an elevated pattern for credit assessment."
+          }
+        ]
+      },
+      "borrower_facing_explanation": {
+        "key_protective_factors": [
+          {
+            "factor_name": "Total lifetime completed deliveries or trips",
+            "technical_feature": "feat_ten_trips_completed",
+            "impact_direction": "associated with lower predicted risk",
+            "feature_value_display": "-0.94 count",
+            "borrower_explanation": "Substantial completed task volume proves experienced platform navigation.",
+            "underwriting_context": "The model placed 0.218 log-odds weight on this factor, interpreting it as associated with lower predicted risk."
+          },
+          {
+            "factor_name": "Total debt obligations relative to income",
+            "technical_feature": "feat_bur_total_dti",
+            "impact_direction": "associated with lower predicted risk",
+            "feature_value_display": "-0.23 ratio",
+            "borrower_explanation": "Modest aggregate debt burden leaves comfortable cashflow cushion for new credit.",
+            "underwriting_context": "The model placed 0.137 log-odds weight on this factor, interpreting it as associated with lower predicted risk."
+          },
+          {
+            "factor_name": "Periodic debt service ratio",
+            "technical_feature": "feat_bur_dti_ratio",
+            "impact_direction": "associated with lower predicted risk",
+            "feature_value_display": "-0.56 ratio",
+            "borrower_explanation": "Comfortable headroom between total debt service obligations and weekly inflows.",
+            "underwriting_context": "The model placed 0.103 log-odds weight on this factor, interpreting it as associated with lower predicted risk."
+          },
+          {
+            "factor_name": "Compounding debt-to-income volatility stress",
+            "technical_feature": "feat_eng_dti_risk_multiplier",
+            "impact_direction": "associated with lower predicted risk",
+            "feature_value_display": "-0.19 multiplier",
+            "borrower_explanation": "Manageable debt obligations paired with predictable earning cycles.",
+            "underwriting_context": "The model placed 0.073 log-odds weight on this factor, interpreting it as associated with lower predicted risk."
+          }
+        ],
+        "key_risk_factors": [
+          {
+            "factor_name": "Net cash retained after operating expenses",
+            "technical_feature": "feat_liq_net_margin",
+            "impact_direction": "associated with higher predicted risk",
+            "feature_value_display": "-1.21 \u20b9 / week",
+            "borrower_explanation": "Compressed operating margins leave limited discretionary income for loan repayment.",
+            "underwriting_context": "The model placed 2.127 log-odds weight on this factor, interpreting it as associated with higher predicted risk."
+          },
+          {
+            "factor_name": "Requested loan principal",
+            "technical_feature": "requested_loan_amount",
+            "impact_direction": "associated with higher predicted risk",
+            "feature_value_display": "-0.95 \u20b9",
+            "borrower_explanation": "Large borrowing facility requires higher weekly debt servicing commitment.",
+            "underwriting_context": "The model placed 1.372 log-odds weight on this factor, interpreting it as associated with higher predicted risk."
+          },
+          {
+            "factor_name": "Average monthly active working days",
+            "technical_feature": "average_working_days",
+            "impact_direction": "associated with higher predicted risk",
+            "feature_value_display": "-0.83 days",
+            "borrower_explanation": "Infrequent active days restrict aggregate monthly cashflow generation.",
+            "underwriting_context": "The model placed 0.773 log-odds weight on this factor, interpreting it as associated with higher predicted risk."
+          },
+          {
+            "factor_name": "Post-shock earnings rebound elasticity",
+            "technical_feature": "feat_rec_bounceback_ratio",
+            "impact_direction": "associated with higher predicted risk",
+            "feature_value_display": "-1.93 ratio",
+            "borrower_explanation": "Incomplete recovery after income troughs signals persistent financial drag.",
+            "underwriting_context": "The model placed 0.229 log-odds weight on this factor, interpreting it as associated with higher predicted risk."
+          }
+        ],
+        "disclaimer": "Notice: These explanations describe empirical statistical associations identified by the prototype risk assessment model. Feature attributions indicate correlation with repayment likelihood and do not establish direct causality. This assessment is not an automated adverse action decision and does not substitute for individualized underwriting review."
+      }
+    },
+    "case_4_stable_non_default": {
+      "case_label": "Stable (Benchmark Non-Default)",
+      "application_id": "001a6457-073f-4ac1-a679-b029c3b19222",
+      "applicant_profile_id": "8da01d38-ef99-44c4-b7c3-a9203dee2bf8",
+      "cohort_archetype": "Stable",
+      "gig_work_type": "DELIVERY",
+      "loan_purpose": "EQUIPMENT_PURCHASE",
+      "requested_loan_amount": 66500.0,
+      "actual_outcome": 0,
+      "volatility_aware_model": {
+        "predicted_probability": 0.0009,
+        "predicted_class_threshold_0_5": 0,
+        "base_value_log_odds": -4.861827,
+        "top_risk_reducing_factors": [
+          {
+            "feature_name": "feat_liq_net_margin",
+            "feature_value": 0.26739226356817175,
+            "attribution_value": -2.145889,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Liq Net Margin presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "requested_loan_amount",
+            "feature_value": 0.8085511162118135,
+            "attribution_value": -0.741307,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Requested Loan Amount presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_inc_trimmed_mean",
+            "feature_value": 0.995676857868204,
+            "attribution_value": -0.107407,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Inc Trimmed Mean presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_trend_slope_90d",
+            "feature_value": -1.9343633242451783,
+            "attribution_value": -0.07741,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Trend Slope 90D presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_int_trend_x_dti",
+            "feature_value": -2.121643328231003,
+            "attribution_value": -0.070583,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Int Trend X Dti presents an favorable pattern for credit assessment."
+          }
+        ],
+        "top_risk_increasing_factors": [
+          {
+            "feature_name": "average_working_days",
+            "feature_value": -0.8333333333333334,
+            "attribution_value": 0.290804,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Average Working Days presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_liq_burn_months",
+            "feature_value": -0.31418305451454615,
+            "attribution_value": 0.209502,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Feat Liq Burn Months presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_ten_trips_completed",
+            "feature_value": 0.23448275862068965,
+            "attribution_value": 0.132297,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Feat Ten Trips Completed presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "loan_tenure_months",
+            "feature_value": -1.0,
+            "attribution_value": 0.101475,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Loan Tenure Months presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_bur_total_dti",
+            "feature_value": 0.8392878769528885,
+            "attribution_value": 0.067051,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Feat Bur Total Dti presents an elevated pattern for credit assessment."
+          }
+        ]
+      },
+      "baseline_logistic_model": {
+        "predicted_probability": 0.0009,
+        "predicted_class_threshold_0_5": 0,
+        "base_value_log_odds": -5.737968,
+        "top_risk_reducing_factors": [
+          {
+            "feature_name": "feat_inc_mean_90d",
+            "feature_value": 1.0135115741809761,
+            "attribution_value": -4.076942,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Inc Mean 90D presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "requested_loan_amount",
+            "feature_value": 0.8085511162118135,
+            "attribution_value": -2.250919,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Requested Loan Amount presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "loan_tenure_months",
+            "feature_value": -1.0,
+            "attribution_value": -0.243318,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Loan Tenure Months presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_eng_installment_floor_coverage",
+            "feature_value": 0.16926368189798485,
+            "attribution_value": -0.187039,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Eng Installment Floor Coverage presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_liq_buffer_to_loan",
+            "feature_value": -0.23169151004536612,
+            "attribution_value": -0.177865,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Liq Buffer To Loan presents an favorable pattern for credit assessment."
+          }
+        ],
+        "top_risk_increasing_factors": [
+          {
+            "feature_name": "average_working_days",
+            "feature_value": -0.8333333333333334,
+            "attribution_value": 1.865111,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Average Working Days presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_liq_burn_months",
+            "feature_value": -0.31418305451454615,
+            "attribution_value": 1.402236,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Feat Liq Burn Months presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_inc_median_90d",
+            "feature_value": 0.9482963415756727,
+            "attribution_value": 0.638304,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Feat Inc Median 90D presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_bur_dti_ratio",
+            "feature_value": 1.3699411659832412,
+            "attribution_value": 0.516112,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Feat Bur Dti Ratio presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_bur_total_dti",
+            "feature_value": 0.8392878769528885,
+            "attribution_value": 0.413166,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Feat Bur Total Dti presents an elevated pattern for credit assessment."
+          }
+        ]
+      },
+      "borrower_facing_explanation": {
+        "key_protective_factors": [
+          {
+            "factor_name": "Net cash retained after operating expenses",
+            "technical_feature": "feat_liq_net_margin",
+            "impact_direction": "associated with lower predicted risk",
+            "feature_value_display": "0.27 \u20b9 / week",
+            "borrower_explanation": "Strong retained net margins demonstrate genuine disposable cashflow for repayment.",
+            "underwriting_context": "The model placed 2.146 log-odds weight on this factor, interpreting it as associated with lower predicted risk."
+          },
+          {
+            "factor_name": "Requested loan principal",
+            "technical_feature": "requested_loan_amount",
+            "impact_direction": "associated with lower predicted risk",
+            "feature_value_display": "0.81 \u20b9",
+            "borrower_explanation": "Modest loan request is easily amortized within baseline income capacity.",
+            "underwriting_context": "The model placed 0.741 log-odds weight on this factor, interpreting it as associated with lower predicted risk."
+          },
+          {
+            "factor_name": "Inc Trimmed Mean",
+            "technical_feature": "feat_inc_trimmed_mean",
+            "impact_direction": "associated with lower predicted risk",
+            "feature_value_display": "1.00",
+            "borrower_explanation": "The observed Inc Trimmed Mean reflects favorable financial behavior supported by platform telemetry.",
+            "underwriting_context": "The model placed 0.107 log-odds weight on this factor, interpreting it as associated with lower predicted risk."
+          },
+          {
+            "factor_name": "90-day linear earnings trajectory",
+            "technical_feature": "feat_trend_slope_90d",
+            "impact_direction": "associated with lower predicted risk",
+            "feature_value_display": "-1.93 \u20b9 / week change",
+            "borrower_explanation": "Expanding or stationary income trajectory confirms business health.",
+            "underwriting_context": "The model placed 0.077 log-odds weight on this factor, interpreting it as associated with lower predicted risk."
+          }
+        ],
+        "key_risk_factors": [
+          {
+            "factor_name": "Average monthly active working days",
+            "technical_feature": "average_working_days",
+            "impact_direction": "associated with higher predicted risk",
+            "feature_value_display": "-0.83 days",
+            "borrower_explanation": "Infrequent active days restrict aggregate monthly cashflow generation.",
+            "underwriting_context": "The model placed 0.291 log-odds weight on this factor, interpreting it as associated with higher predicted risk."
+          },
+          {
+            "factor_name": "Living expense reserve runway",
+            "technical_feature": "feat_liq_burn_months",
+            "impact_direction": "associated with higher predicted risk",
+            "feature_value_display": "-0.31 months",
+            "borrower_explanation": "Depleted emergency reserves leave zero runway to cover living costs if income drops.",
+            "underwriting_context": "The model placed 0.210 log-odds weight on this factor, interpreting it as associated with higher predicted risk."
+          },
+          {
+            "factor_name": "Total lifetime completed deliveries or trips",
+            "technical_feature": "feat_ten_trips_completed",
+            "impact_direction": "associated with higher predicted risk",
+            "feature_value_display": "0.23 count",
+            "borrower_explanation": "Limited task volume indicates early-stage platform familiarity.",
+            "underwriting_context": "The model placed 0.132 log-odds weight on this factor, interpreting it as associated with higher predicted risk."
+          },
+          {
+            "factor_name": "Requested loan repayment tenure",
+            "technical_feature": "loan_tenure_months",
+            "impact_direction": "associated with higher predicted risk",
+            "feature_value_display": "-1.00 months",
+            "borrower_explanation": "Compressed tenure elevates weekly installment amounts.",
+            "underwriting_context": "The model placed 0.101 log-odds weight on this factor, interpreting it as associated with higher predicted risk."
+          }
+        ],
+        "disclaimer": "Notice: These explanations describe empirical statistical associations identified by the prototype risk assessment model. Feature attributions indicate correlation with repayment likelihood and do not establish direct causality. This assessment is not an automated adverse action decision and does not substitute for individualized underwriting review."
+      }
+    },
+    "case_5_irregular_default": {
+      "case_label": "Irregular (Sporadic Earnings Default)",
+      "application_id": "0604a73a-9e8e-482c-9eb1-a5baa5aaf9e1",
+      "applicant_profile_id": "b5d5b181-2701-4bcf-9c06-2e8b8b8deb53",
+      "cohort_archetype": "Irregular",
+      "gig_work_type": "DELIVERY",
+      "loan_purpose": "EQUIPMENT_PURCHASE",
+      "requested_loan_amount": 10000.0,
+      "actual_outcome": 1,
+      "volatility_aware_model": {
+        "predicted_probability": 0.9761,
+        "predicted_class_threshold_0_5": 1,
+        "base_value_log_odds": -4.861827,
+        "top_risk_reducing_factors": [
+          {
+            "feature_name": "feat_ten_trips_completed",
+            "feature_value": -2.1482758620689655,
+            "attribution_value": -0.16968,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Ten Trips Completed presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_liq_burn_months",
+            "feature_value": 0.17015029169725296,
+            "attribution_value": -0.148756,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Liq Burn Months presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_act_active_days_ratio",
+            "feature_value": -2.142245072836332,
+            "attribution_value": -0.13089,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Act Active Days Ratio presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_ten_platform_rating",
+            "feature_value": 0.6035087719298242,
+            "attribution_value": -0.077793,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Ten Platform Rating presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "loan_tenure_months",
+            "feature_value": 1.0,
+            "attribution_value": -0.073216,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Loan Tenure Months presents an favorable pattern for credit assessment."
+          }
+        ],
+        "top_risk_increasing_factors": [
+          {
+            "feature_name": "feat_liq_net_margin",
+            "feature_value": -3.692209638672354,
+            "attribution_value": 5.445904,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Feat Liq Net Margin presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "requested_loan_amount",
+            "feature_value": -1.745014103680316,
+            "attribution_value": 2.424688,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Requested Loan Amount presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "average_working_days",
+            "feature_value": -1.3333333333333333,
+            "attribution_value": 0.746616,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Average Working Days presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_inc_downside_var",
+            "feature_value": -1.0376348479815782,
+            "attribution_value": 0.170661,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Feat Inc Downside Var presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_eng_vol_to_baseline",
+            "feature_value": 4.0802080857305345,
+            "attribution_value": 0.081932,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Feat Eng Vol To Baseline presents an elevated pattern for credit assessment."
+          }
+        ]
+      },
+      "baseline_logistic_model": {
+        "predicted_probability": 0.9728,
+        "predicted_class_threshold_0_5": 1,
+        "base_value_log_odds": -5.737968,
+        "top_risk_reducing_factors": [
+          {
+            "feature_name": "feat_ten_trips_completed",
+            "feature_value": -2.1482758620689655,
+            "attribution_value": -3.346946,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Ten Trips Completed presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_act_active_days_ratio",
+            "feature_value": -2.142245072836332,
+            "attribution_value": -2.098776,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Act Active Days Ratio presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_inc_median_90d",
+            "feature_value": -1.7395960878795145,
+            "attribution_value": -1.170932,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Inc Median 90D presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_liq_burn_months",
+            "feature_value": 0.17015029169725296,
+            "attribution_value": -0.759401,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Liq Burn Months presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_inc_cv_90d",
+            "feature_value": 1.7462142994057888,
+            "attribution_value": -0.473022,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Inc Cv 90D presents an favorable pattern for credit assessment."
+          }
+        ],
+        "top_risk_increasing_factors": [
+          {
+            "feature_name": "feat_inc_mean_90d",
+            "feature_value": -1.4788004684931975,
+            "attribution_value": 5.948609,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Feat Inc Mean 90D presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "requested_loan_amount",
+            "feature_value": -1.745014103680316,
+            "attribution_value": 4.857931,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Requested Loan Amount presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "average_working_days",
+            "feature_value": -1.3333333333333333,
+            "attribution_value": 2.984177,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Average Working Days presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_liq_buffer_to_loan",
+            "feature_value": 3.1335061568373304,
+            "attribution_value": 2.405529,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Feat Liq Buffer To Loan presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_bur_total_dti",
+            "feature_value": 0.9734770497759477,
+            "attribution_value": 0.479225,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Feat Bur Total Dti presents an elevated pattern for credit assessment."
+          }
+        ]
+      },
+      "borrower_facing_explanation": {
+        "key_protective_factors": [
+          {
+            "factor_name": "Total lifetime completed deliveries or trips",
+            "technical_feature": "feat_ten_trips_completed",
+            "impact_direction": "associated with lower predicted risk",
+            "feature_value_display": "-2.15 count",
+            "borrower_explanation": "Substantial completed task volume proves experienced platform navigation.",
+            "underwriting_context": "The model placed 0.170 log-odds weight on this factor, interpreting it as associated with lower predicted risk."
+          },
+          {
+            "factor_name": "Living expense reserve runway",
+            "technical_feature": "feat_liq_burn_months",
+            "impact_direction": "associated with lower predicted risk",
+            "feature_value_display": "0.17 months",
+            "borrower_explanation": "Substantial living cost reserves provide ample time to absorb temporary work gaps.",
+            "underwriting_context": "The model placed 0.149 log-odds weight on this factor, interpreting it as associated with lower predicted risk."
+          },
+          {
+            "factor_name": "Active working days engagement ratio",
+            "technical_feature": "feat_act_active_days_ratio",
+            "impact_direction": "associated with lower predicted risk",
+            "feature_value_display": "-2.14 ratio",
+            "borrower_explanation": "Consistent daily engagement across the 90-day window indicates dependable work habit.",
+            "underwriting_context": "The model placed 0.131 log-odds weight on this factor, interpreting it as associated with lower predicted risk."
+          },
+          {
+            "factor_name": "Customer and platform service rating",
+            "technical_feature": "feat_ten_platform_rating",
+            "impact_direction": "associated with lower predicted risk",
+            "feature_value_display": "0.60 stars (1-5)",
+            "borrower_explanation": "Consistently high customer ratings support prioritized task allocation on platforms.",
+            "underwriting_context": "The model placed 0.078 log-odds weight on this factor, interpreting it as associated with lower predicted risk."
+          }
+        ],
+        "key_risk_factors": [
+          {
+            "factor_name": "Net cash retained after operating expenses",
+            "technical_feature": "feat_liq_net_margin",
+            "impact_direction": "associated with higher predicted risk",
+            "feature_value_display": "-3.69 \u20b9 / week",
+            "borrower_explanation": "Compressed operating margins leave limited discretionary income for loan repayment.",
+            "underwriting_context": "The model placed 5.446 log-odds weight on this factor, interpreting it as associated with higher predicted risk."
+          },
+          {
+            "factor_name": "Requested loan principal",
+            "technical_feature": "requested_loan_amount",
+            "impact_direction": "associated with higher predicted risk",
+            "feature_value_display": "-1.75 \u20b9",
+            "borrower_explanation": "Large borrowing facility requires higher weekly debt servicing commitment.",
+            "underwriting_context": "The model placed 2.425 log-odds weight on this factor, interpreting it as associated with higher predicted risk."
+          },
+          {
+            "factor_name": "Average monthly active working days",
+            "technical_feature": "average_working_days",
+            "impact_direction": "associated with higher predicted risk",
+            "feature_value_display": "-1.33 days",
+            "borrower_explanation": "Infrequent active days restrict aggregate monthly cashflow generation.",
+            "underwriting_context": "The model placed 0.747 log-odds weight on this factor, interpreting it as associated with higher predicted risk."
+          },
+          {
+            "factor_name": "Downside earnings shortfall exposure",
+            "technical_feature": "feat_inc_downside_var",
+            "impact_direction": "associated with higher predicted risk",
+            "feature_value_display": "-1.04 variance",
+            "borrower_explanation": "Concentration of adverse payout dips increases vulnerability during demand contractions.",
+            "underwriting_context": "The model placed 0.171 log-odds weight on this factor, interpreting it as associated with higher predicted risk."
+          }
+        ],
+        "disclaimer": "Notice: These explanations describe empirical statistical associations identified by the prototype risk assessment model. Feature attributions indicate correlation with repayment likelihood and do not establish direct causality. This assessment is not an automated adverse action decision and does not substitute for individualized underwriting review."
+      }
+    },
+    "case_6_high_obligation_default": {
+      "case_label": "High Obligation (Elevated Debt Default)",
+      "application_id": "77a88175-a935-449c-965e-04e028fa5d77",
+      "applicant_profile_id": "956a39d8-57a0-4b66-ac77-05c92f36712f",
+      "cohort_archetype": "High Obligation",
+      "gig_work_type": "RIDE_HAILING",
+      "loan_purpose": "WORKING_CAPITAL",
+      "requested_loan_amount": 17000.0,
+      "actual_outcome": 1,
+      "volatility_aware_model": {
+        "predicted_probability": 0.9736,
+        "predicted_class_threshold_0_5": 1,
+        "base_value_log_odds": -4.861827,
+        "top_risk_reducing_factors": [
+          {
+            "feature_name": "feat_inc_p25_90d",
+            "feature_value": -0.34245226094020204,
+            "attribution_value": -0.03766,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Inc P25 90D presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_ten_years_working",
+            "feature_value": 2.127272727272727,
+            "attribution_value": -0.034553,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Ten Years Working presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_eng_vol_to_bounceback",
+            "feature_value": -0.5786447166671073,
+            "attribution_value": -0.034128,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Eng Vol To Bounceback presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_trend_consec_drops",
+            "feature_value": -1.0,
+            "attribution_value": -0.011068,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Trend Consec Drops presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_eng_vol_x_trend",
+            "feature_value": 0.05528213143636573,
+            "attribution_value": -0.006138,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Eng Vol X Trend presents an favorable pattern for credit assessment."
+          }
+        ],
+        "top_risk_increasing_factors": [
+          {
+            "feature_name": "feat_liq_net_margin",
+            "feature_value": -1.1061430602539588,
+            "attribution_value": 2.525424,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Feat Liq Net Margin presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_liq_burn_months",
+            "feature_value": -0.5736583858130818,
+            "attribution_value": 1.413001,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Feat Liq Burn Months presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "requested_loan_amount",
+            "feature_value": -1.0298565968629514,
+            "attribution_value": 1.373985,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Requested Loan Amount presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_ten_trips_completed",
+            "feature_value": 0.06896551724137931,
+            "attribution_value": 0.447065,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Feat Ten Trips Completed presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "average_working_days",
+            "feature_value": -0.16666666666666666,
+            "attribution_value": 0.308626,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Average Working Days presents an elevated pattern for credit assessment."
+          }
+        ]
+      },
+      "baseline_logistic_model": {
+        "predicted_probability": 0.9803,
+        "predicted_class_threshold_0_5": 1,
+        "base_value_log_odds": -5.737968,
+        "top_risk_reducing_factors": [
+          {
+            "feature_name": "feat_inc_median_90d",
+            "feature_value": -0.4891621647001103,
+            "attribution_value": -0.329258,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Inc Median 90D presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "loan_tenure_months",
+            "feature_value": -1.0,
+            "attribution_value": -0.243318,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Loan Tenure Months presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "gig_work_type_RIDE_HAILING",
+            "feature_value": 1.0,
+            "attribution_value": -0.082445,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Gig Work Type Ride Hailing presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_inc_p25_90d",
+            "feature_value": -0.34245226094020204,
+            "attribution_value": -0.049425,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Inc P25 90D presents an favorable pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_liq_buffer_to_loan",
+            "feature_value": -0.01814646791963705,
+            "attribution_value": -0.013931,
+            "impact_direction": "DECREASES_RISK",
+            "plain_language_description": "Feat Liq Buffer To Loan presents an favorable pattern for credit assessment."
+          }
+        ],
+        "top_risk_increasing_factors": [
+          {
+            "feature_name": "requested_loan_amount",
+            "feature_value": -1.0298565968629514,
+            "attribution_value": 2.86701,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Requested Loan Amount presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_liq_burn_months",
+            "feature_value": -0.5736583858130818,
+            "attribution_value": 2.560306,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Feat Liq Burn Months presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_inc_mean_90d",
+            "feature_value": -0.5282343158284754,
+            "attribution_value": 2.124871,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Feat Inc Mean 90D presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_bur_dti_ratio",
+            "feature_value": 2.1486896059903726,
+            "attribution_value": 0.809498,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Feat Bur Dti Ratio presents an elevated pattern for credit assessment."
+          },
+          {
+            "feature_name": "feat_bur_total_dti",
+            "feature_value": 1.4995761172338624,
+            "attribution_value": 0.738214,
+            "impact_direction": "INCREASES_RISK",
+            "plain_language_description": "Feat Bur Total Dti presents an elevated pattern for credit assessment."
+          }
+        ]
+      },
+      "borrower_facing_explanation": {
+        "key_protective_factors": [
+          {
+            "factor_name": "Floor earnings during lean weeks",
+            "technical_feature": "feat_inc_p25_90d",
+            "impact_direction": "associated with lower predicted risk",
+            "feature_value_display": "-0.34 \u20b9 / week",
+            "borrower_explanation": "Reliable minimum earnings floor ensures debt service is protected even in slow weeks.",
+            "underwriting_context": "The model placed 0.038 log-odds weight on this factor, interpreting it as associated with lower predicted risk."
+          },
+          {
+            "factor_name": "Verified gig platform tenure",
+            "technical_feature": "feat_ten_years_working",
+            "impact_direction": "associated with lower predicted risk",
+            "feature_value_display": "2.13 years",
+            "borrower_explanation": "Long-standing platform history demonstrates durable earning viability.",
+            "underwriting_context": "The model placed 0.035 log-odds weight on this factor, interpreting it as associated with lower predicted risk."
+          },
+          {
+            "factor_name": "Unbuffered volatility ratio",
+            "technical_feature": "feat_eng_vol_to_bounceback",
+            "impact_direction": "associated with lower predicted risk",
+            "feature_value_display": "-0.58 ratio",
+            "borrower_explanation": "High recovery elasticity safely insulates earnings variance from causing default.",
+            "underwriting_context": "The model placed 0.034 log-odds weight on this factor, interpreting it as associated with lower predicted risk."
+          },
+          {
+            "factor_name": "Trend Consec Drops",
+            "technical_feature": "feat_trend_consec_drops",
+            "impact_direction": "associated with lower predicted risk",
+            "feature_value_display": "-1.00",
+            "borrower_explanation": "The observed Trend Consec Drops reflects favorable financial behavior supported by platform telemetry.",
+            "underwriting_context": "The model placed 0.011 log-odds weight on this factor, interpreting it as associated with lower predicted risk."
+          }
+        ],
+        "key_risk_factors": [
+          {
+            "factor_name": "Net cash retained after operating expenses",
+            "technical_feature": "feat_liq_net_margin",
+            "impact_direction": "associated with higher predicted risk",
+            "feature_value_display": "-1.11 \u20b9 / week",
+            "borrower_explanation": "Compressed operating margins leave limited discretionary income for loan repayment.",
+            "underwriting_context": "The model placed 2.525 log-odds weight on this factor, interpreting it as associated with higher predicted risk."
+          },
+          {
+            "factor_name": "Living expense reserve runway",
+            "technical_feature": "feat_liq_burn_months",
+            "impact_direction": "associated with higher predicted risk",
+            "feature_value_display": "-0.57 months",
+            "borrower_explanation": "Depleted emergency reserves leave zero runway to cover living costs if income drops.",
+            "underwriting_context": "The model placed 1.413 log-odds weight on this factor, interpreting it as associated with higher predicted risk."
+          },
+          {
+            "factor_name": "Requested loan principal",
+            "technical_feature": "requested_loan_amount",
+            "impact_direction": "associated with higher predicted risk",
+            "feature_value_display": "-1.03 \u20b9",
+            "borrower_explanation": "Large borrowing facility requires higher weekly debt servicing commitment.",
+            "underwriting_context": "The model placed 1.374 log-odds weight on this factor, interpreting it as associated with higher predicted risk."
+          },
+          {
+            "factor_name": "Total lifetime completed deliveries or trips",
+            "technical_feature": "feat_ten_trips_completed",
+            "impact_direction": "associated with higher predicted risk",
+            "feature_value_display": "0.07 count",
+            "borrower_explanation": "Limited task volume indicates early-stage platform familiarity.",
+            "underwriting_context": "The model placed 0.447 log-odds weight on this factor, interpreting it as associated with higher predicted risk."
+          }
+        ],
+        "disclaimer": "Notice: These explanations describe empirical statistical associations identified by the prototype risk assessment model. Feature attributions indicate correlation with repayment likelihood and do not establish direct causality. This assessment is not an automated adverse action decision and does not substitute for individualized underwriting review."
+      }
+    }
+  }
+}
