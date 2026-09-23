@@ -20,9 +20,13 @@ from src.data.synthetic.schemas import (
     Applicant,
     ApplicantProfile,
     Application,
+    DailyActivityEvent,
+    WeeklyPayoutEvent,
     HistoricalTelemetry,
+    ApplicationHistoricalData,
     DerivedFeatures,
     ForwardOutcome,
+    FinalRecord,
     PopulationData,
     ColumnDefinition,
     ColumnCategory,
@@ -56,6 +60,11 @@ from src.data.synthetic.loan_generator import (
     generate_single_application,
 )
 from src.data.synthetic.population_generator import generate_population
+from src.data.synthetic.telemetry_generator import (
+    get_application_rng,
+    format_utc_iso,
+    generate_application_history,
+)
 
 __all__ = [
     # Config
@@ -72,7 +81,10 @@ __all__ = [
     "Applicant",
     "ApplicantProfile",
     "Application",
+    "DailyActivityEvent",
+    "WeeklyPayoutEvent",
     "HistoricalTelemetry",
+    "ApplicationHistoricalData",
     "DerivedFeatures",
     "ForwardOutcome",
     "FinalRecord",
@@ -112,5 +124,8 @@ __all__ = [
     "sample_loan_purpose",
     "generate_single_application",
     "generate_population",
+    "get_application_rng",
+    "format_utc_iso",
+    "generate_application_history",
 ]
 

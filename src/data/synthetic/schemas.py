@@ -90,6 +90,36 @@ class Application:
     daily_debt_obligation: float
 
 
+@dataclass(frozen=True)
+class DailyActivityEvent:
+    """Raw daily activity shift record in trailing 90 days."""
+    application_id: str
+    date: str                          # ISO-8601 UTC date string
+    day_offset: int                    # -90 to -1
+    is_active: bool                    # whether shift was worked
+    hours_worked: float                # active hours on shift
+    is_weekend: bool                   # Saturday / Sunday flag
+    gross_earnings: float              # gross platform earnings
+    platform_fee: float                # commission deduction
+    net_earnings: float                # gross - commission (>= 0)
+    is_unobserved: bool = False        # True for pre-onboarding days (Insufficient Data)
+
+
+@dataclass(frozen=True)
+class WeeklyPayoutEvent:
+    """Raw weekly settlement payout cycle in trailing 90 days."""
+    application_id: str
+    payout_id: str                     # Unique payout identifier
+    cycle_index: int                   # 1 to K (K <= 13)
+    period_start: str                  # ISO-8601 UTC string
+    period_end: str                    # ISO-8601 UTC string
+    payout_timestamp: str              # Settlement event timestamp strictly < t0
+    gross_amount: float                # Sum of daily gross
+    net_amount: float                  # Sum of daily net payouts (I_k)
+    active_days: int                   # Active days count in cycle
+    is_settled: bool = True            # Verified settled
+
+
 @dataclass
 class HistoricalTelemetry:
     """Stage E output: 90-day pre-cutoff activity and payout time-series."""
@@ -101,6 +131,21 @@ class HistoricalTelemetry:
     weekly_net_payouts: List[float]
     observed_days: int
     payout_count: int
+
+
+@dataclass
+class ApplicationHistoricalData:
+    """Complete raw event history for a single application."""
+    application_id: str
+    applicant_profile_id: str
+    cutoff_timestamp: str              # t0
+    history_start_timestamp: str       # t0 - 90 days
+    history_end_timestamp: str         # t0
+    observed_days: int                 # Observed history span (5-90)
+    daily_events: List[DailyActivityEvent]
+    weekly_payouts: List[WeeklyPayoutEvent]
+    telemetry_summary: HistoricalTelemetry
+
 
 
 @dataclass
