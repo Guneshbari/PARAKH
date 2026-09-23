@@ -20,12 +20,13 @@ is called directly.
 
 Preprocessor construction strategy (prototype):
   The fitted preprocessor cannot be re-fitted on inference data (leakage).
-  No serialised preprocessor artifact exists yet from Phase 3/6 training runs.
-  At predictor initialisation, this module deterministically re-runs the training
-  split with seed=42 and fits the preprocessor on the training partition only —
-  identical to what was done during model training.  This is acceptable for a
-  prototype; a production system would serialise the fitted preprocessor once and
-  load it here instead.
+  No serialised preprocessor artifact exists from Phase 3/6 training runs.
+  At predictor initialisation, this module deterministically re-runs the same
+  split + fit pipeline used in Phase 6 training:
+    1. GroupedDatasetSplitter.split(df, seed=42, scored_only=False)  ← matches Phase 6
+    2. build_model_ready_matrices(train_df, scored_only=True)        ← fits on 8,012 scored rows
+  This is bit-for-bit identical to the training preprocessing state.
+  A production system would serialise the fitted preprocessor once and load it directly.
 """
 import json
 import logging
@@ -208,12 +209,20 @@ class RiskPredictor:
     ) -> Tuple[FeatureEngineer, Any]:
         """Build a fitted FeatureEngineer + CreditRiskPreprocessor from the canonical dataset.
 
-        Deterministically reproduces the training pipeline with seed=42 so that the
-        fitted preprocessor parameters (medians, scaler stats, OHE categories) are
-        identical to those used during model training.
+        Deterministically reproduces the exact preprocessing pipeline used during Phase 6
+        training (train_volatility_aware.py) so that fitted medians, RobustScaler parameters,
+        and OHE category lists are bit-for-bit identical to those seen by the frozen model.
+
+        Protocol (mirrors Phase 6 exactly):
+          1. GroupedDatasetSplitter.split(df, seed=42, scored_only=False)
+             → 8,412 training rows (includes Insufficient-Data records)
+          2. build_model_ready_matrices(train_df, scored_only=True)
+             → FeatureEngineer.fit_transform on all 8,412 rows
+             → filter to 8,012 scored rows
+             → CreditRiskPreprocessor.fit on those 8,012 rows
 
         Returns:
-            Tuple[FeatureEngineer, CreditRiskPreprocessor]: Both fitted on the training split.
+            Tuple[FeatureEngineer, CreditRiskPreprocessor]: Both fitted equivalently to training.
         """
         logger.info(
             "Building fitted preprocessing pipeline from dataset: %s", self._dataset_path
@@ -226,9 +235,21 @@ class RiskPredictor:
 
         df = pd.read_parquet(self._dataset_path)
 
-        # Deterministic 70/15/15 grouped split — seed=42, scored_only=True
-        # (matches training protocol in all Phase 5/6 training scripts)
-        split = GroupedDatasetSplitter.split(df, seed=DEFAULT_RANDOM_SEED, scored_only=True)
+        # Deterministic 70/15/15 grouped split — seed=42, scored_only=False.
+        #
+        # IMPORTANT: scored_only must be False here, matching the Phase 6 training protocol
+        # exactly (train_volatility_aware.py line 94).  Phase 6 calls:
+        #   GroupedDatasetSplitter.split(dataset_df, seed=42)          # scored_only=False
+        #   build_model_ready_matrices(train_df=splits.train_df, ..., scored_only=True)
+        #
+        # build_model_ready_matrices then runs FeatureEngineer.fit_transform on ALL 8,412
+        # training rows (including Insufficient-Data records), filters to the 8,012 scored
+        # rows, and fits the CreditRiskPreprocessor on those 8,012 rows.
+        #
+        # Passing scored_only=True to the splitter instead would feed only 7,965 rows into
+        # build_model_ready_matrices, yielding different medians and scaler parameters —
+        # up to ~1e-3 probability delta on individual applications (verified by audit).
+        split = GroupedDatasetSplitter.split(df, seed=DEFAULT_RANDOM_SEED, scored_only=False)
 
         # Suppress any sklearn/pandas warnings during fitting
         with warnings.catch_warnings():
