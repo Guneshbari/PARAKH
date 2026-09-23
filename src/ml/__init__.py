@@ -10,6 +10,7 @@ from src.ml.constants import (
     RiskTier,
 )
 from src.ml.models.base import BaseRiskModel, NotFittedError
+from src.ml.models.baseline import LogisticRegressionBaseline
 from src.ml.models.prediction import PredictionResult
 
 __all__ = [
@@ -20,5 +21,6 @@ __all__ = [
     "ExperimentVariant",
     "BaseRiskModel",
     "NotFittedError",
+    "LogisticRegressionBaseline",
     "PredictionResult",
 ]
