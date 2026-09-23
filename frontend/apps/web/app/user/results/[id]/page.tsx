@@ -15,6 +15,7 @@ import {
   AlertCircle,
   RefreshCw,
   FileQuestion,
+  Info,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -174,11 +175,57 @@ export default function CreditAssessmentResultPage({ params }: ResultPageProps) 
         <CreditScoreCard assessment={assessment} />
       </section>
 
+      {/* 2.5 INSUFFICIENT EVIDENCE ALERT (MISSING SIGNALS) */}
+      {(assessment.isInsufficientEvidence || (assessment.missingSignals && assessment.missingSignals.length > 0)) && (
+        <section>
+          <Card className="p-6 bg-surface border-amber-500/30 dark:border-amber-500/20 space-y-3.5">
+            <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-semibold text-sm">
+              <AlertTriangle className="size-4 shrink-0" />
+              <span>Evidence Threshold Not Met — Required Signals Missing</span>
+            </div>
+            <p className="text-xs text-foreground-secondary leading-relaxed">
+              The volatility-aware credit risk model could not synthesize an alternative score because core telemetry signals are missing or below minimal observation requirements:
+            </p>
+            <ul className="space-y-2 text-xs text-foreground">
+              {(assessment.missingSignals && assessment.missingSignals.length > 0
+                ? assessment.missingSignals
+                : ['Continuous 30-day cashflow transaction history', 'Verified gig platform payout linkages']
+              ).map((sig, i) => (
+                <li key={i} className="flex items-start gap-2">
+                  <span className="size-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0" />
+                  <span className="font-mono text-xs">{sig}</span>
+                </li>
+              ))}
+            </ul>
+            <div className="pt-2 flex items-center gap-3">
+              <Link href="/user/profile">
+                <Button variant="outline" size="sm" className="rounded-full text-xs">
+                  Manage Connected Accounts
+                </Button>
+              </Link>
+              <Link href="/user/applications/new">
+                <Button variant="default" size="sm" className="rounded-full text-xs">
+                  Submit Updated Application
+                </Button>
+              </Link>
+            </div>
+          </Card>
+        </section>
+      )}
+
       {/* 3. CONTEXTUAL AI RISK EXPLANATION */}
       <section>
         <AIInsightCard
-          insight="Your alternative telemetry confirms steady weekly earning patterns with resilient rebound dynamics, indicating low credit risk."
-          detail="Traditional bureaus penalize gig income volatility as high risk. PARAKH evaluates verified 10-day recovery velocity and timely utility settlements to qualify you for fair credit evaluation."
+          insight={
+            assessment.isInsufficientEvidence
+              ? 'Evaluation Refusal: Telemetry duration is below the minimum threshold required for automated risk scoring.'
+              : 'Your alternative telemetry confirms steady weekly earning patterns with resilient rebound dynamics, indicating low credit risk.'
+          }
+          detail={
+            assessment.isInsufficientEvidence
+              ? 'Under RBI regulatory fair practice standards and PARAKH model governance, credit scores are never fabricated or estimated when core cashflow telemetry is missing. Please connect verified accounts to enable scoring.'
+              : 'Traditional bureaus penalize gig income volatility as high risk. PARAKH evaluates verified 10-day recovery velocity and timely utility settlements to qualify you for fair credit evaluation.'
+          }
           actionLabel="View Methodology"
         />
       </section>
@@ -225,7 +272,7 @@ export default function CreditAssessmentResultPage({ params }: ResultPageProps) 
                   </li>
                 ))
               ) : (
-                <li className="text-foreground-muted italic">No negative factors flagged.</li>
+                <li className="text-foreground-muted italic">No positive factors flagged.</li>
               )}
             </ul>
           </Card>
@@ -264,20 +311,18 @@ export default function CreditAssessmentResultPage({ params }: ResultPageProps) 
       </section>
 
       {/* 5. EXPLAINABLE SHAP CONTRIBUTIONS */}
-      {assessment.featureContributions.length > 0 && (
-        <section className="space-y-3">
-          <div className="space-y-1">
-            <h2 className="text-lg font-bold text-foreground">
-              Feature Contribution Analysis
-            </h2>
-            <p className="text-xs text-foreground-muted">
-              Mathematical impact of each telemetry feature on your synthesized score.
-            </p>
-          </div>
+      <section className="space-y-3">
+        <div className="space-y-1">
+          <h2 className="text-lg font-bold text-foreground">
+            Feature Contribution Analysis
+          </h2>
+          <p className="text-xs text-foreground-muted">
+            Mathematical impact of each telemetry feature on your synthesized score.
+          </p>
+        </div>
 
-          <FeatureContributionCard contributions={assessment.featureContributions} />
-        </section>
-      )}
+        <FeatureContributionCard contributions={assessment.featureContributions} />
+      </section>
 
       {/* 6. CASHFLOW VOLATILITY TRACKING CHART */}
       {assessment.volatilityProfile && (
@@ -293,6 +338,19 @@ export default function CreditAssessmentResultPage({ params }: ResultPageProps) 
             recoveryRate={Math.round(assessment.volatilityProfile.recoveryRateAfterLowIncome * 100)}
             title="Verified Inflow Rhythm & Rebound Curve"
           />
+        </section>
+      )}
+
+      {/* 7. STATUTORY DPDP & MODEL DISCLAIMER */}
+      {assessment.disclaimer && (
+        <section className="pt-4 border-t border-border">
+          <div className="flex items-start gap-2.5 p-4 rounded-xl bg-surface border border-border text-xs text-foreground-muted">
+            <Info className="size-4 shrink-0 mt-0.5 text-foreground-muted" />
+            <div className="space-y-0.5">
+              <span className="font-semibold text-foreground block">Model Governance & Statutory Disclaimer</span>
+              <p className="leading-relaxed">{assessment.disclaimer}</p>
+            </div>
+          </div>
         </section>
       )}
     </PageTransition>

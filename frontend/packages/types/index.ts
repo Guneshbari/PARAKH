@@ -53,11 +53,19 @@ export interface CreditAssessmentResult {
   id: string;
   applicantId: string;
   applicantName: string;
-  score: number; // e.g. 742
+  score: number | null; // e.g. 742, or null if insufficient evidence
   maxScore: number; // 850
   riskLevel: RiskLevel;
-  estimatedRepaymentDifficulty: number; // e.g. 21 (21%)
-  modelConfidence: number; // e.g. 87 (87%)
+  estimatedRepaymentDifficulty: number | null; // e.g. 21 (21%), or null if insufficient evidence
+  modelConfidence: number | null; // e.g. 87 (87%), or null / 0
+  isInsufficientEvidence?: boolean;
+  missingSignals?: string[];
+  disclaimer?: string;
+  modelName?: string | null;
+  modelVersion?: string | null;
+  debtToIncome?: number | null;
+  utilization?: number | null;
+  assessmentStatus?: string;
   volatilityProfile: VolatilityProfile;
   keyPositiveFactors: FactorSummary[];
   keyAttentionFactors: FactorSummary[];

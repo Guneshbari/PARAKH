@@ -337,33 +337,84 @@ export default function AdminApplicationDetailPage({
         {/* Score & Confidence Badge */}
         {assessment && (
           <div className="flex flex-col items-start md:items-end justify-center gap-1 p-4 rounded-2xl bg-surface-highlight border border-border shrink-0">
-            <span className="text-[11px] font-semibold text-foreground-muted uppercase tracking-wider">
-              Alternative Credit Score
-            </span>
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-3xl font-bold text-foreground font-mono">
-                {assessment.score}
+            <div className="flex items-center gap-1.5">
+              <span className="text-[11px] font-semibold text-foreground-muted uppercase tracking-wider">
+                Alternative Credit Score
               </span>
-              <span className="text-xs text-foreground-muted">/ 850</span>
+              {assessment.modelName && (
+                <span className="text-[10px] text-foreground-muted font-mono lowercase">
+                  • {assessment.modelName}
+                </span>
+              )}
             </div>
+            {assessment.score !== null ? (
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-3xl font-bold text-foreground font-mono">
+                  {assessment.score}
+                </span>
+                <span className="text-xs text-foreground-muted">/ 850</span>
+              </div>
+            ) : (
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-2xl font-black text-foreground font-mono">
+                  UNRATED
+                </span>
+                <span className="text-xs text-foreground-muted font-medium">
+                  (Insufficient Telemetry)
+                </span>
+              </div>
+            )}
             <div className="flex items-center gap-2 text-[11px]">
               <span className="text-foreground-secondary font-mono font-medium">
-                {assessment.modelConfidence}% Confidence
+                {assessment.modelConfidence !== null && assessment.modelConfidence > 0
+                  ? `${assessment.modelConfidence}% Confidence`
+                  : '0% Confidence'}
               </span>
               <span className="text-foreground-muted">•</span>
               <span className="text-foreground-muted">
-                {assessment.estimatedRepaymentDifficulty}% Difficulty
+                {assessment.estimatedRepaymentDifficulty !== null
+                  ? `${assessment.estimatedRepaymentDifficulty}% Difficulty`
+                  : 'Uncalculated'}
               </span>
             </div>
           </div>
         )}
       </div>
 
+      {/* 2.5 INSUFFICIENT EVIDENCE WARNING FOR REVIEWER */}
+      {assessment && (assessment.isInsufficientEvidence || (assessment.missingSignals && assessment.missingSignals.length > 0)) && (
+        <Card className="p-5 bg-surface border-amber-500/30 dark:border-amber-500/20 space-y-2.5">
+          <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-semibold text-xs uppercase tracking-wider">
+            <AlertCircle className="size-3.5" />
+            <span>Manual Review Triggered: Evidence Threshold Not Met</span>
+          </div>
+          <p className="text-xs text-foreground-secondary leading-relaxed">
+            The volatility-aware risk model refused score synthesis due to insufficient telemetry data. The following primary signals were missing:
+          </p>
+          <ul className="space-y-1.5 text-xs text-foreground pl-1">
+            {(assessment.missingSignals || []).map((sig: string, i: number) => (
+              <li key={i} className="flex items-center gap-2">
+                <span className="size-1.5 rounded-full bg-amber-500 shrink-0" />
+                <span className="font-mono text-xs">{sig}</span>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
+
       {/* 3. CONTEXTUAL AI RISK SYNTHESIS CARD */}
       <AIInsightCard
         title="Credit Reviewer Volatility Synthesis"
-        insight="Applicant demonstrates robust shock recovery dynamics (10–14 days) following cyclical monsoon rainfall dips. Consistent micro-obligation settlements (98% on-time) confirm that weekly variance reflects seasonal gig rhythms rather than structural credit distress."
-        detail="Tenure across Swiggy (18 months) and Urban Company (8 months) provides multi-channel diversification. Fixed debt commitments represent less than 10% of median weekly cashflow."
+        insight={
+          assessment?.isInsufficientEvidence
+            ? "Model Refusal: Telemetry history is below the statutory observation window required for algorithmic risk evaluation. Human underwriter review is required."
+            : "Applicant demonstrates robust shock recovery dynamics (10–14 days) following cyclical monsoon rainfall dips. Consistent micro-obligation settlements (98% on-time) confirm that weekly variance reflects seasonal gig rhythms rather than structural credit distress."
+        }
+        detail={
+          assessment?.isInsufficientEvidence
+            ? "Under DPDP Act 2023 and PARAKH model governance, scores are never fabricated or estimated when core cashflow telemetry is missing. Reviewer may request additional verification or record an informed credit outcome."
+            : "Tenure across Swiggy (18 months) and Urban Company (8 months) provides multi-channel diversification. Fixed debt commitments represent less than 10% of median weekly cashflow."
+        }
         dismissible={false}
       />
 

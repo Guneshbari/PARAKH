@@ -622,6 +622,14 @@ export class ParakhApiClient {
     return adaptAssessment(raw);
   }
 
+  async triggerAssessmentAdapted(
+    applicationId: string,
+    modelVersionId?: string
+  ): Promise<CreditAssessmentResult> {
+    const raw = await this.triggerAssessment(applicationId, modelVersionId);
+    return adaptAssessment(raw);
+  }
+
   async recordReviewOutcomeAdapted(
     applicationId: string,
     review: BackendUnderwriterReviewCreate
