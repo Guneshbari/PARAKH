@@ -172,6 +172,15 @@ class FinalRecord:
         return dict(self.fields)
 
 
+@dataclass
+class PopulationData:
+    """Stage B-F output: Full in-memory applicant and application population."""
+    applicants: List[Applicant]
+    profiles: List[ApplicantProfile]
+    applications: List[Application]
+    repeat_applicant_ids: List[str]
+
+
 # ==============================================================================
 # 4. EXACT FINAL 52-COLUMN DATASET SCHEMA
 # ==============================================================================

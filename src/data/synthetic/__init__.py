@@ -23,7 +23,7 @@ from src.data.synthetic.schemas import (
     HistoricalTelemetry,
     DerivedFeatures,
     ForwardOutcome,
-    FinalRecord,
+    PopulationData,
     ColumnDefinition,
     ColumnCategory,
     DataType,
@@ -38,16 +38,24 @@ from src.data.synthetic.schemas import (
     get_excluded_columns,
     validate_schema_counts,
 )
-from src.data.synthetic.exceptions import (
-    GeneratorError,
-    ConfigurationError,
-    SchemaError,
-    ValidationError,
-    TemporalLeakageError,
-    ImpossibleCombinationError,
-    MissingnessViolationError,
-    ReproducibilityError,
+from src.data.synthetic.applicant_generator import (
+    generate_cohort_assignments,
+    generate_deterministic_uuid,
+    generate_single_profile,
+    generate_applicants_and_profiles,
 )
+from src.data.synthetic.temporal_manager import (
+    select_repeat_applicants,
+    generate_single_applicant_timestamp,
+    generate_repeat_applicant_timestamps,
+)
+from src.data.synthetic.loan_generator import (
+    sample_loan_amount,
+    sample_loan_tenure,
+    sample_loan_purpose,
+    generate_single_application,
+)
+from src.data.synthetic.population_generator import generate_population
 
 __all__ = [
     # Config
@@ -68,6 +76,7 @@ __all__ = [
     "DerivedFeatures",
     "ForwardOutcome",
     "FinalRecord",
+    "PopulationData",
     "ColumnDefinition",
     "ColumnCategory",
     "DataType",
@@ -90,4 +99,18 @@ __all__ = [
     "ImpossibleCombinationError",
     "MissingnessViolationError",
     "ReproducibilityError",
+    # Generators
+    "generate_cohort_assignments",
+    "generate_deterministic_uuid",
+    "generate_single_profile",
+    "generate_applicants_and_profiles",
+    "select_repeat_applicants",
+    "generate_single_applicant_timestamp",
+    "generate_repeat_applicant_timestamps",
+    "sample_loan_amount",
+    "sample_loan_tenure",
+    "sample_loan_purpose",
+    "generate_single_application",
+    "generate_population",
 ]
+
