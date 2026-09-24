@@ -80,7 +80,15 @@ export default function AdminApplicationDetailPage({
 
       let assessment = null;
       try {
-        assessment = await api.getLatestAssessmentByApplication(id);
+        if (typeof window !== 'undefined' && window.sessionStorage) {
+          try {
+            const cached = window.sessionStorage.getItem(`parakh_assessment_${id}`);
+            if (cached) assessment = JSON.parse(cached);
+          } catch {}
+        }
+        if (!assessment) {
+          assessment = await api.getLatestAssessmentByApplication(id);
+        }
       } catch {}
 
       let reviews: any[] = [];

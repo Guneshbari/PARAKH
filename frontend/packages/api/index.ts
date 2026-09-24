@@ -361,12 +361,18 @@ export class ParakhApiClient {
 
   async triggerAssessment(applicationId: string, modelVersionId?: string): Promise<BackendAssessment> {
     const qs = modelVersionId ? `?model_version_id=${encodeURIComponent(modelVersionId)}` : '';
-    return this.request<BackendAssessment>(
+    const res = await this.request<BackendAssessment>(
       `/api/v1/applications/${encodeURIComponent(applicationId)}/assess${qs}`,
       {
         method: 'POST',
       }
     );
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      try {
+        window.sessionStorage.setItem(`parakh_assessment_${applicationId}`, JSON.stringify(res));
+      } catch {}
+    }
+    return res;
   }
 
   async getAssessmentById(assessmentId: string): Promise<BackendAssessment> {

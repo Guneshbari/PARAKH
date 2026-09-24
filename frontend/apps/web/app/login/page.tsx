@@ -73,7 +73,7 @@ function LoginFormContent() {
   useEffect(() => {
     if (isAuthenticated) {
       const roleUpper = userRole?.toUpperCase();
-      if (roleUpper === 'REVIEWER') {
+      if (roleUpper === 'REVIEWER' || roleUpper === 'ADMIN') {
         router.push(redirectUrl || '/admin/dashboard');
       } else if (roleUpper === 'APPLICANT') {
         router.push(redirectUrl || '/user/dashboard');

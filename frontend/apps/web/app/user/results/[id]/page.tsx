@@ -51,19 +51,31 @@ export default function CreditAssessmentResultPage({ params }: ResultPageProps) 
     try {
       let rawAssessment: BackendCreditAssessmentResponse | null = null;
 
-      // 1. Try querying latest assessment by application UUID
-      try {
-        rawAssessment = await api.getLatestAssessmentByApplication(id);
-      } catch (err: unknown) {
-        if (err instanceof ApiError && err.status === 404) {
-          // 2. Try querying directly by assessment UUID
-          try {
-            rawAssessment = await api.getAssessmentById(id);
-          } catch {
-            rawAssessment = null;
+      // 0. Check sessionStorage for recent live assessment execution (preserving TreeSHAP explanations)
+      if (typeof window !== 'undefined' && window.sessionStorage) {
+        try {
+          const cached = window.sessionStorage.getItem(`parakh_assessment_${id}`);
+          if (cached) {
+            rawAssessment = JSON.parse(cached);
           }
-        } else {
-          throw err;
+        } catch {}
+      }
+
+      // 1. If not cached, query latest assessment by application UUID
+      if (!rawAssessment) {
+        try {
+          rawAssessment = await api.getLatestAssessmentByApplication(id);
+        } catch (err: unknown) {
+          if (err instanceof ApiError && err.status === 404) {
+            // 2. Try querying directly by assessment UUID
+            try {
+              rawAssessment = await api.getAssessmentById(id);
+            } catch {
+              rawAssessment = null;
+            }
+          } else {
+            throw err;
+          }
         }
       }
 
