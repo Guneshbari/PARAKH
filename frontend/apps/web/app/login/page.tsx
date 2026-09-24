@@ -91,15 +91,30 @@ function LoginFormContent() {
     }
   }, [searchParams]);
 
-  // Reset error state when typing (ensures no shake or error border while typing)
+  // Reset error state when typing and auto-detect role for seamless demo experience
   const handleInputChange = (setter: (val: string) => void) => (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
-    setter(e.target.value);
+    const val = e.target.value;
+    setter(val);
     if (authStatus === 'error') {
       setAuthStatus('idle');
       setError(null);
     }
+    const clean = val.trim().toLowerCase();
+    if (clean === DEMO_PRESETS.reviewer.email.toLowerCase() || clean.endsWith('.internal')) {
+      setActiveRole('reviewer');
+    } else if (clean === DEMO_PRESETS.applicant.email.toLowerCase()) {
+      setActiveRole('applicant');
+    }
+  };
+
+  const getDestinationUrl = (role?: string) => {
+    const roleUpper = role?.toUpperCase();
+    if (roleUpper === 'REVIEWER' || roleUpper === 'ADMIN') {
+      return redirectUrl && redirectUrl.startsWith('/admin') ? redirectUrl : '/admin/dashboard';
+    }
+    return redirectUrl && redirectUrl.startsWith('/user') ? redirectUrl : '/user/dashboard';
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -129,10 +144,16 @@ function LoginFormContent() {
     setIsSubmitting(true);
 
     try {
+      const cleanEmail = email.trim().toLowerCase();
+      const targetRole =
+        cleanEmail === DEMO_PRESETS.reviewer.email.toLowerCase() || cleanEmail.endsWith('.internal')
+          ? 'reviewer'
+          : activeRole;
+
       const authUser = await login({
         email,
         password,
-        portalRole: activeRole,
+        portalRole: targetRole,
       });
 
       // Verification passed!
@@ -141,12 +162,7 @@ function LoginFormContent() {
 
       // Brief confirmation window to showcase verification
       setTimeout(() => {
-        const roleUpper = authUser.role?.toUpperCase();
-        if (roleUpper === 'REVIEWER') {
-          router.push(redirectUrl || '/admin/dashboard');
-        } else {
-          router.push(redirectUrl || '/user/dashboard');
-        }
+        router.push(getDestinationUrl(authUser.role));
       }, 400);
     } catch (err: unknown) {
       const msg =
@@ -192,12 +208,7 @@ function LoginFormContent() {
       setError(null);
 
       setTimeout(() => {
-        const roleUpper = authUser.role?.toUpperCase();
-        if (roleUpper === 'REVIEWER') {
-          router.push(redirectUrl || '/admin/dashboard');
-        } else {
-          router.push(redirectUrl || '/user/dashboard');
-        }
+        router.push(getDestinationUrl(authUser.role));
       }, 400);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Demo authentication failed.';
