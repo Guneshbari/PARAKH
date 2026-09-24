@@ -132,9 +132,9 @@ function SignupFormContent() {
               <Sparkles className="size-4" />
             </div>
             <div className="flex flex-col">
-              <span className="text-base font-black tracking-tight text-foreground flex items-center gap-1.5">
+              <span className="text-base sm:text-lg font-black tracking-tight text-foreground flex items-center gap-1.5">
                 PARAKH
-                <span className="text-[10px] font-mono uppercase tracking-wider text-foreground-muted px-1.5 py-0.2 rounded-full bg-surface-elevated border border-border">
+                <span className="text-xs font-mono uppercase tracking-wider text-foreground-secondary px-1.5 py-0.5 rounded-full bg-surface-elevated border border-border">
                   Registration
                 </span>
               </span>
@@ -151,7 +151,7 @@ function SignupFormContent() {
               {isDark ? <Sun className="size-3.5" /> : <Moon className="size-3.5" />}
             </button>
             <Link href="/login?role=applicant">
-              <Button variant="ghost" size="sm" className="text-xs text-foreground-secondary hover:text-foreground">
+              <Button variant="ghost" size="sm" className="text-xs sm:text-sm text-foreground-secondary hover:text-foreground">
                 Sign In
               </Button>
             </Link>
@@ -165,12 +165,12 @@ function SignupFormContent() {
           <AuthFormCard status={authStatus} shakeKey={shakeKey}>
             <div className="space-y-1 mb-6">
               <div className="flex items-center justify-between">
-                <h1 className="text-xl font-bold tracking-tight text-foreground">Create Applicant Account</h1>
-                <Badge variant="secondary" className="text-[10px]">
+                <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">Create Applicant Account</h1>
+                <Badge variant="secondary" className="text-xs">
                   Applicant Portal
                 </Badge>
               </div>
-              <p className="text-xs text-foreground-secondary leading-relaxed">
+              <p className="text-xs sm:text-sm text-foreground-secondary leading-relaxed">
                 Connect your gig platform streams and unlock fair, volatility-aware alternative credit evaluation.
               </p>
             </div>
@@ -184,16 +184,16 @@ function SignupFormContent() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-foreground-secondary">Full Legal Name</label>
+                <label className="text-xs sm:text-sm font-medium text-foreground-secondary">Full Legal Name</label>
                 <div className="relative">
-                  <User className="size-4 text-foreground-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <User className="size-4 text-foreground-secondary absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <Input
                     type="text"
                     placeholder="e.g. Arjun Verma"
                     value={fullName}
                     onChange={handleInputChange(setFullName)}
                     className={cn(
-                      'pl-9 text-xs h-10 bg-background text-foreground placeholder:text-foreground-muted',
+                      'pl-9 text-sm h-10 bg-background text-foreground placeholder:text-foreground-muted',
                       getAuthInputClassName(authStatus)
                     )}
                   />
@@ -201,16 +201,16 @@ function SignupFormContent() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-foreground-secondary">Mobile Number or Email</label>
+                <label className="text-xs sm:text-sm font-medium text-foreground-secondary">Mobile Number or Email</label>
                 <div className="relative">
-                  <Mail className="size-4 text-foreground-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <Mail className="size-4 text-foreground-secondary absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <Input
                     type="text"
                     placeholder="e.g. +91 98765 43210 or arjun@example.com"
                     value={emailOrPhone}
                     onChange={handleInputChange(setEmailOrPhone)}
                     className={cn(
-                      'pl-9 text-xs h-10 bg-background text-foreground placeholder:text-foreground-muted',
+                      'pl-9 text-sm h-10 bg-background text-foreground placeholder:text-foreground-muted',
                       getAuthInputClassName(authStatus)
                     )}
                   />
@@ -219,16 +219,16 @@ function SignupFormContent() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-foreground-secondary">Password</label>
+                  <label className="text-xs sm:text-sm font-medium text-foreground-secondary">Password</label>
                   <div className="relative">
-                    <Lock className="size-4 text-foreground-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <Lock className="size-4 text-foreground-secondary absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <Input
                       type="password"
                       placeholder="••••••••"
                       value={password}
                       onChange={handleInputChange(setPassword)}
                       className={cn(
-                        'pl-9 text-xs h-10 bg-background text-foreground placeholder:text-foreground-muted',
+                        'pl-9 text-sm h-10 bg-background text-foreground placeholder:text-foreground-muted',
                         getAuthInputClassName(authStatus)
                       )}
                     />
@@ -236,16 +236,16 @@ function SignupFormContent() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-foreground-secondary">Confirm</label>
+                  <label className="text-xs sm:text-sm font-medium text-foreground-secondary">Confirm</label>
                   <div className="relative">
-                    <Lock className="size-4 text-foreground-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <Lock className="size-4 text-foreground-secondary absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <Input
                       type="password"
                       placeholder="••••••••"
                       value={confirmPassword}
                       onChange={handleInputChange(setConfirmPassword)}
                       className={cn(
-                        'pl-9 text-xs h-10 bg-background text-foreground placeholder:text-foreground-muted',
+                        'pl-9 text-sm h-10 bg-background text-foreground placeholder:text-foreground-muted',
                         getAuthInputClassName(authStatus)
                       )}
                     />
@@ -262,7 +262,7 @@ function SignupFormContent() {
                     onChange={(e) => setConsent(e.target.checked)}
                     className="rounded border-border text-primary focus:ring-primary size-4 mt-0.5 accent-primary"
                   />
-                  <span className="text-[11px] text-foreground-secondary leading-normal">
+                  <span className="text-xs sm:text-sm text-foreground-secondary leading-normal">
                     I consent to PARAKH securely ingesting verified platform activity for alternative credit assessment,
                     governed under RBI alternative data guidelines.
                   </span>
@@ -279,7 +279,7 @@ function SignupFormContent() {
             </form>
 
             <div className="mt-6 pt-4 border-t border-border text-center">
-              <p className="text-xs text-foreground-secondary">
+              <p className="text-xs sm:text-sm text-foreground-secondary">
                 Already registered?{' '}
                 <Link
                   href="/login?role=applicant"
@@ -293,7 +293,7 @@ function SignupFormContent() {
 
           {/* Institutional Credit Reviewer Note */}
           <div className="rounded-2xl border border-border bg-surface-elevated p-4 text-center">
-            <p className="text-[11px] text-foreground-muted leading-relaxed">
+            <p className="text-xs sm:text-sm text-foreground-secondary leading-relaxed">
               Institutional Credit Reviewer access is restricted to licensed underwriting officers. Accounts are
               provisioned directly by enterprise risk desks.
             </p>
@@ -302,7 +302,7 @@ function SignupFormContent() {
       </main>
 
       <footer className="relative z-10 w-full border-t border-border py-4 text-center">
-        <p className="text-[11px] text-foreground-muted">
+        <p className="text-xs sm:text-sm text-foreground-secondary">
           © 2026 PARAKH Protocol • Financial Inclusion for India&apos;s 15 Million Gig Workers
         </p>
       </footer>

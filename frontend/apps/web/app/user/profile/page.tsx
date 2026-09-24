@@ -284,27 +284,27 @@ export default function UserProfilePage() {
               <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
                 {fullName}
               </h2>
-              <Badge variant="secondary" className="gap-1 text-[11px] py-0.5">
-                <ShieldCheck className="size-3 text-emerald-500" />
+              <Badge variant="secondary" className="gap-1 text-xs py-0.5 px-2">
+                <ShieldCheck className="size-3.5 text-emerald-500" />
                 Verified Identity
               </Badge>
             </div>
 
-            <div className="flex flex-wrap items-center gap-y-1 gap-x-4 text-xs text-foreground-secondary">
+            <div className="flex flex-wrap items-center gap-y-1 gap-x-4 text-xs sm:text-sm text-foreground-secondary">
               <span className="flex items-center gap-1">
-                <Smartphone className="size-3.5 text-foreground-muted" />
+                <Smartphone className="size-3.5 text-foreground-secondary" />
                 {phone}
               </span>
               <span className="flex items-center gap-1">
-                <Mail className="size-3.5 text-foreground-muted" />
+                <Mail className="size-3.5 text-foreground-secondary" />
                 {email}
               </span>
               <span className="flex items-center gap-1">
-                <MapPin className="size-3.5 text-foreground-muted" />
+                <MapPin className="size-3.5 text-foreground-secondary" />
                 {city}
               </span>
               <span className="flex items-center gap-1">
-                <Calendar className="size-3.5 text-foreground-muted" />
+                <Calendar className="size-3.5 text-foreground-secondary" />
                 Member since {memberSince}
               </span>
             </div>
@@ -313,15 +313,15 @@ export default function UserProfilePage() {
 
         {/* Identity Verification Status Pills */}
         <div className="flex flex-wrap md:flex-col items-start md:items-end gap-2 shrink-0 border-t md:border-t-0 pt-4 md:pt-0 border-border w-full md:w-auto">
-          <div className="flex items-center gap-1.5 text-xs text-foreground-secondary">
+          <div className="flex items-center gap-1.5 text-xs sm:text-sm text-foreground-secondary">
             <span className="size-1.5 rounded-full bg-emerald-500" />
             <span>DPDP Act 2023 Consent Protected</span>
           </div>
-          <div className="flex items-center gap-1.5 text-xs text-foreground-secondary">
+          <div className="flex items-center gap-1.5 text-xs sm:text-sm text-foreground-secondary">
             <span className="size-1.5 rounded-full bg-emerald-500" />
             <span>Zero Raw Transaction Storage</span>
           </div>
-          <div className="flex items-center gap-1.5 text-xs text-foreground-secondary">
+          <div className="flex items-center gap-1.5 text-xs sm:text-sm text-foreground-secondary">
             <span className="size-1.5 rounded-full bg-primary" />
             <span>Active Evaluations: {applications.length}</span>
           </div>
@@ -365,31 +365,31 @@ export default function UserProfilePage() {
               <Card key={consent.id} className="p-5 space-y-4 bg-surface border-border flex flex-col justify-between">
                 <div className="space-y-2.5">
                   <div className="flex items-center justify-between">
-                    <Badge variant="outline" className="text-[10px] uppercase font-mono">
+                    <Badge variant="outline" className="text-xs uppercase font-mono">
                       {consent.data_source}
                     </Badge>
-                    <Badge variant="secondary" className="gap-1 text-[10px] text-emerald-600 bg-emerald-500/10">
+                    <Badge variant="secondary" className="gap-1 text-xs text-emerald-600 bg-emerald-500/10 font-medium">
                       <CheckCircle2 className="size-3" /> Active
                     </Badge>
                   </div>
                   <div>
-                    <h3 className="text-sm font-semibold text-foreground">{consent.purpose}</h3>
-                    <p className="text-xs text-foreground-muted mt-1">
+                    <h3 className="text-sm sm:text-base font-semibold text-foreground">{consent.purpose}</h3>
+                    <p className="text-xs sm:text-sm text-foreground-secondary mt-1">
                       Granted on {new Date(consent.granted_at).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </p>
                   </div>
                 </div>
 
                 <div className="pt-3 border-t border-border flex items-center justify-between">
-                  <span className="text-[11px] text-foreground-muted">Statutory Protected</span>
+                  <span className="text-xs text-foreground-secondary">Statutory Protected</span>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => handleRevokeConsent(consent.id)}
                     disabled={revokingId === consent.id}
-                    className="text-xs text-red-500 hover:text-red-600 hover:bg-red-500/10 h-7 px-2.5 rounded-full"
+                    className="text-xs sm:text-sm text-red-500 hover:text-red-600 hover:bg-red-500/10 h-8 px-3 rounded-full cursor-pointer"
                   >
-                    <Trash2 className="size-3 mr-1" />
+                    <Trash2 className="size-3.5 mr-1" />
                     {revokingId === consent.id ? 'Revoking...' : 'Revoke'}
                   </Button>
                 </div>
@@ -398,15 +398,15 @@ export default function UserProfilePage() {
           </div>
         ) : (
           <Card className="p-8 text-center space-y-3 bg-surface border-dashed border-border">
-            <Layers className="size-8 text-foreground-muted mx-auto" />
+            <Layers className="size-8 text-foreground-secondary mx-auto" />
             <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-foreground">No Explicit Active Consents</h3>
-              <p className="text-xs text-foreground-muted max-w-sm mx-auto">
+              <h3 className="text-sm sm:text-base font-semibold text-foreground">No Explicit Active Consents</h3>
+              <p className="text-xs sm:text-sm text-foreground-secondary max-w-sm mx-auto">
                 Consents are registered upon starting a credit evaluation.
               </p>
             </div>
             <Link href="/user/applications/new">
-              <Button variant="outline" size="sm" className="rounded-full text-xs gap-1.5">
+              <Button variant="outline" size="sm" className="rounded-full text-xs sm:text-sm gap-1.5 h-8 cursor-pointer">
                 <PlusCircle className="size-3.5" /> Start Evaluation
               </Button>
             </Link>
@@ -421,7 +421,7 @@ export default function UserProfilePage() {
             <h2 className="text-base sm:text-lg font-bold text-foreground">
               Ingested Financial Telemetry
             </h2>
-            <p className="text-xs text-foreground-muted">
+            <p className="text-xs sm:text-sm text-foreground-secondary">
               Aggregated indicators derived under strict data minimization rules.
             </p>
           </div>
@@ -429,14 +429,14 @@ export default function UserProfilePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {financialSignals.map((sig) => (
               <Card key={sig.id} className="p-4 space-y-2 bg-surface border-border">
-                <div className="flex items-center justify-between text-xs text-foreground-muted">
+                <div className="flex items-center justify-between text-xs sm:text-sm text-foreground-secondary">
                   <span className="font-mono">{sig.source}</span>
                   <Activity className="size-3.5 text-primary" />
                 </div>
-                <div className="text-lg font-bold text-foreground">
+                <div className="text-lg sm:text-xl font-bold text-foreground">
                   {sig.average_income ? formatCurrency(Number(sig.average_income)) : 'Verified Active'}
                 </div>
-                <div className="text-[11px] text-foreground-secondary">
+                <div className="text-xs text-foreground-secondary">
                   {sig.active_days ? `${sig.active_days} active days recorded` : 'Telemetry verified'}
                 </div>
               </Card>
@@ -457,7 +457,7 @@ export default function UserProfilePage() {
               <h3 className="text-xs sm:text-sm font-semibold text-foreground">
                 Anonymized Industry Volatility Benchmarking
               </h3>
-              <p className="text-xs text-foreground-muted">
+              <p className="text-xs sm:text-sm text-foreground-secondary">
                 Allow your anonymized rebound speeds to train local gig economy resilience baselines.
               </p>
             </div>
@@ -474,7 +474,7 @@ export default function UserProfilePage() {
               <h3 className="text-xs sm:text-sm font-semibold text-foreground">
                 Continuous Telemetry Refresh
               </h3>
-              <p className="text-xs text-foreground-muted">
+              <p className="text-xs sm:text-sm text-foreground-secondary">
                 Periodically update weekly inflow stability indicators as new platform payouts settle.
               </p>
             </div>
@@ -491,7 +491,7 @@ export default function UserProfilePage() {
               <h3 className="text-xs sm:text-sm font-semibold text-foreground">
                 Volatile Shock Rebound Alerts
               </h3>
-              <p className="text-xs text-foreground-muted">
+              <p className="text-xs sm:text-sm text-foreground-secondary">
                 Receive proactive notifications when your 10-day recovery velocity qualifies you for better credit limits.
               </p>
             </div>

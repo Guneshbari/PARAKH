@@ -262,17 +262,17 @@ export default function AdminApplicationDetailPage({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
         <div className="flex items-center gap-3">
           <Link href="/admin/applications">
-            <Button variant="outline" size="sm" className="rounded-full gap-1.5 text-xs">
+            <Button variant="outline" size="sm" className="rounded-full gap-1.5 text-xs sm:text-sm cursor-pointer">
               <ArrowLeft className="size-3.5" /> Back to Queue
             </Button>
           </Link>
-          <span className="text-xs text-foreground-muted font-mono">
+          <span className="text-xs sm:text-sm text-foreground-secondary font-mono">
             DOSSIER: {application.id}
           </span>
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-surface-highlight border border-border text-xs text-foreground-secondary">
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-surface-highlight border border-border text-xs sm:text-sm text-foreground-secondary">
             <UserCheck className="size-3.5 opacity-70" />
             <span>Reviewer: {user?.name || user?.email || 'Certified Reviewer'}</span>
           </div>
@@ -280,7 +280,7 @@ export default function AdminApplicationDetailPage({
             variant="ghost"
             size="sm"
             onClick={() => window.print()}
-            className="rounded-full gap-1.5 text-xs text-foreground-muted hover:text-foreground"
+            className="rounded-full gap-1.5 text-xs sm:text-sm text-foreground-secondary hover:text-foreground cursor-pointer"
           >
             <Printer className="size-3.5" /> Print Audit File
           </Button>
@@ -314,7 +314,7 @@ export default function AdminApplicationDetailPage({
             </span>
           </div>
 
-          <div className="flex flex-wrap items-center gap-4 text-xs text-foreground-muted pt-1">
+          <div className="flex flex-wrap items-center gap-4 text-xs sm:text-sm text-foreground-secondary pt-1">
             <span className="flex items-center gap-1.5">
               <DollarSign className="size-3.5 opacity-70" />
               Requested {formatCurrency(application.requestedAmount)}
@@ -333,7 +333,7 @@ export default function AdminApplicationDetailPage({
           </div>
 
           {application.triggerReason && (
-            <div className="mt-2 p-3 rounded-xl bg-surface-highlight border border-border text-xs text-foreground-secondary flex items-start gap-2">
+            <div className="mt-2 p-3 rounded-xl bg-surface-highlight border border-border text-xs sm:text-sm text-foreground-secondary flex items-start gap-2">
               <AlertCircle className="size-4 shrink-0 mt-0.5 opacity-80" />
               <div>
                 <span className="font-semibold text-foreground block">Underwriting Flag Reason:</span>
@@ -347,11 +347,11 @@ export default function AdminApplicationDetailPage({
         {assessment && (
           <div className="flex flex-col items-start md:items-end justify-center gap-1 p-4 rounded-2xl bg-surface-highlight border border-border shrink-0">
             <div className="flex items-center gap-1.5">
-              <span className="text-[11px] font-semibold text-foreground-muted uppercase tracking-wider">
+              <span className="text-xs font-semibold text-foreground-secondary uppercase tracking-wider">
                 Alternative Credit Score
               </span>
               {assessment.modelName && (
-                <span className="text-[10px] text-foreground-muted font-mono lowercase">
+                <span className="text-xs text-foreground-secondary font-mono lowercase">
                   • {assessment.modelName}
                 </span>
               )}
@@ -361,26 +361,26 @@ export default function AdminApplicationDetailPage({
                 <span className="text-3xl font-bold text-foreground font-mono">
                   {assessment.score}
                 </span>
-                <span className="text-xs text-foreground-muted">/ 850</span>
+                <span className="text-sm text-foreground-secondary">/ 850</span>
               </div>
             ) : (
               <div className="flex items-baseline gap-1.5">
                 <span className="text-2xl font-black text-foreground font-mono">
                   UNRATED
                 </span>
-                <span className="text-xs text-foreground-muted font-medium">
+                <span className="text-sm text-foreground-secondary font-medium">
                   (Insufficient Telemetry)
                 </span>
               </div>
             )}
-            <div className="flex items-center gap-2 text-[11px]">
+            <div className="flex items-center gap-2 text-xs">
               <span className="text-foreground-secondary font-mono font-medium">
                 {assessment.modelConfidence !== null && assessment.modelConfidence > 0
                   ? `${assessment.modelConfidence}% Confidence`
                   : '0% Confidence'}
               </span>
-              <span className="text-foreground-muted">•</span>
-              <span className="text-foreground-muted">
+              <span className="text-foreground-secondary">•</span>
+              <span className="text-foreground-secondary">
                 {assessment.estimatedRepaymentDifficulty !== null
                   ? `${assessment.estimatedRepaymentDifficulty}% Difficulty`
                   : 'Uncalculated'}
@@ -437,30 +437,30 @@ export default function AdminApplicationDetailPage({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Volatility Metrics */}
         <Card className="p-6 bg-surface border-border space-y-4">
-          <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+          <h3 className="text-sm sm:text-base font-bold text-foreground flex items-center gap-2">
             <TrendingUp className="size-4 text-foreground-secondary" />
             Cashflow Volatility Profile
           </h3>
 
-          <div className="space-y-3 text-xs divide-y divide-border">
+          <div className="space-y-3 text-xs sm:text-sm divide-y divide-border">
             <div className="flex justify-between items-center py-2">
-              <span className="text-foreground-muted">Income Volatility Index</span>
+              <span className="text-foreground-secondary">Income Volatility Index</span>
               <span className="font-mono font-semibold text-foreground">0.28 (Controlled)</span>
             </div>
             <div className="flex justify-between items-center py-2">
-              <span className="text-foreground-muted">Shock Rebound Velocity</span>
+              <span className="text-foreground-secondary">Shock Rebound Velocity</span>
               <span className="font-mono text-foreground font-semibold">10–14 Days to Baseline</span>
             </div>
             <div className="flex justify-between items-center py-2">
-              <span className="text-foreground-muted">Cyclical Dips Observed / Recovered</span>
+              <span className="text-foreground-secondary">Cyclical Dips Observed / Recovered</span>
               <span className="font-mono text-foreground-secondary">3 Dips / 3 Recovered (100%)</span>
             </div>
             <div className="flex justify-between items-center py-2">
-              <span className="text-foreground-muted">Micro-Obligation Settlement Rate</span>
+              <span className="text-foreground-secondary">Micro-Obligation Settlement Rate</span>
               <span className="font-mono text-foreground font-semibold">98% Punctual (24 cycles)</span>
             </div>
             <div className="flex justify-between items-center py-2">
-              <span className="text-foreground-muted">Fixed Commitment Ratio</span>
+              <span className="text-foreground-secondary">Fixed Commitment Ratio</span>
               <span className="font-mono text-foreground-secondary">8.8% of Average Inflow</span>
             </div>
           </div>
@@ -468,18 +468,18 @@ export default function AdminApplicationDetailPage({
 
         {/* Connected Telemetry Feeds */}
         <Card className="p-6 bg-surface border-border space-y-4">
-          <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+          <h3 className="text-sm sm:text-base font-bold text-foreground flex items-center gap-2">
             <Layers className="size-4 text-foreground-secondary" />
             Verified Ingestion Streams
           </h3>
 
-          <div className="space-y-2.5 text-xs">
+          <div className="space-y-2.5 text-xs sm:text-sm">
             <div className="p-3 rounded-xl bg-surface-highlight/40 border border-border flex items-center justify-between">
               <div>
                 <span className="font-semibold text-foreground block">Swiggy Partner Telemetry</span>
-                <span className="text-[11px] text-foreground-muted">18 months • 4.85 ★ • 3,420 orders</span>
+                <span className="text-xs text-foreground-secondary">18 months • 4.85 ★ • 3,420 orders</span>
               </div>
-              <Badge variant="mint" className="text-[10px] py-0 px-2">
+              <Badge variant="mint" className="text-xs py-0.5 px-2.5">
                 Active Stream
               </Badge>
             </div>
@@ -487,9 +487,9 @@ export default function AdminApplicationDetailPage({
             <div className="p-3 rounded-xl bg-surface-highlight/40 border border-border flex items-center justify-between">
               <div>
                 <span className="font-semibold text-foreground block">Urban Company Connect</span>
-                <span className="text-[11px] text-foreground-muted">8 months • 4.90 ★ • 312 tasks</span>
+                <span className="text-xs text-foreground-secondary">8 months • 4.90 ★ • 312 tasks</span>
               </div>
-              <Badge variant="mint" className="text-[10px] py-0 px-2">
+              <Badge variant="mint" className="text-xs py-0.5 px-2.5">
                 Active Stream
               </Badge>
             </div>
@@ -497,9 +497,9 @@ export default function AdminApplicationDetailPage({
             <div className="p-3 rounded-xl bg-surface-highlight/40 border border-border flex items-center justify-between">
               <div>
                 <span className="font-semibold text-foreground block">Account Aggregator (HDFC Bank)</span>
-                <span className="text-[11px] text-foreground-muted">Consent #AA-8910 • 12 mos data</span>
+                <span className="text-xs text-foreground-secondary">Consent #AA-8910 • 12 mos data</span>
               </div>
-              <Badge variant="mint" className="text-[10px] py-0 px-2">
+              <Badge variant="mint" className="text-xs py-0.5 px-2.5">
                 AA Verified
               </Badge>
             </div>
@@ -507,9 +507,9 @@ export default function AdminApplicationDetailPage({
             <div className="p-3 rounded-xl bg-surface-highlight/40 border border-border flex items-center justify-between">
               <div>
                 <span className="font-semibold text-foreground block">BBPS Micro-Repayments</span>
-                <span className="text-[11px] text-foreground-muted">BESCOM, Indane, Airtel • 98% on-time</span>
+                <span className="text-xs text-foreground-secondary">BESCOM, Indane, Airtel • 98% on-time</span>
               </div>
-              <Badge variant="mint" className="text-[10px] py-0 px-2">
+              <Badge variant="mint" className="text-xs py-0.5 px-2.5">
                 Punctual Track
               </Badge>
             </div>
@@ -528,11 +528,11 @@ export default function AdminApplicationDetailPage({
       <Card variant="elevated" className="p-6 sm:p-8 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border">
           <div className="space-y-1">
-            <h2 className="text-base font-bold text-foreground flex items-center gap-2">
+            <h2 className="text-base sm:text-lg font-bold text-foreground flex items-center gap-2">
               <UserCheck className="size-4 text-foreground-secondary" />
               Human-in-the-Loop Underwriting Decision Console
             </h2>
-            <p className="text-xs text-foreground-muted">
+            <p className="text-xs sm:text-sm text-foreground-secondary">
               Statutory credit underwriting workspace. Reviewers exercise independent judgment in evaluating alternative volatility evidence.
             </p>
           </div>
@@ -544,7 +544,7 @@ export default function AdminApplicationDetailPage({
         <form onSubmit={handleSaveReview} className="space-y-5">
           {/* Action Selector */}
           <div className="space-y-2">
-            <label className="text-xs font-semibold text-foreground block">
+            <label className="text-xs sm:text-sm font-semibold text-foreground block">
               Select Reviewer Action
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
@@ -572,11 +572,11 @@ export default function AdminApplicationDetailPage({
                   className={`p-3 rounded-2xl text-left border transition-all cursor-pointer ${
                     reviewAction === btn.id
                       ? 'border-[#472393] bg-[#472393] text-white shadow-xs dark:border-foreground dark:bg-foreground dark:text-background'
-                      : 'border-border bg-surface-highlight text-foreground-muted hover:text-[#472393] hover:border-[rgba(71,35,147,0.3)] dark:hover:text-foreground dark:hover:border-border'
+                      : 'border-border bg-surface-highlight text-foreground-secondary hover:text-[#472393] hover:border-[rgba(71,35,147,0.3)] dark:hover:text-foreground dark:hover:border-border'
                   }`}
                 >
-                  <span className="font-semibold text-xs block">{btn.label}</span>
-                  <span className="text-[11px] opacity-75 block pt-0.5">
+                  <span className="font-semibold text-sm block">{btn.label}</span>
+                  <span className="text-xs opacity-80 block pt-0.5">
                     {btn.desc}
                   </span>
                 </button>
@@ -586,7 +586,7 @@ export default function AdminApplicationDetailPage({
 
           {/* Risk Level Assessment / Calibration */}
           <div className="space-y-2">
-            <label className="text-xs font-semibold text-foreground block">
+            <label className="text-xs sm:text-sm font-semibold text-foreground block">
               Calibrated Risk Classification
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -600,10 +600,10 @@ export default function AdminApplicationDetailPage({
                   key={tier}
                   type="button"
                   onClick={() => setSelectedRisk(tier as RiskLevel)}
-                  className={`p-2.5 rounded-xl text-xs font-medium border text-center transition-all cursor-pointer ${
+                  className={`p-2.5 rounded-xl text-xs sm:text-sm font-medium border text-center transition-all cursor-pointer ${
                     selectedRisk === tier
                       ? 'border-[#472393] bg-[#472393] text-white font-semibold shadow-xs dark:border-foreground dark:bg-foreground dark:text-background'
-                      : 'border-border bg-surface-highlight text-foreground-muted hover:text-[#472393] hover:border-[rgba(71,35,147,0.3)] dark:hover:text-foreground dark:hover:border-border'
+                      : 'border-border bg-surface-highlight text-foreground-secondary hover:text-[#472393] hover:border-[rgba(71,35,147,0.3)] dark:hover:text-foreground dark:hover:border-border'
                   }`}
                 >
                   {tier.replace(/_/g, ' ')}
@@ -615,7 +615,7 @@ export default function AdminApplicationDetailPage({
           {/* Verification Items (shown for REQUEST_VERIFICATION) */}
           {reviewAction === 'REQUEST_VERIFICATION' && (
             <div className="space-y-3 p-4 rounded-2xl bg-surface-highlight border border-border">
-              <label className="text-xs font-semibold text-foreground block">
+              <label className="text-xs sm:text-sm font-semibold text-foreground block">
                 Select or Specify Required Verification Evidence
               </label>
 
@@ -633,10 +633,10 @@ export default function AdminApplicationDetailPage({
                       key={item}
                       type="button"
                       onClick={() => handleToggleItem(item)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all cursor-pointer ${
+                      className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium border transition-all cursor-pointer ${
                         isChecked
                           ? 'bg-[#472393] text-white border-[#472393] font-semibold shadow-xs dark:bg-foreground dark:text-background dark:border-foreground'
-                          : 'bg-surface text-foreground-muted border-border hover:text-[#472393] hover:border-[rgba(71,35,147,0.3)] dark:hover:text-foreground dark:hover:border-border'
+                          : 'bg-surface text-foreground-secondary border-border hover:text-[#472393] hover:border-[rgba(71,35,147,0.3)] dark:hover:text-foreground dark:hover:border-border'
                       }`}
                     >
                       {isChecked ? '✓ ' : '+ '}
@@ -652,14 +652,14 @@ export default function AdminApplicationDetailPage({
                   value={customItem}
                   onChange={(e) => setCustomItem(e.target.value)}
                   placeholder="Specify custom verification requirement..."
-                  className="flex-1 text-xs px-3 py-1.5 rounded-full bg-surface border border-border text-foreground focus:outline-none focus:border-[#472393] focus:ring-2 focus:ring-[#472393]/20 dark:focus:border-foreground dark:focus:ring-0"
+                  className="flex-1 text-sm px-3.5 py-2 rounded-full bg-surface border border-border text-foreground focus:outline-none focus:border-[#472393] focus:ring-2 focus:ring-[#472393]/20 dark:focus:border-foreground dark:focus:ring-0 placeholder:text-foreground-muted"
                 />
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={handleAddCustomItem}
-                  className="rounded-full text-xs h-8"
+                  className="rounded-full text-xs sm:text-sm h-9 cursor-pointer"
                 >
                   Add Item
                 </Button>
@@ -669,11 +669,11 @@ export default function AdminApplicationDetailPage({
 
           {/* Decision Rationale Notes */}
           <div className="space-y-1.5">
-            <div className="flex justify-between items-center text-xs">
+            <div className="flex justify-between items-center text-xs sm:text-sm">
               <label className="font-semibold text-foreground">
                 Credit Reviewer Qualitative Rationale & Decision Notes
               </label>
-              <span className="text-[11px] text-foreground-muted">
+              <span className="text-xs text-foreground-secondary">
                 Minimum 10 characters required
               </span>
             </div>
@@ -683,13 +683,13 @@ export default function AdminApplicationDetailPage({
               value={decisionNotes}
               onChange={(e) => setDecisionNotes(e.target.value)}
               placeholder="Record detailed credit review commentary regarding income volatility rebound dynamics, alternative micro-obligations, and justifications for risk tier classification..."
-              className="w-full text-xs p-3.5 rounded-2xl bg-surface-highlight/30 border border-border text-foreground focus:outline-none focus:border-[#472393] dark:focus:border-foreground leading-relaxed resize-none"
+              className="w-full text-sm p-3.5 rounded-2xl bg-surface-highlight/30 border border-border text-foreground focus:outline-none focus:border-[#472393] dark:focus:border-foreground leading-relaxed resize-none placeholder:text-foreground-muted"
             />
           </div>
 
           {/* Error Banner */}
           {reviewError && (
-            <div className="p-4 rounded-2xl bg-destructive/10 border border-destructive/20 text-destructive text-xs flex items-center gap-2.5">
+            <div className="p-4 rounded-2xl bg-destructive/10 border border-destructive/20 text-destructive text-sm flex items-center gap-2.5">
               <AlertCircle className="size-4 shrink-0" />
               <span>{reviewError}</span>
             </div>
@@ -697,7 +697,7 @@ export default function AdminApplicationDetailPage({
 
           {/* Success Banner */}
           {recordSuccess && (
-            <div className="p-4 rounded-2xl bg-surface-highlight border border-border text-foreground text-xs flex items-center gap-2.5">
+            <div className="p-4 rounded-2xl bg-surface-highlight border border-border text-foreground text-sm flex items-center gap-2.5">
               <CheckCircle2 className="size-4 shrink-0" />
               <span>
                 Underwriting decision committed to PostgreSQL audit ledger successfully. Status updated to{' '}
@@ -717,7 +717,7 @@ export default function AdminApplicationDetailPage({
                 variant="ghost"
                 size="sm"
                 disabled={isSubmitting}
-                className="rounded-full text-xs text-foreground-muted hover:text-foreground"
+                className="rounded-full text-xs sm:text-sm text-foreground-secondary hover:text-foreground cursor-pointer"
               >
                 Cancel
               </Button>
@@ -728,7 +728,7 @@ export default function AdminApplicationDetailPage({
               variant="default"
               size="sm"
               disabled={isSubmitting || decisionNotes.trim().length < 10}
-              className="rounded-full text-xs font-semibold gap-1.5 px-6 shadow-xs cursor-pointer"
+              className="rounded-full text-xs sm:text-sm font-semibold gap-1.5 px-6 h-9 shadow-xs cursor-pointer"
             >
               {isSubmitting ? (
                 <>
@@ -748,11 +748,11 @@ export default function AdminApplicationDetailPage({
       {application.review && application.review.recordedAt && (
         <Card className="p-6 bg-surface border-border space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold text-foreground flex items-center gap-2">
+            <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
               <FileCheck className="size-4 text-foreground-secondary" />
               Recorded Underwriting Audit File
             </h3>
-            <span className="font-mono text-[11px] text-foreground-muted">
+            <span className="font-mono text-xs text-foreground-secondary">
               Recorded at{' '}
               {new Date(application.review.recordedAt).toLocaleDateString('en-IN', {
                 month: 'short',
@@ -763,15 +763,15 @@ export default function AdminApplicationDetailPage({
             </span>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-surface-highlight/40 border border-border space-y-1.5 text-xs">
+          <div className="p-3.5 rounded-xl bg-surface-highlight/40 border border-border space-y-1.5 text-xs sm:text-sm">
             <div className="flex justify-between">
-              <span className="text-foreground-muted">Credit Reviewer:</span>
+              <span className="text-foreground-secondary">Credit Reviewer:</span>
               <span className="text-foreground font-medium">
                 {application.review.underwriterName} ({application.review.underwriterId})
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-foreground-muted">Recorded Action:</span>
+              <span className="text-foreground-secondary">Recorded Action:</span>
               <span className="text-foreground font-mono font-semibold">
                 {application.review.action}
               </span>
@@ -786,7 +786,7 @@ export default function AdminApplicationDetailPage({
       )}
 
       {/* 9. LEGAL & GOVERNANCE SEPARATION NOTICE */}
-      <div className="p-4 rounded-2xl bg-surface-highlight/30 border border-border text-[11px] text-foreground-muted flex items-start gap-3">
+      <div className="p-4 rounded-2xl bg-surface-highlight/30 border border-border text-xs sm:text-sm text-foreground-secondary flex items-start gap-3">
         <Info className="size-4 text-foreground-secondary shrink-0 mt-0.5" />
         <div className="space-y-0.5">
           <span className="font-semibold text-foreground block">

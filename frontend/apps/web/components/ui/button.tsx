@@ -32,12 +32,12 @@ const buttonVariants = cva(
           'bg-indigo-500/10 text-indigo-500 dark:text-foreground border border-indigo-500/20 dark:border-border hover:bg-indigo-500/20',
       },
       size: {
-        default: 'h-8.5 gap-2 px-4 text-xs font-semibold',
-        sm: 'h-7 gap-1.5 px-3 text-xs',
-        lg: 'h-10.5 gap-2.5 px-6 text-sm font-bold',
-        pill: 'h-8 gap-2 px-4 text-xs font-semibold',
-        icon: 'size-8.5',
-        'icon-sm': 'size-7',
+        default: 'h-9 gap-2 px-4 text-xs sm:text-sm font-semibold',
+        sm: 'h-8 gap-1.5 px-3 text-xs font-medium',
+        lg: 'h-11 gap-2.5 px-6 text-sm sm:text-base font-bold',
+        pill: 'h-8.5 gap-2 px-4 text-xs sm:text-sm font-semibold',
+        icon: 'size-9',
+        'icon-sm': 'size-7.5',
       },
     },
     defaultVariants: {

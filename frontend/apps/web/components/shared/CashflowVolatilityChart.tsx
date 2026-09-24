@@ -99,7 +99,7 @@ export function CashflowVolatilityChart({
             />
             <YAxis
               stroke={axisColor}
-              fontSize={11}
+              fontSize={12}
               tickLine={false}
               axisLine={false}
               tickFormatter={(v) => `₹${v / 1000}k`}
@@ -112,22 +112,22 @@ export function CashflowVolatilityChart({
 
                 return (
                   <div className="rounded-xl bg-surface border border-border p-3 shadow-xl space-y-1 text-foreground">
-                    <p className="text-[11px] font-semibold text-foreground-muted uppercase tracking-wider">
+                    <p className="text-xs font-semibold text-foreground-secondary uppercase tracking-wider">
                       Week {pt.week}
                     </p>
-                    <p className="text-sm font-semibold text-foreground font-mono">
+                    <p className="text-sm sm:text-base font-semibold text-foreground font-mono">
                       Inflow: {formatCurrency(pt.inflow)}
                     </p>
-                    <p className="text-xs text-foreground-secondary font-mono">
+                    <p className="text-xs sm:text-sm text-foreground-secondary font-mono">
                       Obligations: {formatCurrency(pt.obligations)}
                     </p>
                     {pt.isDip && (
-                      <span className="text-[10px] font-medium text-foreground-muted block pt-1">
+                      <span className="text-xs font-medium text-foreground-secondary block pt-1">
                         Cyclical dip absorbed
                       </span>
                     )}
                     {pt.isRecovery && (
-                      <span className="text-[10px] font-medium text-foreground block pt-1">
+                      <span className="text-xs font-medium text-foreground block pt-1">
                         Rapid rebound confirmed
                       </span>
                     )}
@@ -144,7 +144,7 @@ export function CashflowVolatilityChart({
               label={{
                 value: 'Fixed Obligations (₹3.5k)',
                 fill: axisColor,
-                fontSize: 10,
+                fontSize: 12,
                 position: 'insideTopRight',
               }}
             />
@@ -162,19 +162,19 @@ export function CashflowVolatilityChart({
       </div>
 
       {/* Footer Legend */}
-      <div className="pt-3 border-t border-border flex items-center justify-between text-xs text-foreground-muted">
+      <div className="pt-3 border-t border-border flex items-center justify-between text-xs sm:text-sm text-foreground-secondary">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1.5">
             <span className="size-2 rounded-full bg-foreground" />
             <span>Weekly Inflow</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="size-2 rounded-full bg-foreground-muted/40" />
+            <span className="size-2 rounded-full bg-foreground-secondary/40" />
             <span>Obligation Threshold</span>
           </div>
         </div>
 
-        <span className="text-[11px] text-foreground-secondary font-medium">Resilient Recovery Pattern</span>
+        <span className="text-xs sm:text-sm text-foreground-secondary font-medium">Resilient Recovery Pattern</span>
       </div>
     </Card>
   );

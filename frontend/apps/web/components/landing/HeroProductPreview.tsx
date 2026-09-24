@@ -90,11 +90,11 @@ export function HeroProductPreview() {
               <span className="text-2xl font-black text-[#101828] dark:text-foreground font-mono tracking-tight">
                 ₹1,28,450
               </span>
-              <span className="text-[11px] font-bold text-[#101828] dark:text-foreground bg-[#F1F5F9] dark:bg-surface-elevated border border-[rgba(15,23,42,0.08)] dark:border-border px-2 py-0.5 rounded-full flex items-center gap-0.5">
+              <span className="text-xs font-bold text-[#101828] dark:text-foreground bg-[#F1F5F9] dark:bg-surface-elevated border border-[rgba(15,23,42,0.08)] dark:border-border px-2.5 py-0.5 rounded-full flex items-center gap-0.5">
                 +17%
               </span>
             </div>
-            <span className="text-[10px] sm:text-[11px] text-[#667085] dark:text-foreground-muted block -mt-1 font-medium">
+            <span className="text-xs text-[#334155] dark:text-foreground-secondary block -mt-0.5 font-medium">
               credit the invisible
             </span>
 
@@ -434,16 +434,16 @@ export function HeroProductPreview() {
                 <div className="size-7 rounded-xl bg-[#F6F2FF] hover:bg-[#EDE9FE] dark:bg-surface-elevated border border-[rgba(71,35,147,0.22)] dark:border-border flex items-center justify-center text-[#472393] dark:text-foreground shadow-2xs transition-colors">
                   <Sparkles className="size-3.5" />
                 </div>
-                <span className="text-xs font-bold text-[#172033] dark:text-foreground tracking-wide font-mono text-[11px]">
+                <span className="text-xs sm:text-sm font-bold text-[#172033] dark:text-foreground tracking-wide font-mono">
                   Trends & Insight
                 </span>
               </div>
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#F6F2FF] dark:bg-surface-elevated border border-[rgba(71,35,147,0.22)] dark:border-border text-[#472393] dark:text-foreground-muted font-semibold">
+              <span className="text-xs font-mono px-2 py-0.5 rounded bg-[#F6F2FF] dark:bg-surface-elevated border border-[rgba(71,35,147,0.22)] dark:border-border text-[#472393] dark:text-foreground-secondary font-semibold">
                 AI
               </span>
             </div>
 
-            <p className="text-xs text-[#475467] dark:text-foreground-secondary leading-relaxed font-medium">
+            <p className="text-xs sm:text-sm text-[#334155] dark:text-foreground-secondary leading-relaxed font-medium">
               &ldquo;Your income shows strong stability with positive recovery across multiple
               platforms, indicating healthy cash flow resilience.&rdquo;
             </p>
@@ -453,12 +453,12 @@ export function HeroProductPreview() {
                 variant="outline"
                 size="sm"
                 onClick={() => setIsMethodologyOpen(true)}
-                className="rounded-full text-xs gap-1.5 h-7 px-3 cursor-pointer bg-white text-[#472393] border border-[rgba(71,35,147,0.22)] hover:bg-[#F6F2FF] hover:border-[rgba(71,35,147,0.35)] dark:bg-transparent dark:text-foreground dark:border-border"
+                className="rounded-full text-xs sm:text-sm gap-1.5 h-8 px-3.5 cursor-pointer bg-white text-[#472393] border border-[rgba(71,35,147,0.22)] hover:bg-[#F6F2FF] hover:border-[rgba(71,35,147,0.35)] dark:bg-transparent dark:text-foreground dark:border-border"
               >
                 <span>View Breakdown</span>
                 <ArrowRight className="size-3 text-[#472393] dark:text-foreground" />
               </Button>
-              <span className="text-[10px] text-[#667085] dark:text-foreground-muted font-mono font-medium">Explainable AI</span>
+              <span className="text-xs text-[#334155] dark:text-foreground-secondary font-mono font-medium">Explainable AI</span>
             </div>
 
             {/* Corner diamond sparkle glint */}
@@ -478,7 +478,7 @@ export function HeroProductPreview() {
       {/* =========================================
           4. MOBILE COMPACT FLOATING CARDS STRIP
           Only visible on small mobile screens (< md)
-         ========================================= */}
+          ========================================= */}
       <div className="flex md:hidden flex-col sm:flex-row items-stretch gap-3 w-full max-w-sm sm:max-w-md pt-5 px-4">
         <div className="flex-1 rounded-2xl bg-white/96 dark:bg-[#121416] border border-[rgba(71,85,105,0.14)] dark:border-white/[0.12] p-3.5 shadow-[0_8px_24px_rgba(15,23,42,0.06),0_2px_6px_rgba(15,23,42,0.04)] dark:shadow-sm flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -486,11 +486,11 @@ export function HeroProductPreview() {
               <TrendingUp className="size-4" />
             </div>
             <div>
-              <span className="text-[11px] text-[#667085] dark:text-foreground-muted block font-medium">Total Balance (12m)</span>
+              <span className="text-xs text-[#334155] dark:text-foreground-secondary block font-medium">Total Balance (12m)</span>
               <span className="text-base font-bold text-[#101828] dark:text-foreground font-mono">₹1,28,450</span>
             </div>
           </div>
-          <span className="text-[10px] font-bold text-[#101828] dark:text-foreground bg-[#F1F5F9] dark:bg-surface-elevated border border-[rgba(15,23,42,0.08)] dark:border-border px-2 py-0.5 rounded-full">
+          <span className="text-xs font-bold text-[#101828] dark:text-foreground bg-[#F1F5F9] dark:bg-surface-elevated border border-[rgba(15,23,42,0.08)] dark:border-border px-2.5 py-0.5 rounded-full">
             +17%
           </span>
         </div>
@@ -501,10 +501,10 @@ export function HeroProductPreview() {
               <Sparkles className="size-4" />
             </div>
             <div>
-              <span className="text-[11px] text-[#172033] dark:text-foreground font-bold block font-mono">
+              <span className="text-xs sm:text-sm text-[#172033] dark:text-foreground font-bold block font-mono">
                 Trends & Insight
               </span>
-              <span className="text-[11px] text-[#475467] dark:text-foreground-muted line-clamp-1 font-medium">
+              <span className="text-xs text-[#334155] dark:text-foreground-secondary line-clamp-1 font-medium">
                 94% Recovery Resilience
               </span>
             </div>
@@ -513,7 +513,7 @@ export function HeroProductPreview() {
             variant="outline"
             size="sm"
             onClick={() => setIsMethodologyOpen(true)}
-            className="rounded-full text-[11px] h-7 px-3 shrink-0 bg-white text-[#472393] border border-[rgba(71,35,147,0.22)] hover:bg-[#F6F2FF] hover:border-[rgba(71,35,147,0.35)] dark:bg-transparent dark:text-foreground dark:border-border"
+            className="rounded-full text-xs h-8 px-3 shrink-0 bg-white text-[#472393] border border-[rgba(71,35,147,0.22)] hover:bg-[#F6F2FF] hover:border-[rgba(71,35,147,0.35)] dark:bg-transparent dark:text-foreground dark:border-border cursor-pointer"
           >
             Breakdown
           </Button>

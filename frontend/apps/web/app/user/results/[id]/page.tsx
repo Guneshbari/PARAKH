@@ -160,13 +160,13 @@ export default function CreditAssessmentResultPage({ params }: ResultPageProps) 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
         <div className="flex items-center gap-3">
           <Link href="/user/dashboard">
-            <Button variant="outline" size="sm" className="rounded-full gap-1.5 text-xs px-4 cursor-pointer">
+            <Button variant="outline" size="sm" className="rounded-full gap-1.5 text-xs sm:text-sm px-4 cursor-pointer">
               <ArrowLeft className="size-3.5" /> Back to Dashboard
             </Button>
           </Link>
-          <h1 className="text-xs sm:text-sm font-semibold text-foreground">
+          <h1 className="text-sm sm:text-base font-semibold text-foreground">
             Credit Assessment Dossier{' '}
-            <span className="text-xs text-foreground-muted font-mono font-normal">
+            <span className="text-xs sm:text-sm text-foreground-secondary font-mono font-normal">
               ({id.substring(0, 8)}...)
             </span>
           </h1>
@@ -177,14 +177,14 @@ export default function CreditAssessmentResultPage({ params }: ResultPageProps) 
             variant="ghost"
             size="sm"
             onClick={() => window.print()}
-            className="rounded-full gap-1.5 text-xs text-foreground-muted hover:text-foreground px-3.5 cursor-pointer"
+            className="rounded-full gap-1.5 text-xs sm:text-sm text-foreground-secondary hover:text-foreground px-3.5 cursor-pointer"
           >
             <Printer className="size-3.5" /> Print Dossier
           </Button>
           <Button
             variant="pillOutline"
             size="sm"
-            className="rounded-full gap-1.5 text-xs px-3.5 cursor-pointer"
+            className="rounded-full gap-1.5 text-xs sm:text-sm px-3.5 cursor-pointer"
           >
             <Share2 className="size-3.5" /> Share Report
           </Button>
@@ -200,32 +200,32 @@ export default function CreditAssessmentResultPage({ params }: ResultPageProps) 
       {(assessment.isInsufficientEvidence || (assessment.missingSignals && assessment.missingSignals.length > 0)) && (
         <section>
           <Card className="p-6 bg-surface border-amber-500/30 dark:border-amber-500/20 space-y-3.5">
-            <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-semibold text-sm">
+            <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-semibold text-sm sm:text-base">
               <AlertTriangle className="size-4 shrink-0" />
               <span>Evidence Threshold Not Met — Required Signals Missing</span>
             </div>
-            <p className="text-xs text-foreground-secondary leading-relaxed">
+            <p className="text-sm text-foreground-secondary leading-relaxed">
               The volatility-aware credit risk model could not synthesize an alternative score because core telemetry signals are missing or below minimal observation requirements:
             </p>
-            <ul className="space-y-2 text-xs text-foreground">
+            <ul className="space-y-2 text-sm text-foreground">
               {(assessment.missingSignals && assessment.missingSignals.length > 0
                 ? assessment.missingSignals
                 : ['Continuous 30-day cashflow transaction history', 'Verified gig platform payout linkages']
               ).map((sig, i) => (
                 <li key={i} className="flex items-start gap-2">
-                  <span className="size-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0" />
-                  <span className="font-mono text-xs">{sig}</span>
+                  <span className="size-1.5 rounded-full bg-amber-500 mt-2 shrink-0" />
+                  <span className="font-mono text-xs sm:text-sm">{sig}</span>
                 </li>
               ))}
             </ul>
             <div className="pt-2 flex items-center gap-3">
               <Link href="/user/profile">
-                <Button variant="outline" size="sm" className="rounded-full text-xs">
+                <Button variant="outline" size="sm" className="rounded-full text-xs sm:text-sm">
                   Manage Connected Accounts
                 </Button>
               </Link>
               <Link href="/user/applications/new">
-                <Button variant="default" size="sm" className="rounded-full text-xs">
+                <Button variant="default" size="sm" className="rounded-full text-xs sm:text-sm">
                   Submit Updated Application
                 </Button>
               </Link>
@@ -254,14 +254,14 @@ export default function CreditAssessmentResultPage({ params }: ResultPageProps) 
       {/* 4. WHY THIS ASSESSMENT? (POSITIVE VS ATTENTION FACTORS) */}
       <section className="space-y-4">
         <div className="space-y-1">
-          <div className="flex items-center gap-2 text-xs font-semibold text-foreground-muted uppercase tracking-wider">
+          <div className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-foreground-secondary uppercase tracking-wider">
             <Sparkles className="size-3.5 opacity-70" />
             <span>Explainable Evaluation Drivers</span>
           </div>
-          <h2 className="text-2xl font-bold text-foreground tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
             Why this assessment?
           </h2>
-          <p className="text-xs text-foreground-muted">
+          <p className="text-sm text-foreground-secondary">
             Clear, non-technical translation of the alternative indicators that contributed to your score.
           </p>
         </div>
@@ -271,15 +271,15 @@ export default function CreditAssessmentResultPage({ params }: ResultPageProps) 
           <Card className="space-y-4 p-6 bg-surface border border-border">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="size-4 text-foreground" />
-                <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider">
+                <CheckCircle2 className="size-4.5 text-foreground" />
+                <h3 className="text-sm sm:text-base font-semibold text-foreground uppercase tracking-wider">
                   Key Positive Factors (Strengths)
                 </h3>
               </div>
-              <Badge variant="riskLower" className="text-[10px]">High Impact</Badge>
+              <Badge variant="riskLower" className="text-xs">High Impact</Badge>
             </div>
 
-            <ul className="space-y-3.5 text-xs text-foreground-secondary">
+            <ul className="space-y-3.5 text-sm text-foreground-secondary">
               {assessment.keyPositiveFactors.length > 0 ? (
                 assessment.keyPositiveFactors.map((f) => (
                   <li key={f.id} className="space-y-1">
@@ -287,13 +287,13 @@ export default function CreditAssessmentResultPage({ params }: ResultPageProps) 
                       <span className="size-1.5 rounded-full bg-foreground" />
                       <span>{f.title}</span>
                     </div>
-                    <p className="text-foreground-muted leading-relaxed pl-3">
+                    <p className="text-foreground-secondary leading-relaxed pl-3 text-xs sm:text-sm">
                       {f.description}
                     </p>
                   </li>
                 ))
               ) : (
-                <li className="text-foreground-muted italic">No positive factors flagged.</li>
+                <li className="text-foreground-secondary italic text-sm">No positive factors flagged.</li>
               )}
             </ul>
           </Card>
@@ -302,29 +302,29 @@ export default function CreditAssessmentResultPage({ params }: ResultPageProps) 
           <Card className="space-y-4 p-6 bg-surface border border-border">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <AlertTriangle className="size-4 text-foreground" />
-                <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider">
+                <AlertTriangle className="size-4.5 text-foreground" />
+                <h3 className="text-sm sm:text-base font-semibold text-foreground uppercase tracking-wider">
                   Attention Areas (To Improve)
                 </h3>
               </div>
-              <Badge variant="outline" className="text-[10px]">Monitored</Badge>
+              <Badge variant="outline" className="text-xs">Monitored</Badge>
             </div>
 
-            <ul className="space-y-3.5 text-xs text-foreground-secondary">
+            <ul className="space-y-3.5 text-sm text-foreground-secondary">
               {assessment.keyAttentionFactors.length > 0 ? (
                 assessment.keyAttentionFactors.map((f) => (
                   <li key={f.id} className="space-y-1">
                     <div className="font-semibold text-foreground flex items-center gap-1.5">
-                      <span className="size-1.5 rounded-full bg-foreground-muted" />
+                      <span className="size-1.5 rounded-full bg-foreground-secondary" />
                       <span>{f.title}</span>
                     </div>
-                    <p className="text-foreground-muted leading-relaxed pl-3">
+                    <p className="text-foreground-secondary leading-relaxed pl-3 text-xs sm:text-sm">
                       {f.description}
                     </p>
                   </li>
                 ))
               ) : (
-                <li className="text-foreground-muted italic">No critical attention factors identified.</li>
+                <li className="text-foreground-secondary italic text-sm">No critical attention factors identified.</li>
               )}
             </ul>
           </Card>
@@ -334,10 +334,10 @@ export default function CreditAssessmentResultPage({ params }: ResultPageProps) 
       {/* 5. EXPLAINABLE SHAP CONTRIBUTIONS */}
       <section className="space-y-3">
         <div className="space-y-1">
-          <h2 className="text-lg font-bold text-foreground">
+          <h2 className="text-lg sm:text-xl font-bold text-foreground">
             Feature Contribution Analysis
           </h2>
-          <p className="text-xs text-foreground-muted">
+          <p className="text-sm text-foreground-secondary">
             Mathematical impact of each telemetry feature on your synthesized score.
           </p>
         </div>
@@ -349,10 +349,10 @@ export default function CreditAssessmentResultPage({ params }: ResultPageProps) 
       {assessment.volatilityProfile && (
         <section className="space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-foreground-muted">
+            <h2 className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-foreground-secondary">
               Weekly Inflow Rhythm & Rebound Curve
             </h2>
-            <span className="text-xs text-foreground-muted">Verified Telemetry</span>
+            <span className="text-xs sm:text-sm text-foreground-secondary font-medium">Verified Telemetry</span>
           </div>
 
           <CashflowVolatilityChart
@@ -365,8 +365,8 @@ export default function CreditAssessmentResultPage({ params }: ResultPageProps) 
       {/* 7. STATUTORY DPDP & MODEL DISCLAIMER */}
       {assessment.disclaimer && (
         <section className="pt-4 border-t border-border">
-          <div className="flex items-start gap-2.5 p-4 rounded-xl bg-surface border border-border text-xs text-foreground-muted">
-            <Info className="size-4 shrink-0 mt-0.5 text-foreground-muted" />
+          <div className="flex items-start gap-2.5 p-4 rounded-xl bg-surface border border-border text-xs sm:text-sm text-foreground-secondary">
+            <Info className="size-4 shrink-0 mt-0.5 text-foreground-secondary" />
             <div className="space-y-0.5">
               <span className="font-semibold text-foreground block">Model Governance & Statutory Disclaimer</span>
               <p className="leading-relaxed">{assessment.disclaimer}</p>

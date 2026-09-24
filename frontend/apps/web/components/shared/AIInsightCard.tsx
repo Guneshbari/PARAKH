@@ -53,16 +53,16 @@ export function AIInsightCard({
 
         {/* Header with Sparkle and Dismiss */}
         <div className="flex items-center justify-between pb-2">
-          <div className="flex items-center gap-2 text-xs font-semibold text-foreground tracking-wide">
+          <div className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-foreground tracking-wide">
             <Sparkles className="size-3.5 text-foreground" />
-            <span className="uppercase tracking-wider text-[11px] font-mono">{title}</span>
+            <span className="uppercase tracking-wider text-xs font-mono">{title}</span>
           </div>
 
           {dismissible && (
             <button
               onClick={() => setDismissed(true)}
               aria-label="Dismiss insight"
-              className="p-1 rounded-lg text-foreground-muted hover:text-foreground hover:bg-surface-elevated transition-colors cursor-pointer"
+              className="p-1 rounded-lg text-foreground-secondary hover:text-foreground hover:bg-surface-elevated transition-colors cursor-pointer"
             >
               <X className="size-3.5" />
             </button>
@@ -70,7 +70,7 @@ export function AIInsightCard({
         </div>
 
         {/* Insight Text */}
-        <p className="text-xs sm:text-sm font-medium text-foreground-secondary leading-relaxed pr-2">
+        <p className="text-sm sm:text-base font-medium text-foreground-secondary leading-relaxed pr-2">
           &ldquo;{insight}&rdquo;
         </p>
 
@@ -81,7 +81,7 @@ export function AIInsightCard({
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="pt-3 text-xs text-foreground-muted leading-relaxed border-t border-border mt-3"
+              className="pt-3 text-sm text-foreground-secondary leading-relaxed border-t border-border mt-3"
             >
               {detail}
             </motion.div>
@@ -94,13 +94,13 @@ export function AIInsightCard({
             {detail ? (
               <button
                 onClick={() => setExpanded(!expanded)}
-                className="text-xs font-semibold text-foreground-secondary hover:text-[#472393] dark:hover:text-foreground flex items-center gap-1 cursor-pointer transition-colors"
+                className="text-xs sm:text-sm font-semibold text-foreground-secondary hover:text-[#472393] dark:hover:text-foreground flex items-center gap-1 cursor-pointer transition-colors"
               >
                 <span>{expanded ? 'Less context' : 'Why this insight?'}</span>
-                {expanded ? <ChevronUp className="size-3" /> : <ChevronDown className="size-3" />}
+                {expanded ? <ChevronUp className="size-3.5" /> : <ChevronDown className="size-3.5" />}
               </button>
             ) : (
-              <span className="text-[10px] text-foreground-muted font-mono">Explainable Model Signal</span>
+              <span className="text-xs text-foreground-secondary font-mono">Explainable Model Signal</span>
             )}
 
             {actionLabel && (
@@ -108,10 +108,10 @@ export function AIInsightCard({
                 variant="secondary"
                 size="sm"
                 onClick={handleAction}
-                className="rounded-full text-xs font-semibold gap-1.5 h-7 px-3.5 cursor-pointer shadow-none"
+                className="rounded-full text-xs sm:text-sm font-semibold gap-1.5 h-8 px-4 cursor-pointer shadow-none"
               >
                 <span>{actionLabel}</span>
-                <ArrowRight className="size-3" />
+                <ArrowRight className="size-3.5" />
               </Button>
             )}
           </div>

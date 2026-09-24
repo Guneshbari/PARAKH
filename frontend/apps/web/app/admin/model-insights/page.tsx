@@ -103,16 +103,16 @@ export default function AdminModelInsightsPage() {
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
               Fairness, SHAP & Model Governance
             </h1>
-            <Badge variant="outline" className="text-[10px] py-0.5 px-2 text-foreground-secondary border-border">
+            <Badge variant="outline" className="text-xs py-0.5 px-2.5 text-foreground-secondary border-border font-medium">
               Governance Status: {activeModel ? 'REGISTERED' : 'INITIALIZING'}
             </Badge>
             {activeModel && (
-              <Badge variant="mint" className="text-[10px] font-mono">
+              <Badge variant="mint" className="text-xs font-mono">
                 Active: v{activeModel.version}
               </Badge>
             )}
           </div>
-          <p className="text-xs sm:text-sm text-foreground-muted">
+          <p className="text-sm sm:text-base text-foreground-secondary">
             Model version lineage, Fairlearn statutory alignment protocols, and SHAP explainability governance.
           </p>
         </div>
@@ -123,7 +123,7 @@ export default function AdminModelInsightsPage() {
             size="sm"
             onClick={fetchModelData}
             disabled={isLoading}
-            className="rounded-full gap-1.5 text-xs text-foreground-secondary border-border hover:bg-surface-highlight"
+            className="rounded-full gap-1.5 text-xs sm:text-sm text-foreground-secondary border-border hover:bg-surface-highlight"
           >
             <RefreshCw className={`size-3.5 ${isLoading ? 'animate-spin' : ''}`} /> Refresh
           </Button>
@@ -132,7 +132,7 @@ export default function AdminModelInsightsPage() {
             variant="outline"
             size="sm"
             onClick={handleDownloadModelCard}
-            className="rounded-full gap-1.5 text-xs text-foreground-secondary border-border hover:bg-surface-highlight"
+            className="rounded-full gap-1.5 text-xs sm:text-sm text-foreground-secondary border-border hover:bg-surface-highlight"
           >
             <Download className="size-3.5" /> Export Model Card (JSON)
           </Button>
@@ -141,7 +141,7 @@ export default function AdminModelInsightsPage() {
             variant="ghost"
             size="sm"
             onClick={() => window.print()}
-            className="rounded-full gap-1.5 text-xs text-foreground-muted hover:text-foreground"
+            className="rounded-full gap-1.5 text-xs sm:text-sm text-foreground-secondary hover:text-foreground"
           >
             <Printer className="size-3.5" /> Print Audit
           </Button>
@@ -150,12 +150,12 @@ export default function AdminModelInsightsPage() {
 
       {/* ERROR BANNER */}
       {error && (
-        <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-xs text-rose-500 flex items-center justify-between gap-3">
+        <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-sm text-rose-600 dark:text-rose-400 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <AlertTriangle className="size-4 shrink-0" />
+            <AlertTriangle className="size-4.5 shrink-0" />
             <span>{error}</span>
           </div>
-          <Button variant="ghost" size="sm" onClick={fetchModelData} className="text-rose-500 hover:text-rose-600 text-xs h-7">
+          <Button variant="ghost" size="sm" onClick={fetchModelData} className="text-rose-600 dark:text-rose-400 hover:text-rose-700 text-xs sm:text-sm h-8">
             Retry
           </Button>
         </div>
@@ -164,35 +164,35 @@ export default function AdminModelInsightsPage() {
       {/* 2. MODEL SPECIFICATION & ARCHITECTURE HERO STRIP */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="p-4 rounded-2xl bg-surface border border-border shadow-card space-y-1">
-          <div className="flex items-center gap-1.5 text-[11px] text-foreground-muted">
+          <div className="flex items-center gap-1.5 text-xs text-foreground-secondary">
             <Cpu className="size-3.5 text-foreground-secondary" />
             <span>Architecture</span>
           </div>
-          <span className="text-sm font-bold text-foreground block truncate" title={activeModel?.algorithm || 'Model metadata unavailable'}>
+          <span className="text-sm sm:text-base font-bold text-foreground block truncate" title={activeModel?.algorithm || 'Model metadata unavailable'}>
             {activeModel ? activeModel.algorithm : 'Model metadata unavailable'}
           </span>
-          <span className="text-[10px] text-foreground-secondary block truncate" title={activeModel?.model_name || 'Model metadata unavailable'}>
+          <span className="text-xs text-foreground-secondary block truncate" title={activeModel?.model_name || 'Model metadata unavailable'}>
             {activeModel ? activeModel.model_name : 'Model metadata unavailable'}
           </span>
         </div>
 
         <div className="p-4 rounded-2xl bg-surface border border-border shadow-card space-y-1">
-          <div className="flex items-center gap-1.5 text-[11px] text-foreground-muted">
+          <div className="flex items-center gap-1.5 text-xs text-foreground-secondary">
             <Layers className="size-3.5 text-foreground-secondary" />
             <span>Registered Models</span>
           </div>
-          <span className="text-sm font-bold text-foreground font-mono block">
+          <span className="text-sm sm:text-base font-bold text-foreground font-mono block">
             {modelVersions.length}
           </span>
-          <span className="text-[10px] text-foreground-muted block">In PostgreSQL Registry</span>
+          <span className="text-xs text-foreground-secondary block">In PostgreSQL Registry</span>
         </div>
 
         <div className="p-4 rounded-2xl bg-surface border border-border shadow-card space-y-1">
-          <div className="flex items-center gap-1.5 text-[11px] text-foreground-muted">
+          <div className="flex items-center gap-1.5 text-xs text-foreground-secondary">
             <Calendar className="size-3.5 text-foreground-secondary" />
             <span>Active Registered</span>
           </div>
-          <span className="text-sm font-bold text-foreground block">
+          <span className="text-sm sm:text-base font-bold text-foreground block">
             {activeModel?.created_at
               ? new Date(activeModel.created_at).toLocaleDateString('en-IN', {
                   month: 'short',
@@ -201,31 +201,31 @@ export default function AdminModelInsightsPage() {
                 })
               : '—'}
           </span>
-          <span className="text-[10px] text-foreground-secondary block">
+          <span className="text-xs text-foreground-secondary block">
             {activeModel ? `Version ${activeModel.version}` : 'No active model'}
           </span>
         </div>
 
         <div className="p-4 rounded-2xl bg-surface border border-border shadow-card space-y-1">
-          <div className="flex items-center gap-1.5 text-[11px] text-foreground-muted">
+          <div className="flex items-center gap-1.5 text-xs text-foreground-secondary">
             <Scale className="size-3.5 text-foreground-secondary" />
             <span>Audit Standard</span>
           </div>
-          <span className="text-sm font-bold text-foreground block">
+          <span className="text-sm sm:text-base font-bold text-foreground block">
             Fairlearn 0.97
           </span>
-          <span className="text-[10px] text-foreground-secondary block">Statutory DPDP Target</span>
+          <span className="text-xs text-foreground-secondary block">Statutory DPDP Target</span>
         </div>
       </div>
 
       {/* PRODUCTION PROTOTYPE ML MODEL ACTIVE NOTICE */}
-      <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs flex items-start gap-3">
-        <ShieldCheck className="size-4 text-emerald-500 shrink-0 mt-0.5" />
+      <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-sm flex items-start gap-3">
+        <ShieldCheck className="size-4.5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
         <div className="space-y-1">
           <span className="font-semibold text-foreground block">
             Production Prototype ML Model Active
           </span>
-          <p className="text-foreground-muted text-[11px] leading-relaxed">
+          <p className="text-foreground-secondary text-xs sm:text-sm leading-relaxed">
             The active assessment model <strong className="text-foreground">{activeModel?.model_name || 'volatility-aware-risk-model'}{activeModel ? ` (v${activeModel.version})` : ''}</strong> is registered and serving live prototype credit assessments. LightGBM inference and local TreeSHAP explanations have been verified through the end-to-end assessment pipeline.
           </p>
         </div>
@@ -235,16 +235,16 @@ export default function AdminModelInsightsPage() {
       <Card className="p-6 bg-surface border-border space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-border">
           <div>
-            <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
-              <Scale className="size-4 text-foreground-secondary" />
+            <h2 className="text-base sm:text-lg font-bold text-foreground flex items-center gap-2">
+              <Scale className="size-4.5 text-foreground-secondary" />
               Fairness Audit — Evaluation Dataset Required
             </h2>
-            <p className="text-xs text-foreground-muted">
+            <p className="text-xs sm:text-sm text-foreground-secondary">
               Demographic parity and equalized odds evaluation criteria across gig segments and geographies.
             </p>
           </div>
 
-          <Badge variant="outline" className="text-[10px] py-0 px-2 font-mono text-foreground-muted border-border">
+          <Badge variant="outline" className="text-xs py-0.5 px-2.5 font-mono text-foreground-secondary border-border">
             Evaluation data required
           </Badge>
         </div>
@@ -255,34 +255,34 @@ export default function AdminModelInsightsPage() {
             <Scale className="size-6" />
           </div>
           <div className="space-y-1 max-w-lg mx-auto">
-            <h3 className="text-sm font-semibold text-foreground">
+            <h3 className="text-sm sm:text-base font-semibold text-foreground">
               Fairness Audit — Evaluation Dataset Required
             </h3>
-            <p className="text-xs text-foreground-muted leading-relaxed">
+            <p className="text-xs sm:text-sm text-foreground-secondary leading-relaxed">
               The active LightGBM model is operational, but demographic parity and equalized-odds metrics require a defined protected-group evaluation dataset and computed audit results. Target benchmarks and disparate impact verification will be rendered once an authoritative evaluation dataset is compiled.
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-left max-w-2xl mx-auto">
             <div className="p-3 rounded-xl bg-surface border border-border space-y-1">
-              <span className="text-[10px] text-foreground-muted block uppercase tracking-wider font-semibold">Target Criteria</span>
-              <span className="text-xs font-mono font-bold text-foreground block">0.80 – 1.25 DPR</span>
-              <span className="text-[10px] text-foreground-secondary block">Four-Fifths Rule target framework</span>
+              <span className="text-xs text-foreground-secondary block uppercase tracking-wider font-semibold">Target Criteria</span>
+              <span className="text-sm font-mono font-bold text-foreground block">0.80 – 1.25 DPR</span>
+              <span className="text-xs text-foreground-secondary block">Four-Fifths Rule target framework</span>
             </div>
             <div className="p-3 rounded-xl bg-surface border border-border space-y-1">
-              <span className="text-[10px] text-foreground-muted block uppercase tracking-wider font-semibold">Protected Attributes</span>
-              <span className="text-xs font-bold text-foreground block">Gender & Geography</span>
-              <span className="text-[10px] text-foreground-secondary block">Urban, Semi-Urban, Tier 2/3 cohorts</span>
+              <span className="text-xs text-foreground-secondary block uppercase tracking-wider font-semibold">Protected Attributes</span>
+              <span className="text-sm font-bold text-foreground block">Gender & Geography</span>
+              <span className="text-xs text-foreground-secondary block">Urban, Semi-Urban, Tier 2/3 cohorts</span>
             </div>
             <div className="p-3 rounded-xl bg-surface border border-border space-y-1">
-              <span className="text-[10px] text-foreground-muted block uppercase tracking-wider font-semibold">Evaluation Standard</span>
-              <span className="text-xs font-bold text-foreground block">Fairlearn Protocol</span>
-              <span className="text-[10px] text-foreground-secondary block">DPDP Act & RBI Fair Practice guidance</span>
+              <span className="text-xs text-foreground-secondary block uppercase tracking-wider font-semibold">Evaluation Standard</span>
+              <span className="text-sm font-bold text-foreground block">Fairlearn Protocol</span>
+              <span className="text-xs text-foreground-secondary block">DPDP Act & RBI Fair Practice guidance</span>
             </div>
           </div>
         </div>
 
         {/* Explainability guidance */}
-        <div className="p-3.5 rounded-xl bg-surface-highlight/20 border border-border text-[11px] text-foreground-muted flex items-start gap-2.5">
+        <div className="p-3.5 rounded-xl bg-surface-highlight/20 border border-border text-xs sm:text-sm text-foreground-secondary flex items-start gap-2.5">
           <Info className="size-4 text-foreground-secondary shrink-0 mt-0.5" />
           <p className="leading-relaxed">
             Fairlearn evaluation protocols are designed to assess whether alternative credit scoring models systematically disadvantage specific informal occupations, geographical clusters, or demographic cohorts once labeled protected-group evaluation data is compiled.
@@ -294,15 +294,15 @@ export default function AdminModelInsightsPage() {
       <Card className="p-6 bg-surface border-border space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-border">
           <div>
-            <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
-              <Sparkles className="size-4 text-mint" />
+            <h2 className="text-base sm:text-lg font-bold text-foreground flex items-center gap-2">
+              <Sparkles className="size-4.5 text-mint" />
               TreeSHAP Explainability — Active
             </h2>
-            <p className="text-xs text-foreground-muted">
+            <p className="text-xs sm:text-sm text-foreground-secondary">
               Local TreeSHAP feature attributions are generated for scored assessments and are displayed in applicant and reviewer assessment views.
             </p>
           </div>
-          <Badge variant="mint" className="text-[10px] font-mono">
+          <Badge variant="mint" className="text-xs font-mono">
             ACTIVE
           </Badge>
         </div>
@@ -314,51 +314,51 @@ export default function AdminModelInsightsPage() {
           </div>
           <div className="space-y-1 max-w-lg mx-auto">
             <div className="flex items-center justify-center gap-2">
-              <h3 className="text-sm font-semibold text-foreground">
+              <h3 className="text-sm sm:text-base font-semibold text-foreground">
                 Global Feature Importance Aggregation
               </h3>
-              <Badge variant="outline" className="text-[9px] py-0 px-1.5 font-mono text-foreground-muted border-border">
+              <Badge variant="outline" className="text-xs py-0 px-2 font-mono text-foreground-secondary border-border">
                 Not Persisted
               </Badge>
             </div>
-            <p className="text-xs text-foreground-muted leading-relaxed">
+            <p className="text-xs sm:text-sm text-foreground-secondary leading-relaxed">
               Local TreeSHAP explanations are operational for individual scored assessments. A persisted global feature-importance aggregation is not currently available in the governance registry.
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-left max-w-2xl mx-auto">
             <div className="p-3 rounded-xl bg-surface border border-border space-y-1">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
-                <ShieldCheck className="size-3.5 text-foreground-secondary" />
+              <div className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
+                <ShieldCheck className="size-4 text-foreground-secondary" />
                 <span>Cashflow Volatility & Buffer</span>
               </div>
-              <p className="text-[11px] text-foreground-muted">
+              <p className="text-xs sm:text-sm text-foreground-secondary">
                 Weighted coefficient of variation across rolling 90-day UPI and AA banking inflow cycles.
               </p>
             </div>
             <div className="p-3 rounded-xl bg-surface border border-border space-y-1">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
-                <ShieldCheck className="size-3.5 text-foreground-secondary" />
+              <div className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
+                <ShieldCheck className="size-4 text-foreground-secondary" />
                 <span>Platform Continuity & Rating</span>
               </div>
-              <p className="text-[11px] text-foreground-muted">
+              <p className="text-xs sm:text-sm text-foreground-secondary">
                 Tenure, active payout frequency, and partner performance metrics across verified gig platforms.
               </p>
             </div>
             <div className="p-3 rounded-xl bg-surface border border-border space-y-1">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
-                <ShieldCheck className="size-3.5 text-foreground-secondary" />
+              <div className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
+                <ShieldCheck className="size-4 text-foreground-secondary" />
                 <span>Multi-Gig Income Resilience</span>
               </div>
-              <p className="text-[11px] text-foreground-muted">
+              <p className="text-xs sm:text-sm text-foreground-secondary">
                 Diversification index across delivery, mobility, and home services streams mitigating sector shocks.
               </p>
             </div>
             <div className="p-3 rounded-xl bg-surface border border-border space-y-1">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
-                <ShieldCheck className="size-3.5 text-foreground-secondary" />
+              <div className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
+                <ShieldCheck className="size-4 text-foreground-secondary" />
                 <span>BBPS Utility Payment Cadence</span>
               </div>
-              <p className="text-[11px] text-foreground-muted">
+              <p className="text-xs sm:text-sm text-foreground-secondary">
                 Consistency of recurring electricity, telecom, and municipal utility payments via NPCI BBPS.
               </p>
             </div>
@@ -369,18 +369,18 @@ export default function AdminModelInsightsPage() {
       {/* 5. MODEL VERSION AUDIT LINEAGE */}
       <Card className="p-6 bg-surface border-border space-y-4">
         <div className="flex items-center justify-between pb-2 border-b border-border">
-          <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
-            <FileCheck className="size-4 text-foreground-secondary" />
+          <h2 className="text-base sm:text-lg font-bold text-foreground flex items-center gap-2">
+            <FileCheck className="size-4.5 text-foreground-secondary" />
             Model Version Lineage & Regulatory Audit Log
           </h2>
-          <span className="text-xs font-mono text-foreground-muted">
+          <span className="text-xs sm:text-sm font-mono text-foreground-secondary">
             {modelVersions.length} Iteration{modelVersions.length === 1 ? '' : 's'} Registered
           </span>
         </div>
 
-        <div className="space-y-3 pt-1 text-xs">
+        <div className="space-y-3 pt-1 text-sm">
           {isLoading ? (
-            <div className="p-8 text-center text-xs text-foreground-muted">
+            <div className="p-8 text-center text-sm text-foreground-secondary">
               Loading registered model versions...
             </div>
           ) : modelVersions.length > 0 ? (
@@ -395,21 +395,21 @@ export default function AdminModelInsightsPage() {
               >
                 <div className="space-y-0.5">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono font-semibold text-foreground">
+                    <span className="font-mono font-semibold text-foreground text-sm sm:text-base">
                       {mv.model_name} (v{mv.version})
                     </span>
                     <Badge
                       variant={mv.is_active ? 'mint' : 'outline'}
-                      className="text-[9px] py-0 px-1.5"
+                      className="text-xs py-0 px-2 font-medium"
                     >
                       {mv.is_active ? 'Current Active' : 'Archived'}
                     </Badge>
                   </div>
-                  <p className="text-foreground-secondary text-[11px]">
+                  <p className="text-foreground-secondary text-xs sm:text-sm">
                     {mv.description || `Algorithm: ${mv.algorithm}`}
                   </p>
                 </div>
-                <span className="font-mono text-foreground-muted text-[11px] shrink-0">
+                <span className="font-mono text-foreground-secondary text-xs sm:text-sm shrink-0">
                   {new Date(mv.created_at).toLocaleDateString('en-IN', {
                     month: 'short',
                     day: 'numeric',
@@ -420,9 +420,9 @@ export default function AdminModelInsightsPage() {
             ))
           ) : (
             <div className="p-8 rounded-2xl bg-surface-highlight/20 border border-dashed border-border text-center space-y-2">
-              <Clock className="size-6 text-foreground-muted mx-auto" />
-              <p className="text-xs font-medium text-foreground">No model versions registered in backend yet</p>
-              <p className="text-[11px] text-foreground-muted">
+              <Clock className="size-6 text-foreground-secondary mx-auto" />
+              <p className="text-sm font-medium text-foreground">No model versions registered in backend yet</p>
+              <p className="text-xs sm:text-sm text-foreground-secondary">
                 Model versions will appear here as assessment engines are registered in PostgreSQL.
               </p>
             </div>
@@ -431,13 +431,13 @@ export default function AdminModelInsightsPage() {
       </Card>
 
       {/* 6. ALGORITHMIC ACCOUNTABILITY FOOTNOTE */}
-      <div className="p-4 rounded-2xl bg-surface-highlight/30 border border-border text-[11px] text-foreground-muted flex items-start gap-3">
-        <Info className="size-4 text-foreground-secondary shrink-0 mt-0.5" />
+      <div className="p-4 rounded-2xl bg-surface-highlight/30 border border-border text-xs sm:text-sm text-foreground-secondary flex items-start gap-3">
+        <Info className="size-4.5 text-foreground-secondary shrink-0 mt-0.5" />
         <div className="space-y-0.5">
           <span className="font-semibold text-foreground block">
             Algorithmic Accountability & Explainability Declaration
           </span>
-          <p>
+          <p className="leading-relaxed">
             PARAKH exposes model lineage and local explainability for assessment transparency. Fairness evaluation requires a defined protected-group evaluation dataset and should be performed before any production lending deployment.
           </p>
         </div>
