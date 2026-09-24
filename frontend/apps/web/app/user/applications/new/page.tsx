@@ -186,10 +186,13 @@ export default function NewApplicationPage() {
       } catch (err: unknown) {
         if (err instanceof ApiError && err.status === 404) {
           profile = await api.createApplicant({
+            gig_work_type: formData.employmentType || 'GIG_WORKER',
+            work_type: formData.employmentType || 'GIG_WORKER',
+            years_working: Number((formData.tenureMonths / 12).toFixed(1)),
+            business_or_loan_purpose: formData.purpose,
             full_name: formData.fullName,
             phone_number: formData.phone,
             city: formData.city,
-            work_type: formData.employmentType,
             experience_months: formData.tenureMonths,
             declared_monthly_income: formData.averageMonthlyIncome,
             preferred_loan_purpose: formData.purpose,

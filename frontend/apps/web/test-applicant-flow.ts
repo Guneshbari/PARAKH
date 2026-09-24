@@ -122,6 +122,7 @@ async function runApplicantIntegrationTests() {
           phone_number: body.phone_number,
           city: body.city,
           work_type: body.work_type,
+          gig_work_type: body.gig_work_type || body.work_type || 'GIG_WORKER',
           experience_months: body.experience_months,
           declared_monthly_income: body.declared_monthly_income,
           preferred_loan_purpose: body.preferred_loan_purpose,

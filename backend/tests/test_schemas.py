@@ -124,7 +124,31 @@ class TestPydanticSchemas(unittest.TestCase):
         )
         resp = ApplicantProfileResponse.model_validate(orm_profile)
         self.assertEqual(resp.gig_work_type, "Ride Hailing")
+        self.assertEqual(resp.work_type, "Ride Hailing")
         self.assertEqual(resp.id, orm_profile.id)
+
+    def test_applicant_profile_field_mapping_and_work_type_alias(self) -> None:
+        """Verify work_type, experience_months, and preferred_loan_purpose mapping."""
+        # Payload with legacy frontend field names
+        legacy_data = {
+            "full_name": "Arjun Verma",
+            "phone_number": "9845128910",
+            "city": "Bengaluru",
+            "work_type": "GIG_WORKER",
+            "experience_months": 18,
+            "declared_monthly_income": 52000,
+            "preferred_loan_purpose": "Two-Wheeler EV Battery Upgrade",
+            "average_working_days_per_week": 6,
+        }
+        profile_in = ApplicantProfileCreate(**legacy_data)
+        self.assertEqual(profile_in.gig_work_type, "GIG_WORKER")
+        self.assertEqual(profile_in.years_working, Decimal("1.5"))
+        self.assertEqual(profile_in.business_or_loan_purpose, "Two-Wheeler EV Battery Upgrade")
+        self.assertEqual(profile_in.average_working_days, 26)
+
+        # Missing required work_type / gig_work_type raises ValidationError
+        with self.assertRaises(ValidationError):
+            ApplicantProfileCreate(full_name="No work type")
 
     def test_application_validation_and_orm(self) -> None:
         """Verify Application loan amount constraints and ORM serialization."""
