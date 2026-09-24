@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { PageTransition } from '@/components/motion/PageTransition';
+import { canonicalDemoData } from '@/lib/demo/canonicalDemoData';
 import { useAuth } from '@/components/auth/AuthContext';
 import { api } from '@parakh/api';
 
@@ -250,10 +251,10 @@ export default function AdminProfilePage() {
           <div className="flex items-start justify-between gap-4 p-3.5 rounded-2xl bg-surface-highlight/30 border border-border">
             <div className="space-y-0.5">
               <span className="text-sm font-semibold text-foreground block">
-                Priority Review Queue Inflow Alerts
+                {canonicalDemoData.alerts.operational[0].title}
               </span>
               <p className="text-xs sm:text-sm text-foreground-secondary">
-                Receive immediate desktop alerts when an application is flagged with INSUFFICIENT EVIDENCE / MANUAL REVIEW.
+                {canonicalDemoData.alerts.operational[0].description}
               </p>
             </div>
             <button
@@ -274,10 +275,10 @@ export default function AdminProfilePage() {
           <div className="flex items-start justify-between gap-4 p-3.5 rounded-2xl bg-surface-highlight/30 border border-border">
             <div className="space-y-0.5">
               <span className="text-sm font-semibold text-foreground block">
-                Monsoon & Seasonal Extreme Variance Warnings
+                {canonicalDemoData.alerts.operational[1].title}
               </span>
               <p className="text-xs sm:text-sm text-foreground-secondary">
-                Notifies when regional rain dips exceed 30% to prevent misattribution of weather shocks to applicant distress.
+                {canonicalDemoData.alerts.operational[1].description}
               </p>
             </div>
             <button
@@ -298,10 +299,10 @@ export default function AdminProfilePage() {
           <div className="flex items-start justify-between gap-4 p-3.5 rounded-2xl bg-surface-highlight/30 border border-border">
             <div className="space-y-0.5">
               <span className="text-sm font-semibold text-foreground block">
-                Algorithmic Demographic Parity Drift Alerts
+                {canonicalDemoData.alerts.operational[2].title}
               </span>
               <p className="text-xs sm:text-sm text-foreground-secondary">
-                Automatic escalation if Fairlearn demographic parity ratio falls below 0.85 across any gig cohort.
+                {canonicalDemoData.alerts.operational[2].description}
               </p>
             </div>
             <button
