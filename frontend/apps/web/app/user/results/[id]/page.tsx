@@ -51,32 +51,41 @@ export default function CreditAssessmentResultPage({ params }: ResultPageProps) 
     try {
       let rawAssessment: BackendCreditAssessmentResponse | null = null;
 
-      // 0. Check sessionStorage for recent live assessment execution (preserving TreeSHAP explanations)
-      if (typeof window !== 'undefined' && window.sessionStorage) {
+      // 1. Primary: Fetch durable persisted assessment from backend API
+      try {
+        rawAssessment = await api.getLatestAssessmentByApplication(id);
+      } catch (err: unknown) {
+        if (err instanceof ApiError && err.status === 404) {
+          // Try querying directly by assessment UUID
+          try {
+            rawAssessment = await api.getAssessmentById(id);
+          } catch {
+            rawAssessment = null;
+          }
+        } else {
+          // If network error, attempt fallback to navigation session cache if available
+          if (typeof window !== 'undefined' && window.sessionStorage) {
+            try {
+              const cached = window.sessionStorage.getItem(`parakh_assessment_${id}`);
+              if (cached) {
+                rawAssessment = JSON.parse(cached);
+              }
+            } catch {}
+          }
+          if (!rawAssessment) {
+            throw err;
+          }
+        }
+      }
+
+      // 2. Non-authoritative fallback to session cache only if not retrieved from API
+      if (!rawAssessment && typeof window !== 'undefined' && window.sessionStorage) {
         try {
           const cached = window.sessionStorage.getItem(`parakh_assessment_${id}`);
           if (cached) {
             rawAssessment = JSON.parse(cached);
           }
         } catch {}
-      }
-
-      // 1. If not cached, query latest assessment by application UUID
-      if (!rawAssessment) {
-        try {
-          rawAssessment = await api.getLatestAssessmentByApplication(id);
-        } catch (err: unknown) {
-          if (err instanceof ApiError && err.status === 404) {
-            // 2. Try querying directly by assessment UUID
-            try {
-              rawAssessment = await api.getAssessmentById(id);
-            } catch {
-              rawAssessment = null;
-            }
-          } else {
-            throw err;
-          }
-        }
       }
 
       if (!rawAssessment) {

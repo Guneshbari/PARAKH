@@ -80,16 +80,17 @@ export default function AdminApplicationDetailPage({
 
       let assessment = null;
       try {
-        if (typeof window !== 'undefined' && window.sessionStorage) {
-          try {
-            const cached = window.sessionStorage.getItem(`parakh_assessment_${id}`);
-            if (cached) assessment = JSON.parse(cached);
-          } catch {}
-        }
-        if (!assessment) {
-          assessment = await api.getLatestAssessmentByApplication(id);
-        }
-      } catch {}
+        // Authoritative: fetch persisted assessment from backend API first
+        assessment = await api.getLatestAssessmentByApplication(id);
+      } catch (err) {
+        console.warn('Failed to fetch assessment from API, trying fallback:', err);
+      }
+      if (!assessment && typeof window !== 'undefined' && window.sessionStorage) {
+        try {
+          const cached = window.sessionStorage.getItem(`parakh_assessment_${id}`);
+          if (cached) assessment = JSON.parse(cached);
+        } catch {}
+      }
 
       let reviews: any[] = [];
       try {
