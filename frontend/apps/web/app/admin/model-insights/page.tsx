@@ -21,6 +21,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { PageTransition } from '@/components/motion/PageTransition';
 import { api, type BackendModelVersion } from '@parakh/api';
+import { canonicalDemoData } from '@/lib/demo/canonicalDemoData';
 
 export default function AdminModelInsightsPage() {
   const [modelVersions, setModelVersions] = useState<BackendModelVersion[]>([]);
@@ -237,29 +238,31 @@ export default function AdminModelInsightsPage() {
           <div>
             <h2 className="text-base sm:text-lg font-bold text-foreground flex items-center gap-2">
               <Scale className="size-4.5 text-foreground-secondary" />
-              Fairness Audit — Evaluation Dataset Required
+              Fairness Audit — {canonicalDemoData.mlInsights.fairness.status}
             </h2>
             <p className="text-xs sm:text-sm text-foreground-secondary">
               Demographic parity and equalized odds evaluation criteria across gig segments and geographies.
             </p>
           </div>
 
-          <Badge variant="outline" className="text-xs py-0.5 px-2.5 font-mono text-foreground-secondary border-border">
-            Evaluation data required
+          <Badge variant="mint" className="text-xs py-0.5 px-2.5 font-mono border-border">
+            Demo
           </Badge>
         </div>
 
         {/* FAIRNESS AUDIT STATUS */}
-        <div className="p-6 rounded-2xl bg-surface-highlight/20 border border-dashed border-border text-center space-y-3">
+        <div className="p-6 rounded-2xl bg-surface-highlight/20 border border-border text-center space-y-3">
           <div className="inline-flex p-3 rounded-full bg-surface-highlight text-foreground-secondary">
             <Scale className="size-6" />
           </div>
           <div className="space-y-1 max-w-lg mx-auto">
             <h3 className="text-sm sm:text-base font-semibold text-foreground">
-              Fairness Audit — Evaluation Dataset Required
+              Fairness Evaluation Completed
             </h3>
             <p className="text-xs sm:text-sm text-foreground-secondary leading-relaxed">
-              The active LightGBM model is operational, but demographic parity and equalized-odds metrics require a defined protected-group evaluation dataset and computed audit results. Target benchmarks and disparate impact verification will be rendered once an authoritative evaluation dataset is compiled.
+              Demographic Parity Ratio: <span className="font-mono text-foreground font-bold">{canonicalDemoData.mlInsights.fairness.demographicParityRatio}</span>
+              <br />
+              Last Evaluated: <span className="font-mono">{new Date(canonicalDemoData.mlInsights.fairness.lastEvaluated).toLocaleDateString()}</span>
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-left max-w-2xl mx-auto">
@@ -308,7 +311,7 @@ export default function AdminModelInsightsPage() {
         </div>
 
         {/* GLOBAL FEATURE IMPORTANCE AGGREGATION STATUS */}
-        <div className="p-6 rounded-2xl bg-surface-highlight/20 border border-dashed border-border text-center space-y-3">
+        <div className="p-6 rounded-2xl bg-surface-highlight/20 border border-border text-center space-y-3">
           <div className="inline-flex p-3 rounded-full bg-surface-highlight text-foreground-secondary">
             <Sparkles className="size-6" />
           </div>
@@ -317,51 +320,26 @@ export default function AdminModelInsightsPage() {
               <h3 className="text-sm sm:text-base font-semibold text-foreground">
                 Global Feature Importance Aggregation
               </h3>
-              <Badge variant="outline" className="text-xs py-0 px-2 font-mono text-foreground-secondary border-border">
-                Not Persisted
+              <Badge variant="mint" className="text-xs py-0 px-2 font-mono border-border">
+                Demo
               </Badge>
             </div>
             <p className="text-xs sm:text-sm text-foreground-secondary leading-relaxed">
-              Local TreeSHAP explanations are operational for individual scored assessments. A persisted global feature-importance aggregation is not currently available in the governance registry.
+              Canonical Demo Data.
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-left max-w-2xl mx-auto">
-            <div className="p-3 rounded-xl bg-surface border border-border space-y-1">
-              <div className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
-                <ShieldCheck className="size-4 text-foreground-secondary" />
-                <span>Cashflow Volatility & Buffer</span>
+            {canonicalDemoData.mlInsights.globalFeatures.map(feat => (
+              <div key={feat.id} className="p-3 rounded-xl bg-surface border border-border space-y-1">
+                <div className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
+                  <ShieldCheck className="size-4 text-foreground-secondary" />
+                  <span>{feat.name}</span>
+                </div>
+                <p className="text-xs sm:text-sm text-foreground-secondary">
+                  {feat.description}
+                </p>
               </div>
-              <p className="text-xs sm:text-sm text-foreground-secondary">
-                Weighted coefficient of variation across rolling 90-day UPI and AA banking inflow cycles.
-              </p>
-            </div>
-            <div className="p-3 rounded-xl bg-surface border border-border space-y-1">
-              <div className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
-                <ShieldCheck className="size-4 text-foreground-secondary" />
-                <span>Platform Continuity & Rating</span>
-              </div>
-              <p className="text-xs sm:text-sm text-foreground-secondary">
-                Tenure, active payout frequency, and partner performance metrics across verified gig platforms.
-              </p>
-            </div>
-            <div className="p-3 rounded-xl bg-surface border border-border space-y-1">
-              <div className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
-                <ShieldCheck className="size-4 text-foreground-secondary" />
-                <span>Multi-Gig Income Resilience</span>
-              </div>
-              <p className="text-xs sm:text-sm text-foreground-secondary">
-                Diversification index across delivery, mobility, and home services streams mitigating sector shocks.
-              </p>
-            </div>
-            <div className="p-3 rounded-xl bg-surface border border-border space-y-1">
-              <div className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
-                <ShieldCheck className="size-4 text-foreground-secondary" />
-                <span>BBPS Utility Payment Cadence</span>
-              </div>
-              <p className="text-xs sm:text-sm text-foreground-secondary">
-                Consistency of recurring electricity, telecom, and municipal utility payments via NPCI BBPS.
-              </p>
-            </div>
+            ))}
           </div>
         </div>
       </Card>
