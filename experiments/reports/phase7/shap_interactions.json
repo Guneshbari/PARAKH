@@ -1,0 +1,234 @@
+{
+  "model_name": "volatility-aware-risk-model",
+  "analyzed_features": [
+    "feat_eng_vol_to_baseline",
+    "feat_eng_downside_to_median",
+    "feat_eng_vol_x_trend",
+    "feat_eng_vol_to_bounceback",
+    "feat_eng_recovery_velocity",
+    "feat_eng_buffer_burn_coverage",
+    "feat_eng_installment_floor_coverage",
+    "feat_int_vol_x_recovery",
+    "feat_int_vol_x_buffer"
+  ],
+  "sample_count": 1697,
+  "pairwise_interactions": [
+    {
+      "feature_1": "feat_eng_installment_floor_coverage",
+      "feature_2": "feat_int_vol_x_recovery",
+      "mean_abs_interaction": 0.00247,
+      "max_abs_interaction": 0.017534
+    },
+    {
+      "feature_1": "feat_eng_buffer_burn_coverage",
+      "feature_2": "feat_int_vol_x_recovery",
+      "mean_abs_interaction": 0.001481,
+      "max_abs_interaction": 0.017911
+    },
+    {
+      "feature_1": "feat_eng_vol_to_bounceback",
+      "feature_2": "feat_eng_installment_floor_coverage",
+      "mean_abs_interaction": 0.001394,
+      "max_abs_interaction": 0.015983
+    },
+    {
+      "feature_1": "feat_eng_buffer_burn_coverage",
+      "feature_2": "feat_eng_installment_floor_coverage",
+      "mean_abs_interaction": 0.001253,
+      "max_abs_interaction": 0.008318
+    },
+    {
+      "feature_1": "feat_eng_downside_to_median",
+      "feature_2": "feat_eng_installment_floor_coverage",
+      "mean_abs_interaction": 0.001235,
+      "max_abs_interaction": 0.014066
+    },
+    {
+      "feature_1": "feat_eng_installment_floor_coverage",
+      "feature_2": "feat_int_vol_x_buffer",
+      "mean_abs_interaction": 0.001019,
+      "max_abs_interaction": 0.008137
+    },
+    {
+      "feature_1": "feat_eng_vol_to_bounceback",
+      "feature_2": "feat_eng_buffer_burn_coverage",
+      "mean_abs_interaction": 0.001003,
+      "max_abs_interaction": 0.015406
+    },
+    {
+      "feature_1": "feat_eng_vol_to_baseline",
+      "feature_2": "feat_eng_buffer_burn_coverage",
+      "mean_abs_interaction": 0.000583,
+      "max_abs_interaction": 0.014112
+    },
+    {
+      "feature_1": "feat_eng_vol_to_baseline",
+      "feature_2": "feat_int_vol_x_buffer",
+      "mean_abs_interaction": 0.000519,
+      "max_abs_interaction": 0.007514
+    },
+    {
+      "feature_1": "feat_eng_recovery_velocity",
+      "feature_2": "feat_eng_installment_floor_coverage",
+      "mean_abs_interaction": 0.000508,
+      "max_abs_interaction": 0.007651
+    },
+    {
+      "feature_1": "feat_eng_vol_to_bounceback",
+      "feature_2": "feat_int_vol_x_recovery",
+      "mean_abs_interaction": 0.000469,
+      "max_abs_interaction": 0.006702
+    },
+    {
+      "feature_1": "feat_eng_vol_x_trend",
+      "feature_2": "feat_eng_buffer_burn_coverage",
+      "mean_abs_interaction": 0.000441,
+      "max_abs_interaction": 0.006957
+    },
+    {
+      "feature_1": "feat_eng_vol_x_trend",
+      "feature_2": "feat_int_vol_x_buffer",
+      "mean_abs_interaction": 0.000435,
+      "max_abs_interaction": 0.007959
+    },
+    {
+      "feature_1": "feat_eng_recovery_velocity",
+      "feature_2": "feat_eng_buffer_burn_coverage",
+      "mean_abs_interaction": 0.000431,
+      "max_abs_interaction": 0.00549
+    },
+    {
+      "feature_1": "feat_eng_recovery_velocity",
+      "feature_2": "feat_int_vol_x_recovery",
+      "mean_abs_interaction": 0.000422,
+      "max_abs_interaction": 0.005223
+    },
+    {
+      "feature_1": "feat_eng_downside_to_median",
+      "feature_2": "feat_eng_buffer_burn_coverage",
+      "mean_abs_interaction": 0.00038,
+      "max_abs_interaction": 0.005843
+    },
+    {
+      "feature_1": "feat_eng_vol_x_trend",
+      "feature_2": "feat_eng_vol_to_bounceback",
+      "mean_abs_interaction": 0.000361,
+      "max_abs_interaction": 0.005885
+    },
+    {
+      "feature_1": "feat_eng_vol_to_baseline",
+      "feature_2": "feat_int_vol_x_recovery",
+      "mean_abs_interaction": 0.000352,
+      "max_abs_interaction": 0.009085
+    },
+    {
+      "feature_1": "feat_eng_vol_to_baseline",
+      "feature_2": "feat_eng_vol_to_bounceback",
+      "mean_abs_interaction": 0.000351,
+      "max_abs_interaction": 0.003588
+    },
+    {
+      "feature_1": "feat_eng_vol_x_trend",
+      "feature_2": "feat_int_vol_x_recovery",
+      "mean_abs_interaction": 0.000336,
+      "max_abs_interaction": 0.001947
+    },
+    {
+      "feature_1": "feat_eng_vol_to_bounceback",
+      "feature_2": "feat_eng_recovery_velocity",
+      "mean_abs_interaction": 0.000257,
+      "max_abs_interaction": 0.003832
+    },
+    {
+      "feature_1": "feat_eng_downside_to_median",
+      "feature_2": "feat_eng_vol_to_bounceback",
+      "mean_abs_interaction": 0.000244,
+      "max_abs_interaction": 0.003153
+    },
+    {
+      "feature_1": "feat_eng_downside_to_median",
+      "feature_2": "feat_eng_recovery_velocity",
+      "mean_abs_interaction": 0.000224,
+      "max_abs_interaction": 0.006172
+    },
+    {
+      "feature_1": "feat_eng_downside_to_median",
+      "feature_2": "feat_int_vol_x_recovery",
+      "mean_abs_interaction": 0.000218,
+      "max_abs_interaction": 0.004777
+    },
+    {
+      "feature_1": "feat_eng_vol_to_baseline",
+      "feature_2": "feat_eng_recovery_velocity",
+      "mean_abs_interaction": 0.000209,
+      "max_abs_interaction": 0.002393
+    },
+    {
+      "feature_1": "feat_eng_vol_x_trend",
+      "feature_2": "feat_eng_recovery_velocity",
+      "mean_abs_interaction": 0.000173,
+      "max_abs_interaction": 0.005674
+    },
+    {
+      "feature_1": "feat_eng_vol_to_baseline",
+      "feature_2": "feat_eng_vol_x_trend",
+      "mean_abs_interaction": 0.000161,
+      "max_abs_interaction": 0.003601
+    },
+    {
+      "feature_1": "feat_eng_vol_to_baseline",
+      "feature_2": "feat_eng_installment_floor_coverage",
+      "mean_abs_interaction": 0.000141,
+      "max_abs_interaction": 0.002729
+    },
+    {
+      "feature_1": "feat_eng_vol_to_bounceback",
+      "feature_2": "feat_int_vol_x_buffer",
+      "mean_abs_interaction": 0.00014,
+      "max_abs_interaction": 0.003962
+    },
+    {
+      "feature_1": "feat_eng_vol_x_trend",
+      "feature_2": "feat_eng_installment_floor_coverage",
+      "mean_abs_interaction": 0.000118,
+      "max_abs_interaction": 0.007367
+    },
+    {
+      "feature_1": "feat_int_vol_x_recovery",
+      "feature_2": "feat_int_vol_x_buffer",
+      "mean_abs_interaction": 0.000102,
+      "max_abs_interaction": 0.002804
+    },
+    {
+      "feature_1": "feat_eng_downside_to_median",
+      "feature_2": "feat_int_vol_x_buffer",
+      "mean_abs_interaction": 4.9e-05,
+      "max_abs_interaction": 0.009956
+    },
+    {
+      "feature_1": "feat_eng_buffer_burn_coverage",
+      "feature_2": "feat_int_vol_x_buffer",
+      "mean_abs_interaction": 4.3e-05,
+      "max_abs_interaction": 0.00303
+    },
+    {
+      "feature_1": "feat_eng_vol_to_baseline",
+      "feature_2": "feat_eng_downside_to_median",
+      "mean_abs_interaction": 0.0,
+      "max_abs_interaction": 0.0
+    },
+    {
+      "feature_1": "feat_eng_downside_to_median",
+      "feature_2": "feat_eng_vol_x_trend",
+      "mean_abs_interaction": 0.0,
+      "max_abs_interaction": 0.0
+    },
+    {
+      "feature_1": "feat_eng_recovery_velocity",
+      "feature_2": "feat_int_vol_x_buffer",
+      "mean_abs_interaction": 0.0,
+      "max_abs_interaction": 0.0
+    }
+  ],
+  "interpretation_note": "SHAP interaction values capture the non-linear synergy between paired features. Non-zero values indicate that the effect of volatility depends directly on the mitigating feature."
+}

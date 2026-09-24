@@ -337,4 +337,5 @@ class AssessmentResult(BaseModel):
             income_stability=self.income_stability,
             repayment_reliability=self.repayment_reliability,
             assessment_status=self.assessment_status,
+            explanation=self.explanation or None,
         )

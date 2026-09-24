@@ -1,0 +1,522 @@
+{
+  "model_name": "volatility-aware-risk-model",
+  "model_version": "1.0.0",
+  "feature_count": 64,
+  "sample_count": 1697,
+  "base_value_log_odds": -4.861826771111512,
+  "feature_importance_ranking": [
+    {
+      "rank": 1,
+      "feature": "feat_liq_net_margin",
+      "mean_abs_shap": 1.534701,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "Net cash retained after operating expenses"
+    },
+    {
+      "rank": 2,
+      "feature": "feat_liq_burn_months",
+      "mean_abs_shap": 0.744109,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "Living expense reserve runway"
+    },
+    {
+      "rank": 3,
+      "feature": "requested_loan_amount",
+      "mean_abs_shap": 0.585805,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "Requested loan principal"
+    },
+    {
+      "rank": 4,
+      "feature": "average_working_days",
+      "mean_abs_shap": 0.438301,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "Average monthly active working days"
+    },
+    {
+      "rank": 5,
+      "feature": "feat_ten_trips_completed",
+      "mean_abs_shap": 0.150526,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "Total lifetime completed deliveries or trips"
+    },
+    {
+      "rank": 6,
+      "feature": "feat_bur_total_dti",
+      "mean_abs_shap": 0.102959,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "Total debt obligations relative to income"
+    },
+    {
+      "rank": 7,
+      "feature": "feat_act_active_days_ratio",
+      "mean_abs_shap": 0.088845,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "Active working days engagement ratio"
+    },
+    {
+      "rank": 8,
+      "feature": "loan_tenure_months",
+      "mean_abs_shap": 0.083399,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "Requested loan repayment tenure"
+    },
+    {
+      "rank": 9,
+      "feature": "feat_inc_downside_var",
+      "mean_abs_shap": 0.079771,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "Downside earnings shortfall exposure"
+    },
+    {
+      "rank": 10,
+      "feature": "feat_bur_installment_dti",
+      "mean_abs_shap": 0.071963,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "Fixed loan installment commitments ratio"
+    },
+    {
+      "rank": 11,
+      "feature": "feat_rec_bounceback_ratio",
+      "mean_abs_shap": 0.062988,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "Post-shock earnings rebound elasticity"
+    },
+    {
+      "rank": 12,
+      "feature": "feat_inc_trimmed_mean",
+      "mean_abs_shap": 0.060501,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "feat_inc_trimmed_mean"
+    },
+    {
+      "rank": 13,
+      "feature": "feat_bur_dti_ratio",
+      "mean_abs_shap": 0.053205,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "Periodic debt service ratio"
+    },
+    {
+      "rank": 14,
+      "feature": "feat_act_weekend_intensity",
+      "mean_abs_shap": 0.045039,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "Weekend earning concentration"
+    },
+    {
+      "rank": 15,
+      "feature": "feat_eng_dti_risk_multiplier",
+      "mean_abs_shap": 0.038713,
+      "is_volatility_aware_feature": true,
+      "catalog_title": "Compounding debt-to-income volatility stress"
+    },
+    {
+      "rank": 16,
+      "feature": "feat_int_vol_x_recovery",
+      "mean_abs_shap": 0.036891,
+      "is_volatility_aware_feature": true,
+      "catalog_title": "Joint volatility and recovery interaction"
+    },
+    {
+      "rank": 17,
+      "feature": "feat_liq_buffer_to_loan",
+      "mean_abs_shap": 0.035888,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "Available liquid buffer relative to loan"
+    },
+    {
+      "rank": 18,
+      "feature": "feat_bur_loan_to_income",
+      "mean_abs_shap": 0.035251,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "Total loan balance relative to monthly income"
+    },
+    {
+      "rank": 19,
+      "feature": "feat_inc_p25_90d",
+      "mean_abs_shap": 0.034261,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "Floor earnings during lean weeks"
+    },
+    {
+      "rank": 20,
+      "feature": "feat_pay_utility_on_time",
+      "mean_abs_shap": 0.033982,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "On-time utility and bill settlement rate"
+    },
+    {
+      "rank": 21,
+      "feature": "feat_eng_installment_floor_coverage",
+      "mean_abs_shap": 0.033102,
+      "is_volatility_aware_feature": true,
+      "catalog_title": "Installment coverage during 25th percentile lean weeks"
+    },
+    {
+      "rank": 22,
+      "feature": "feat_eng_vol_cushion_ratio",
+      "mean_abs_shap": 0.030321,
+      "is_volatility_aware_feature": true,
+      "catalog_title": "Liquidity cushion per volatility unit"
+    },
+    {
+      "rank": 23,
+      "feature": "feat_eng_vol_to_baseline",
+      "mean_abs_shap": 0.029616,
+      "is_volatility_aware_feature": true,
+      "catalog_title": "Scale-normalized volatility index"
+    },
+    {
+      "rank": 24,
+      "feature": "feat_inc_median_90d",
+      "mean_abs_shap": 0.028108,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "Baseline 90-day median earnings"
+    },
+    {
+      "rank": 25,
+      "feature": "feat_eng_buffer_burn_coverage",
+      "mean_abs_shap": 0.026712,
+      "is_volatility_aware_feature": true,
+      "catalog_title": "Combined reserve runway and loan coverage"
+    },
+    {
+      "rank": 26,
+      "feature": "feat_trend_slope_90d",
+      "mean_abs_shap": 0.025693,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "90-day linear earnings trajectory"
+    },
+    {
+      "rank": 27,
+      "feature": "feat_ten_platform_rating",
+      "mean_abs_shap": 0.025686,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "Customer and platform service rating"
+    },
+    {
+      "rank": 28,
+      "feature": "loan_purpose_WORKING_CAPITAL",
+      "mean_abs_shap": 0.025393,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "loan_purpose_WORKING_CAPITAL"
+    },
+    {
+      "rank": 29,
+      "feature": "feat_eng_vol_to_bounceback",
+      "mean_abs_shap": 0.023944,
+      "is_volatility_aware_feature": true,
+      "catalog_title": "Unbuffered volatility ratio"
+    },
+    {
+      "rank": 30,
+      "feature": "feat_ten_cancellation_rate",
+      "mean_abs_shap": 0.022598,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "feat_ten_cancellation_rate"
+    },
+    {
+      "rank": 31,
+      "feature": "feat_eng_downside_to_median",
+      "mean_abs_shap": 0.022503,
+      "is_volatility_aware_feature": true,
+      "catalog_title": "Downside shortfall to median income ratio"
+    },
+    {
+      "rank": 32,
+      "feature": "feat_act_max_idle_streak",
+      "mean_abs_shap": 0.020991,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "Longest consecutive inactive days"
+    },
+    {
+      "rank": 33,
+      "feature": "feat_inc_cv_90d",
+      "mean_abs_shap": 0.020187,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "Earnings dispersion (relative volatility)"
+    },
+    {
+      "rank": 34,
+      "feature": "feat_inc_iqr_ratio",
+      "mean_abs_shap": 0.019837,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "Interquartile earnings stability"
+    },
+    {
+      "rank": 35,
+      "feature": "feat_ten_years_working",
+      "mean_abs_shap": 0.018535,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "Verified gig platform tenure"
+    },
+    {
+      "rank": 36,
+      "feature": "feat_int_vol_x_buffer",
+      "mean_abs_shap": 0.017445,
+      "is_volatility_aware_feature": true,
+      "catalog_title": "Joint volatility and liquidity cushion interaction"
+    },
+    {
+      "rank": 37,
+      "feature": "feat_int_trend_x_dti",
+      "mean_abs_shap": 0.01712,
+      "is_volatility_aware_feature": true,
+      "catalog_title": "Trend momentum and debt burden interaction"
+    },
+    {
+      "rank": 38,
+      "feature": "feat_eng_vol_x_trend",
+      "mean_abs_shap": 0.01627,
+      "is_volatility_aware_feature": true,
+      "catalog_title": "Directional volatility interaction"
+    },
+    {
+      "rank": 39,
+      "feature": "feat_eng_recovery_velocity",
+      "mean_abs_shap": 0.014028,
+      "is_volatility_aware_feature": true,
+      "catalog_title": "Earnings recovery velocity per week"
+    },
+    {
+      "rank": 40,
+      "feature": "feat_trend_momentum_30_90",
+      "mean_abs_shap": 0.012456,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "Recent 30-day vs 90-day momentum"
+    },
+    {
+      "rank": 41,
+      "feature": "feat_inc_mean_90d",
+      "mean_abs_shap": 0.012333,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "Average 90-day gross earnings"
+    },
+    {
+      "rank": 42,
+      "feature": "feat_int_resilience_idx",
+      "mean_abs_shap": 0.007453,
+      "is_volatility_aware_feature": true,
+      "catalog_title": "Composite financial resilience index"
+    },
+    {
+      "rank": 43,
+      "feature": "feat_inc_min_max_ratio",
+      "mean_abs_shap": 0.005477,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "feat_inc_min_max_ratio"
+    },
+    {
+      "rank": 44,
+      "feature": "feat_act_zero_earn_weeks",
+      "mean_abs_shap": 0.00503,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "Zero-earning weeks in observation period"
+    },
+    {
+      "rank": 45,
+      "feature": "feat_trend_consec_drops",
+      "mean_abs_shap": 0.0047,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "feat_trend_consec_drops"
+    },
+    {
+      "rank": 46,
+      "feature": "gig_work_type_RIDE_HAILING",
+      "mean_abs_shap": 0.00453,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "gig_work_type_RIDE_HAILING"
+    },
+    {
+      "rank": 47,
+      "feature": "feat_rec_max_drawdown",
+      "mean_abs_shap": 0.004394,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "feat_rec_max_drawdown"
+    },
+    {
+      "rank": 48,
+      "feature": "gig_work_type_DELIVERY",
+      "mean_abs_shap": 0.003735,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "gig_work_type_DELIVERY"
+    },
+    {
+      "rank": 49,
+      "feature": "loan_purpose_VEHICLE_MAINTENANCE",
+      "mean_abs_shap": 0.003285,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "loan_purpose_VEHICLE_MAINTENANCE"
+    },
+    {
+      "rank": 50,
+      "feature": "feat_rec_days_to_recover",
+      "mean_abs_shap": 0.002413,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "Days required to recover from income dip"
+    },
+    {
+      "rank": 51,
+      "feature": "gig_work_type_HOME_SERVICES",
+      "mean_abs_shap": 0.001551,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "gig_work_type_HOME_SERVICES"
+    },
+    {
+      "rank": 52,
+      "feature": "loan_purpose_EQUIPMENT_PURCHASE",
+      "mean_abs_shap": 0.001212,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "loan_purpose_EQUIPMENT_PURCHASE"
+    },
+    {
+      "rank": 53,
+      "feature": "gig_work_type_LOGISTICS",
+      "mean_abs_shap": 0.000796,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "gig_work_type_LOGISTICS"
+    },
+    {
+      "rank": 54,
+      "feature": "loan_purpose_PERSONAL_EMERGENCY",
+      "mean_abs_shap": 0.000477,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "loan_purpose_PERSONAL_EMERGENCY"
+    },
+    {
+      "rank": 55,
+      "feature": "feat_suf_group_count",
+      "mean_abs_shap": 0.000236,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "feat_suf_group_count"
+    },
+    {
+      "rank": 56,
+      "feature": "feat_suf_observed_days",
+      "mean_abs_shap": 0.0,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "feat_suf_observed_days"
+    },
+    {
+      "rank": 57,
+      "feature": "feat_suf_payout_count",
+      "mean_abs_shap": 0.0,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "feat_suf_payout_count"
+    },
+    {
+      "rank": 58,
+      "feature": "feat_suf_missing_ratio",
+      "mean_abs_shap": 0.0,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "feat_suf_missing_ratio"
+    },
+    {
+      "rank": 59,
+      "feature": "feat_pay_max_bill_delay",
+      "mean_abs_shap": 0.0,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "feat_pay_max_bill_delay"
+    },
+    {
+      "rank": 60,
+      "feature": "feat_pay_repay_reliability",
+      "mean_abs_shap": 0.0,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "Alternative credit repayment track record"
+    },
+    {
+      "rank": 61,
+      "feature": "years_working",
+      "mean_abs_shap": 0.0,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "years_working"
+    },
+    {
+      "rank": 62,
+      "feature": "gig_work_type_FREELANCE_MICRO",
+      "mean_abs_shap": 0.0,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "gig_work_type_FREELANCE_MICRO"
+    },
+    {
+      "rank": 63,
+      "feature": "gig_work_type_OTHER",
+      "mean_abs_shap": 0.0,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "gig_work_type_OTHER"
+    },
+    {
+      "rank": 64,
+      "feature": "loan_purpose_OTHER",
+      "mean_abs_shap": 0.0,
+      "is_volatility_aware_feature": false,
+      "catalog_title": "loan_purpose_OTHER"
+    }
+  ],
+  "key_volatility_features_summary": [
+    {
+      "rank": 16,
+      "feature": "feat_int_vol_x_recovery",
+      "mean_abs_shap": 0.036891,
+      "is_volatility_aware_feature": true,
+      "catalog_title": "Joint volatility and recovery interaction"
+    },
+    {
+      "rank": 21,
+      "feature": "feat_eng_installment_floor_coverage",
+      "mean_abs_shap": 0.033102,
+      "is_volatility_aware_feature": true,
+      "catalog_title": "Installment coverage during 25th percentile lean weeks"
+    },
+    {
+      "rank": 23,
+      "feature": "feat_eng_vol_to_baseline",
+      "mean_abs_shap": 0.029616,
+      "is_volatility_aware_feature": true,
+      "catalog_title": "Scale-normalized volatility index"
+    },
+    {
+      "rank": 25,
+      "feature": "feat_eng_buffer_burn_coverage",
+      "mean_abs_shap": 0.026712,
+      "is_volatility_aware_feature": true,
+      "catalog_title": "Combined reserve runway and loan coverage"
+    },
+    {
+      "rank": 29,
+      "feature": "feat_eng_vol_to_bounceback",
+      "mean_abs_shap": 0.023944,
+      "is_volatility_aware_feature": true,
+      "catalog_title": "Unbuffered volatility ratio"
+    },
+    {
+      "rank": 31,
+      "feature": "feat_eng_downside_to_median",
+      "mean_abs_shap": 0.022503,
+      "is_volatility_aware_feature": true,
+      "catalog_title": "Downside shortfall to median income ratio"
+    },
+    {
+      "rank": 36,
+      "feature": "feat_int_vol_x_buffer",
+      "mean_abs_shap": 0.017445,
+      "is_volatility_aware_feature": true,
+      "catalog_title": "Joint volatility and liquidity cushion interaction"
+    },
+    {
+      "rank": 38,
+      "feature": "feat_eng_vol_x_trend",
+      "mean_abs_shap": 0.01627,
+      "is_volatility_aware_feature": true,
+      "catalog_title": "Directional volatility interaction"
+    },
+    {
+      "rank": 39,
+      "feature": "feat_eng_recovery_velocity",
+      "mean_abs_shap": 0.014028,
+      "is_volatility_aware_feature": true,
+      "catalog_title": "Earnings recovery velocity per week"
+    }
+  ]
+}

@@ -70,13 +70,13 @@ export function MobileNav() {
               key={item.href}
               href={item.href}
               className={cn(
-                'flex flex-col items-center justify-center py-1 px-3 rounded-full text-[10px] font-medium transition-colors',
+                'flex flex-col items-center justify-center py-1 px-3 rounded-full text-xs font-semibold transition-colors',
                 isActive
-                  ? 'text-[#472393] font-semibold dark:text-foreground'
-                  : 'text-foreground-muted hover:text-[#472393] dark:hover:text-foreground'
+                  ? 'text-[#472393] font-bold dark:text-foreground'
+                  : 'text-foreground-secondary hover:text-[#472393] dark:hover:text-foreground'
               )}
             >
-              <Icon className="size-4 mb-0.5" />
+              <Icon className="size-4.5 mb-0.5" />
               <span>{item.label}</span>
             </Link>
           );

@@ -25,12 +25,12 @@ export function ApplicationCard({
     >
       <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-border">
         <div className="flex items-center gap-2">
-          <span className="font-mono text-xs font-semibold text-foreground">
+          <span className="font-mono text-sm font-semibold text-foreground">
             {application.id}
           </span>
-          <span className="text-xs text-foreground-muted">•</span>
-          <span className="text-xs text-foreground-muted flex items-center gap-1">
-            <Calendar className="size-3" />
+          <span className="text-sm text-foreground-secondary">•</span>
+          <span className="text-sm text-foreground-secondary flex items-center gap-1">
+            <Calendar className="size-3.5" />
             {new Date(application.submittedAt).toLocaleDateString('en-IN', {
               month: 'short',
               day: 'numeric',
@@ -50,16 +50,16 @@ export function ApplicationCard({
       <div className="pt-3 flex items-center justify-between">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="text-xl sm:text-2xl font-semibold text-foreground font-mono">
+            <span className="text-xl sm:text-2xl font-bold text-foreground font-mono">
               {formatCurrency(application.requestedAmount)}
             </span>
-            <span className="text-xs px-2.5 py-0.5 rounded-full bg-surface-highlight border border-border text-foreground-secondary">
+            <span className="text-xs sm:text-sm px-3 py-0.5 rounded-full bg-surface-highlight border border-border text-foreground-secondary font-medium">
               {application.purpose}
             </span>
           </div>
 
-          <div className="flex items-center gap-2 text-xs text-foreground-muted">
-            <Layers className="size-3" />
+          <div className="flex items-center gap-2 text-xs sm:text-sm text-foreground-secondary">
+            <Layers className="size-3.5" />
             <span>{application.applicantName}</span>
             <span>•</span>
             <span className="capitalize">{application.employmentType.replace('_', ' ').toLowerCase()}</span>

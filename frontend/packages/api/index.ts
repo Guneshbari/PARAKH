@@ -263,9 +263,27 @@ export class ParakhApiClient {
   // =========================================================================
 
   async createApplicant(data: BackendApplicantProfileCreate): Promise<BackendApplicantProfile> {
+    const payload = {
+      ...data,
+      gig_work_type: data.gig_work_type || data.work_type || 'GIG_WORKER',
+      years_working:
+        data.years_working !== undefined
+          ? data.years_working
+          : data.experience_months
+          ? Number((data.experience_months / 12).toFixed(1))
+          : undefined,
+      business_or_loan_purpose:
+        data.business_or_loan_purpose || data.preferred_loan_purpose,
+      average_working_days:
+        data.average_working_days !== undefined
+          ? data.average_working_days
+          : data.average_working_days_per_week
+          ? Math.min(31, Math.round(data.average_working_days_per_week * 4.33))
+          : undefined,
+    };
     return this.request<BackendApplicantProfile>('/api/v1/applicants', {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify(payload),
     });
   }
 
@@ -361,12 +379,18 @@ export class ParakhApiClient {
 
   async triggerAssessment(applicationId: string, modelVersionId?: string): Promise<BackendAssessment> {
     const qs = modelVersionId ? `?model_version_id=${encodeURIComponent(modelVersionId)}` : '';
-    return this.request<BackendAssessment>(
+    const res = await this.request<BackendAssessment>(
       `/api/v1/applications/${encodeURIComponent(applicationId)}/assess${qs}`,
       {
         method: 'POST',
       }
     );
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      try {
+        window.sessionStorage.setItem(`parakh_assessment_${applicationId}`, JSON.stringify(res));
+      } catch {}
+    }
+    return res;
   }
 
   async getAssessmentById(assessmentId: string): Promise<BackendAssessment> {
@@ -619,6 +643,14 @@ export class ParakhApiClient {
 
   async getAssessmentAdapted(assessmentId: string): Promise<CreditAssessmentResult> {
     const raw = await this.getAssessmentById(assessmentId);
+    return adaptAssessment(raw);
+  }
+
+  async triggerAssessmentAdapted(
+    applicationId: string,
+    modelVersionId?: string
+  ): Promise<CreditAssessmentResult> {
+    const raw = await this.triggerAssessment(applicationId, modelVersionId);
     return adaptAssessment(raw);
   }
 

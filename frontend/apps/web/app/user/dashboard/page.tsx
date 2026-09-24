@@ -193,11 +193,11 @@ export default function UserDashboardPage() {
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
               Welcome back, {displayName}
             </h1>
-            <Badge variant="secondary" className="text-[10px] py-0.5 px-2">
+            <Badge variant="secondary" className="text-xs py-0.5 px-2">
               Verified Account
             </Badge>
           </div>
-          <div className="flex flex-wrap items-center gap-2 text-xs text-foreground-muted">
+          <div className="flex flex-wrap items-center gap-2 text-sm text-foreground-secondary">
             <span>{workType} ({expMonths})</span>
             <span>•</span>
             <span>{displayCity}</span>
@@ -206,14 +206,14 @@ export default function UserDashboardPage() {
 
         <div className="flex items-center gap-3">
           <Link href="/user/applications/new">
-            <Button variant="default" className="gap-2 font-semibold px-5 rounded-full cursor-pointer">
+            <Button variant="default" className="gap-2 font-semibold px-5 rounded-full cursor-pointer text-xs sm:text-sm">
               <PlusCircle className="size-4" />
               <span>New Assessment</span>
             </Button>
           </Link>
           {latestAssessment && (
             <Link href={`/user/results/${latestAssessment.id}`}>
-              <Button variant="secondary" className="gap-1.5 text-xs rounded-full cursor-pointer">
+              <Button variant="secondary" className="gap-1.5 text-xs sm:text-sm rounded-full cursor-pointer">
                 <span>Full Report</span>
                 <ArrowRight className="size-3.5" />
               </Button>
@@ -238,16 +238,16 @@ export default function UserDashboardPage() {
               />
 
               <Card variant="elevated" className="space-y-2.5 p-5">
-                <div className="flex items-center justify-between text-xs">
+                <div className="flex items-center justify-between text-sm">
                   <span className="font-semibold text-foreground flex items-center gap-1.5">
-                    <ShieldCheck className="size-3.5 text-foreground-secondary" />
+                    <ShieldCheck className="size-4 text-foreground-secondary" />
                     <span>Alternative Data Health</span>
                   </span>
                   <span className="font-semibold text-foreground font-mono">
                     {latestAssessment.modelConfidence}% Confident
                   </span>
                 </div>
-                <p className="text-xs text-foreground-muted leading-relaxed">
+                <p className="text-sm text-foreground-secondary leading-relaxed">
                   Active alternative financial sources linked: UPI settlements, platform earnings stream, and utility bills.
                 </p>
               </Card>
@@ -257,7 +257,7 @@ export default function UserDashboardPage() {
           {/* 3. KEY VOLATILITY STANDING METRIC CARDS */}
           {latestAssessment.volatilityProfile && (
             <section className="space-y-3">
-              <h2 className="text-xs font-semibold uppercase tracking-wider text-foreground-muted">
+              <h2 className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-foreground-secondary">
                 Financial Standing & Volatility Signals
               </h2>
 
@@ -316,10 +316,10 @@ export default function UserDashboardPage() {
           {latestAssessment.volatilityProfile && (
             <section className="space-y-3">
               <div className="flex items-center justify-between">
-                <h2 className="text-xs font-semibold uppercase tracking-wider text-foreground-muted">
+                <h2 className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-foreground-secondary">
                   Weekly Inflow Rhythm & Rebound Curve
                 </h2>
-                <span className="text-xs text-foreground-muted">Verified Telemetry</span>
+                <span className="text-xs sm:text-sm text-foreground-secondary font-medium">Verified Telemetry</span>
               </div>
 
               <CashflowVolatilityChart
@@ -334,13 +334,13 @@ export default function UserDashboardPage() {
         <Card className="p-8 text-center space-y-4 bg-surface border-border">
           <Clock className="size-10 text-primary mx-auto animate-pulse" />
           <div className="space-y-1">
-            <h2 className="text-lg font-semibold text-foreground">Assessment in Progress</h2>
-            <p className="text-xs text-foreground-muted max-w-md mx-auto">
+            <h2 className="text-lg sm:text-xl font-semibold text-foreground">Assessment in Progress</h2>
+            <p className="text-sm text-foreground-secondary max-w-md mx-auto leading-relaxed">
               Your application has been received and telemetry ingestion is active. You can review your application tracking status below.
             </p>
           </div>
           <Link href={`/user/applications/${applications[0].id}`}>
-            <Button variant="outline" size="sm" className="rounded-full gap-1.5 text-xs">
+            <Button variant="outline" size="sm" className="rounded-full gap-1.5 text-xs sm:text-sm">
               View Application Status <ArrowRight className="size-3.5" />
             </Button>
           </Link>
@@ -352,15 +352,15 @@ export default function UserDashboardPage() {
             <FileText className="size-6 opacity-75" />
           </div>
           <div className="space-y-1.5">
-            <h2 className="text-lg font-semibold text-foreground tracking-tight">
+            <h2 className="text-lg sm:text-xl font-semibold text-foreground tracking-tight">
               No Credit Evaluations Yet
             </h2>
-            <p className="text-xs text-foreground-muted max-w-md mx-auto leading-relaxed">
+            <p className="text-sm text-foreground-secondary max-w-md mx-auto leading-relaxed">
               Launch your first evaluation to verify gig income streams, analyze cashflow volatility rhythms, and generate an explainable credit assessment dossier.
             </p>
           </div>
           <Link href="/user/applications/new">
-            <Button variant="default" className="gap-2 font-semibold px-6 rounded-full cursor-pointer">
+            <Button variant="default" className="gap-2 font-semibold px-6 rounded-full cursor-pointer text-xs sm:text-sm">
               <PlusCircle className="size-4" />
               <span>Start New Evaluation</span>
             </Button>
@@ -374,12 +374,12 @@ export default function UserDashboardPage() {
           {/* Recent Applications List */}
           <div className="lg:col-span-7 space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-xs font-semibold uppercase tracking-wider text-foreground-muted">
+              <h2 className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-foreground-secondary">
                 Recent Evaluations ({applications.length})
               </h2>
               <Link
                 href="/user/applications"
-                className="text-xs text-foreground-secondary hover:text-foreground font-medium underline-offset-4 hover:underline"
+                className="text-xs sm:text-sm text-foreground-secondary hover:text-foreground font-semibold underline-offset-4 hover:underline"
               >
                 View all →
               </Link>
@@ -394,24 +394,24 @@ export default function UserDashboardPage() {
 
           {/* Actionable Recommendations Card */}
           <div className="lg:col-span-5 space-y-4">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-foreground-muted">
+            <h2 className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-foreground-secondary">
               Actionable Recommendations
             </h2>
 
             <Card className="space-y-4 p-6 bg-surface border-border">
-              <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
+              <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
                 <Sparkles className="size-4 opacity-75" />
                 <span>How to strengthen your evaluation</span>
               </div>
 
-              <ul className="space-y-3 text-xs text-foreground-secondary">
+              <ul className="space-y-3 text-sm text-foreground-secondary">
                 {(latestAssessment?.actionableRecommendations || [
                   'Maintain consistent weekly active gig order volumes.',
                   'Link recurring platform payout settlements to your primary account.',
                   'Maintain timely payments for recurring micro-obligations and utility bills.',
                 ]).map((rec, i) => (
                   <li key={i} className="flex items-start gap-2.5 leading-relaxed">
-                    <span className="size-4 rounded-full bg-surface-highlight border border-border text-foreground flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
+                    <span className="size-5 rounded-full bg-surface-highlight border border-border text-foreground flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
                       {i + 1}
                     </span>
                     <span>{rec}</span>
@@ -420,12 +420,12 @@ export default function UserDashboardPage() {
               </ul>
 
               <div className="pt-3 border-t border-border flex items-center justify-between">
-                <span className="text-[11px] text-foreground-muted">
+                <span className="text-xs text-foreground-secondary">
                   Updated automatically on data ingestion
                 </span>
                 <Link href="/user/profile">
-                  <span className="text-xs text-foreground-secondary hover:text-foreground font-medium flex items-center gap-1">
-                    Manage Feeds <ChevronRight className="size-3" />
+                  <span className="text-xs sm:text-sm text-foreground-secondary hover:text-foreground font-semibold flex items-center gap-1">
+                    Manage Feeds <ChevronRight className="size-3.5" />
                   </span>
                 </Link>
               </div>

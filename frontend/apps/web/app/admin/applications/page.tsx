@@ -111,11 +111,11 @@ export default function AdminApplicationsPage() {
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
               Applications for Review
             </h1>
-            <Badge variant="mint" className="text-[10px] py-0.5 px-2">
+            <Badge variant="mint" className="text-xs py-0.5 px-2">
               {allApps.length} Total Dossiers
             </Badge>
           </div>
-          <p className="text-xs sm:text-sm text-foreground-muted">
+          <p className="text-xs sm:text-sm text-foreground-secondary">
             Priority human-in-the-loop review cases, active verification pipelines, and historical alternative credit evaluations.
           </p>
         </div>
@@ -125,7 +125,7 @@ export default function AdminApplicationsPage() {
             variant="ghost"
             size="sm"
             onClick={() => window.print()}
-            className="rounded-full gap-1.5 text-xs text-foreground-muted hover:text-foreground"
+            className="rounded-full gap-1.5 text-xs text-foreground-secondary hover:text-foreground"
           >
             <Printer className="size-3.5" /> Print Queue
           </Button>
@@ -140,29 +140,29 @@ export default function AdminApplicationsPage() {
       {/* 2. SUMMARY STRIP */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="p-3.5 rounded-2xl bg-surface border border-border shadow-card space-y-1">
-          <span className="text-[11px] text-foreground-muted block">Active In Queue</span>
+          <span className="text-xs text-foreground-secondary block">Active In Queue</span>
           <span className="text-xl font-bold text-foreground font-mono">{allApps.length}</span>
-          <span className="text-[10px] text-foreground-secondary block">Digital Inflow Feeds</span>
+          <span className="text-xs text-foreground-secondary block">Digital Inflow Feeds</span>
         </div>
 
         <div className="p-3.5 rounded-2xl bg-surface border border-border shadow-card space-y-1">
-          <span className="text-[11px] text-foreground font-semibold block">
+          <span className="text-xs text-foreground font-semibold block">
             Priority Review Required
           </span>
           <span className="text-xl font-bold text-foreground font-mono">{pendingCount}</span>
-          <span className="text-[10px] text-foreground-muted block">Human Review Flagged</span>
+          <span className="text-xs text-foreground-secondary block">Human Review Flagged</span>
         </div>
 
         <div className="p-3.5 rounded-2xl bg-surface border border-border shadow-card space-y-1">
-          <span className="text-[11px] text-foreground-muted block">In Data Validation</span>
+          <span className="text-xs text-foreground-secondary block">In Data Validation</span>
           <span className="text-xl font-bold text-foreground font-mono">{validationCount}</span>
-          <span className="text-[10px] text-foreground-muted block">KYC / AA Telemetry</span>
+          <span className="text-xs text-foreground-secondary block">KYC / AA Telemetry</span>
         </div>
 
         <div className="p-3.5 rounded-2xl bg-surface border border-border shadow-card space-y-1">
-          <span className="text-[11px] text-foreground-muted block">Assessed & Recorded</span>
+          <span className="text-xs text-foreground-secondary block">Assessed & Recorded</span>
           <span className="text-xl font-bold text-foreground font-mono">{completedCount}</span>
-          <span className="text-[10px] text-foreground-secondary block">Dossiers Ready</span>
+          <span className="text-xs text-foreground-secondary block">Dossiers Ready</span>
         </div>
       </div>
 
@@ -176,7 +176,7 @@ export default function AdminApplicationsPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by ID, applicant name, purpose, trigger, or sector..."
-              className="pl-10 h-10 rounded-full bg-surface border-border text-xs"
+              className="pl-10 h-10 rounded-full bg-surface border-border text-xs sm:text-sm"
             />
           </div>
 
@@ -195,7 +195,7 @@ export default function AdminApplicationsPage() {
                 className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
                   statusFilter === tab.id
                     ? 'bg-[#472393] text-white font-semibold shadow-xs dark:bg-foreground dark:text-background'
-                    : 'text-foreground-muted hover:text-[#472393] hover:bg-[#F5F1FF] dark:hover:text-foreground dark:hover:bg-transparent'
+                    : 'text-foreground-secondary hover:text-[#472393] hover:bg-[#F5F1FF] dark:hover:text-foreground dark:hover:bg-transparent'
                 }`}
               >
                 {tab.label}
@@ -207,7 +207,7 @@ export default function AdminApplicationsPage() {
         {/* Secondary Filter Row */}
         <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-border text-xs">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-foreground-muted flex items-center gap-1 text-[11px] font-medium">
+            <span className="text-foreground-secondary flex items-center gap-1 text-xs font-medium">
               <SlidersHorizontal className="size-3 text-foreground-secondary" /> Filter By:
             </span>
 
@@ -323,8 +323,8 @@ export default function AdminApplicationsPage() {
       ) : (
         <Card className="overflow-hidden p-0">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-surface-highlight/40 border-b border-border text-foreground-muted font-medium uppercase tracking-wider text-[11px]">
+            <table className="w-full text-left text-xs sm:text-sm">
+              <thead className="bg-surface-highlight/40 border-b border-border text-foreground-secondary font-semibold uppercase tracking-wider text-xs">
                 <tr>
                   <th className="py-3.5 px-5">Application ID</th>
                   <th className="py-3.5 px-5">Applicant & Sector</th>
@@ -358,7 +358,7 @@ export default function AdminApplicationsPage() {
                           <span className="font-semibold text-foreground block">
                             {app.applicantName}
                           </span>
-                          <span className="text-foreground-muted text-[11px]">
+                          <span className="text-foreground-secondary text-xs">
                             {app.sectorTag || app.employmentType.replace(/_/g, ' ')}
                           </span>
                         </div>
@@ -369,7 +369,7 @@ export default function AdminApplicationsPage() {
                           <span className="font-mono font-semibold text-foreground block">
                             {formatCurrency(app.requestedAmount)}
                           </span>
-                          <span className="text-foreground-muted text-[11px]">
+                          <span className="text-foreground-secondary text-xs">
                             {app.purpose}
                           </span>
                         </div>
@@ -377,12 +377,12 @@ export default function AdminApplicationsPage() {
 
                       <td className="py-4 px-5 max-w-xs">
                         {app.triggerReason ? (
-                          <div className="flex items-start gap-1.5 text-foreground-secondary text-xs">
+                          <div className="flex items-start gap-1.5 text-foreground-secondary text-xs sm:text-sm">
                             <span className="size-1.5 rounded-full bg-foreground-secondary mt-1.5 shrink-0" />
                             <span className="line-clamp-2">{app.triggerReason}</span>
                           </div>
                         ) : (
-                          <span className="text-foreground-muted text-[11px] font-mono">
+                          <span className="text-foreground-secondary text-xs font-mono">
                             Standard flow
                           </span>
                         )}
@@ -401,11 +401,11 @@ export default function AdminApplicationsPage() {
                             <RiskBadge
                               riskLevel={app.assessment.riskLevel}
                               showIcon={false}
-                              className="text-[10px] py-0 px-2"
+                              className="text-xs py-0.5 px-2"
                             />
                           </div>
                         ) : (
-                          <span className="text-foreground-muted font-mono text-[11px]">
+                          <span className="text-foreground-secondary font-mono text-xs">
                             Evaluating...
                           </span>
                         )}
@@ -416,7 +416,7 @@ export default function AdminApplicationsPage() {
                           <Button
                             variant={isFlagged ? 'default' : 'outline'}
                             size="sm"
-                            className="rounded-full text-xs h-8 px-3 font-semibold cursor-pointer shadow-xs"
+                            className="rounded-full text-xs sm:text-sm h-8 px-3.5 font-semibold cursor-pointer shadow-xs"
                           >
                             <span>{isFlagged ? 'Review Dossier' : 'Inspect'}</span>
                             <ChevronRight className="size-3.5 ml-1" />
@@ -433,7 +433,7 @@ export default function AdminApplicationsPage() {
       )}
 
       {/* 5. STATUTORY GOVERNANCE FOOTNOTE */}
-      <div className="p-4 rounded-2xl bg-surface-highlight/30 border border-border text-[11px] text-foreground-muted flex items-start gap-3">
+      <div className="p-4 rounded-2xl bg-surface-highlight/30 border border-border text-xs sm:text-sm text-foreground-secondary flex items-start gap-3">
         <ShieldCheck className="size-4 text-foreground-secondary shrink-0 mt-0.5" />
         <div className="space-y-0.5">
           <span className="font-semibold text-foreground block">

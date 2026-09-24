@@ -180,6 +180,8 @@ async function runTests() {
       ],
       recommendations: ['Maintain current active order volume', 'Link recurring UPI collections'],
     },
+    model_name: 'volatility-aware-risk-model',
+    model_version: '1.0.0',
     assessed_at: '2026-01-12T09:00:00Z',
     created_at: '2026-01-12T09:00:00Z',
   };
@@ -192,13 +194,108 @@ async function runTests() {
   assert.strictEqual(adaptedAssessment.riskLevel, 'LOWER_ESTIMATED RISK');
   assert.strictEqual(adaptedAssessment.estimatedRepaymentDifficulty, 12);
   assert.strictEqual(adaptedAssessment.modelConfidence, 91);
+  assert.strictEqual(adaptedAssessment.modelName, 'volatility-aware-risk-model');
+  assert.strictEqual(adaptedAssessment.modelVersion, '1.0.0');
   assert.strictEqual(adaptedAssessment.keyPositiveFactors.length, 2);
   assert.strictEqual(adaptedAssessment.keyAttentionFactors.length, 1);
   assert.strictEqual(adaptedAssessment.featureContributions.length, 2);
   assert.strictEqual(adaptedAssessment.featureContributions[0].featureName, 'weekly_inflow');
   assert.strictEqual(adaptedAssessment.featureContributions[0].direction, 'POSITIVE');
   assert.strictEqual(adaptedAssessment.actionableRecommendations.length, 2);
-  console.log('   ✓ adaptAssessment passed');
+  assert.strictEqual(adaptedAssessment.isInsufficientEvidence, false);
+  console.log('   ✓ adaptAssessment (LOWER scored) passed');
+
+  // MODERATE assessment test
+  const rawModerate: BackendCreditAssessmentResponse = {
+    id: 'asmt-mod',
+    application_id: 'app-mod',
+    model_version_id: 'mv-1',
+    credit_score: 685,
+    score: 685,
+    risk_level: 'MODERATE',
+    risk_probability: 0.28,
+    confidence: 0.82,
+    assessed_at: '2026-01-12T10:00:00Z',
+    created_at: '2026-01-12T10:00:00Z',
+  };
+  const adaptedModerate = adaptAssessment(rawModerate);
+  assert.strictEqual(adaptedModerate.score, 685);
+  assert.strictEqual(adaptedModerate.riskLevel, 'MODERATE_ESTIMATED RISK');
+  assert.strictEqual(adaptedModerate.estimatedRepaymentDifficulty, 28);
+  assert.strictEqual(adaptedModerate.modelConfidence, 82);
+  console.log('   ✓ adaptAssessment (MODERATE scored) passed');
+
+  // HIGHER assessment test
+  const rawHigher: BackendCreditAssessmentResponse = {
+    id: 'asmt-high',
+    application_id: 'app-high',
+    model_version_id: 'mv-1',
+    credit_score: 590,
+    score: 590,
+    risk_level: 'HIGHER',
+    risk_probability: 0.55,
+    confidence: 0.78,
+    assessed_at: '2026-01-12T11:00:00Z',
+    created_at: '2026-01-12T11:00:00Z',
+  };
+  const adaptedHigher = adaptAssessment(rawHigher);
+  assert.strictEqual(adaptedHigher.score, 590);
+  assert.strictEqual(adaptedHigher.riskLevel, 'HIGHER_ESTIMATED RISK');
+  assert.strictEqual(adaptedHigher.estimatedRepaymentDifficulty, 55);
+  assert.strictEqual(adaptedHigher.modelConfidence, 78);
+  console.log('   ✓ adaptAssessment (HIGHER scored) passed');
+
+  // INSUFFICIENT evidence assessment test (Refusal contract)
+  const rawInsufficient: BackendCreditAssessmentResponse = {
+    id: 'asmt-insufficient',
+    application_id: 'app-insufficient',
+    model_version_id: 'mv-1',
+    credit_score: null,
+    score: null,
+    risk_level: 'INSUFFICIENT',
+    risk_probability: null,
+    confidence: 0.0,
+    assessment_status: 'INSUFFICIENT_EVIDENCE',
+    model_name: 'volatility-aware-risk-model',
+    model_version: '1.0.0',
+    key_factors: [
+      'Insufficient evidence: minimum 30 days of continuous platform telemetry required',
+      'Missing primary income signal from connected digital accounts',
+    ],
+    explanation: {
+      is_insufficient_evidence: true,
+      missing_signals: [
+        'Observed history below minimum requirement.',
+        'Payout cycle count below minimum requirement.',
+        'Core signal groups below minimum requirement.',
+      ],
+      shap_values: [],
+      disclaimer: 'Alternative credit assessment prototype for underbanked gig workers under DPDP Act 2023. Not a formal credit bureau score.',
+    },
+    assessed_at: '2026-01-12T12:00:00Z',
+    created_at: '2026-01-12T12:00:00Z',
+  };
+
+  const adaptedInsufficient = adaptAssessment(rawInsufficient);
+  // Verify nulls are preserved and never fabricated
+  assert.strictEqual(adaptedInsufficient.score, null, 'score must be null for INSUFFICIENT');
+  assert.strictEqual(adaptedInsufficient.riskLevel, 'INSUFFICIENT_EVIDENCE_MANUAL_REVIEW');
+  assert.strictEqual(adaptedInsufficient.estimatedRepaymentDifficulty, null, 'difficulty must be null for INSUFFICIENT');
+  assert.strictEqual(adaptedInsufficient.modelConfidence, 0, 'confidence 0.0 must remain 0 and not become 85');
+  assert.strictEqual(adaptedInsufficient.isInsufficientEvidence, true);
+  assert.strictEqual(adaptedInsufficient.modelName, 'volatility-aware-risk-model');
+  assert.strictEqual(adaptedInsufficient.modelVersion, '1.0.0');
+  assert.strictEqual(adaptedInsufficient.assessmentStatus, 'INSUFFICIENT_EVIDENCE');
+  assert.strictEqual(
+    adaptedInsufficient.disclaimer,
+    'Alternative credit assessment prototype for underbanked gig workers under DPDP Act 2023. Not a formal credit bureau score.'
+  );
+  assert.strictEqual(adaptedInsufficient.featureContributions.length, 0, 'empty shap_values must yield empty array');
+  assert.strictEqual(adaptedInsufficient.missingSignals?.length, 3);
+  assert.strictEqual(adaptedInsufficient.missingSignals?.[0], 'Observed history below minimum requirement.');
+  // Confidence interval must not be inverted
+  assert.ok(adaptedInsufficient.volatilityProfile.confidenceInterval[0] <= adaptedInsufficient.volatilityProfile.confidenceInterval[1]);
+  console.log('   ✓ adaptAssessment (INSUFFICIENT evidence & null score preservation) passed');
 
   // Underwriter Review Adapter
   const rawReview: BackendReviewOutcomeResponse = {
@@ -332,6 +429,48 @@ async function runTests() {
 
     const res204 = await client.request('/api/v1/dummy-204');
     assert.strictEqual(res204, undefined);
+
+    // Test 5: triggerAssessmentAdapted delegates to POST /api/v1/applications/{id}/assess and returns adapted domain model
+    let triggerUrl = '';
+    let triggerMethod = '';
+    globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+      triggerUrl = String(input);
+      triggerMethod = init?.method || 'GET';
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          id: 'asmt-e2e',
+          application_id: 'app-999',
+          model_version_id: 'mv-frozen',
+          credit_score: 850,
+          score: 850,
+          risk_probability: 0.0264,
+          risk_level: 'LOWER',
+          confidence: 0.9967,
+          model_name: 'volatility-aware-risk-model',
+          model_version: '1.0.0',
+          key_factors: ['Steady weekly income cadence'],
+          explanation: {
+            shap_values: [{ feature: 'tenure', displayName: 'Platform Tenure', value: 0.45 }],
+            disclaimer: 'Prototype disclaimer',
+          },
+          assessed_at: '2026-09-24T05:00:00Z',
+          created_at: '2026-09-24T05:00:00Z',
+        }),
+      } as Response;
+    };
+
+    const assessedResult = await client.triggerAssessmentAdapted('app-999');
+    assert.strictEqual(triggerUrl, 'http://localhost:8000/api/v1/applications/app-999/assess');
+    assert.strictEqual(triggerMethod, 'POST');
+    assert.strictEqual(assessedResult.score, 850);
+    assert.strictEqual(assessedResult.riskLevel, 'LOWER_ESTIMATED RISK');
+    assert.strictEqual(assessedResult.estimatedRepaymentDifficulty, 3);
+    assert.strictEqual(assessedResult.modelConfidence, 100);
+    assert.strictEqual(assessedResult.modelName, 'volatility-aware-risk-model');
+    assert.strictEqual(assessedResult.modelVersion, '1.0.0');
+    assert.strictEqual(assessedResult.featureContributions.length, 1);
 
   } finally {
     globalThis.fetch = originalFetch;

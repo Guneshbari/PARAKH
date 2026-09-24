@@ -1,0 +1,11 @@
+# ML dependencies (independent from backend requirements)
+numpy
+pandas
+scikit-learn
+scipy
+matplotlib
+seaborn
+jupyter
+shap
+joblib
+lightgbm

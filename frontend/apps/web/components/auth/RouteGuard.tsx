@@ -19,6 +19,10 @@ export function RouteGuard({ children, requiredRole }: RouteGuardProps) {
   const requiredRoleUpper = normalizeUserRole(requiredRole);
   const currentRoleUpper = normalizeUserRole(role);
 
+  const hasAccess =
+    currentRoleUpper === requiredRoleUpper ||
+    (currentRoleUpper === 'ADMIN' && (requiredRoleUpper === 'REVIEWER' || requiredRoleUpper === 'ADMIN'));
+
   useEffect(() => {
     if (isLoading) return;
 
@@ -30,11 +34,11 @@ export function RouteGuard({ children, requiredRole }: RouteGuardProps) {
       return;
     }
 
-    if (currentRoleUpper !== requiredRoleUpper) {
+    if (!hasAccess) {
       const portalParam = typeof requiredRole === 'string' ? requiredRole.toLowerCase() : 'applicant';
       router.replace(`/unauthorized?required=${portalParam}`);
     }
-  }, [isAuthenticated, user, currentRoleUpper, requiredRoleUpper, requiredRole, isLoading, router, pathname]);
+  }, [isAuthenticated, user, hasAccess, requiredRole, isLoading, router, pathname]);
 
   if (isLoading) {
     return (
@@ -47,7 +51,7 @@ export function RouteGuard({ children, requiredRole }: RouteGuardProps) {
     );
   }
 
-  if (!isAuthenticated || currentRoleUpper !== requiredRoleUpper) {
+  if (!isAuthenticated || !hasAccess) {
     return null;
   }
 

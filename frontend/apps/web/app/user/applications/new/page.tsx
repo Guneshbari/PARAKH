@@ -186,10 +186,13 @@ export default function NewApplicationPage() {
       } catch (err: unknown) {
         if (err instanceof ApiError && err.status === 404) {
           profile = await api.createApplicant({
+            gig_work_type: formData.employmentType || 'GIG_WORKER',
+            work_type: formData.employmentType || 'GIG_WORKER',
+            years_working: Number((formData.tenureMonths / 12).toFixed(1)),
+            business_or_loan_purpose: formData.purpose,
             full_name: formData.fullName,
             phone_number: formData.phone,
             city: formData.city,
-            work_type: formData.employmentType,
             experience_months: formData.tenureMonths,
             declared_monthly_income: formData.averageMonthlyIncome,
             preferred_loan_purpose: formData.purpose,
@@ -366,7 +369,7 @@ export default function NewApplicationPage() {
               >
                 {isCompleted ? '✓' : s.id}
               </div>
-              <span className="text-[10px] font-semibold text-center hidden sm:inline truncate w-full">
+              <span className="text-xs font-semibold text-center hidden sm:inline truncate w-full">
                 {s.label}
               </span>
             </div>
@@ -627,7 +630,7 @@ export default function NewApplicationPage() {
                   onChange={(e) => updateField('typicalRecoveryDays', parseInt(e.target.value))}
                   className="w-full accent-foreground cursor-pointer"
                 />
-                <div className="flex justify-between text-[11px] text-foreground-muted">
+                <div className="flex justify-between text-xs text-foreground-secondary">
                   <span>1 day (Rapid rebound)</span>
                   <span>14 days (Standard gig cycle)</span>
                   <span>30 days (Extended)</span>
@@ -754,21 +757,21 @@ export default function NewApplicationPage() {
             </div>
 
             {/* Summary Preview Pills */}
-            <div className="p-4 rounded-2xl bg-surface-highlight/40 border border-border space-y-2 text-xs">
-              <span className="font-semibold text-foreground-muted uppercase tracking-wider text-[11px]">
+            <div className="p-4 rounded-2xl bg-surface-highlight/40 border border-border space-y-2 text-xs sm:text-sm">
+              <span className="font-semibold text-foreground-secondary uppercase tracking-wider text-xs">
                 Application Summary
               </span>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-foreground-secondary">
                 <div>
-                  <span className="text-foreground-muted block text-[11px]">Applicant</span>
+                  <span className="text-foreground-secondary block text-xs">Applicant</span>
                   <span className="font-semibold text-foreground">{formData.fullName}</span>
                 </div>
                 <div>
-                  <span className="text-foreground-muted block text-[11px]">Platforms</span>
+                  <span className="text-foreground-secondary block text-xs">Platforms</span>
                   <span className="font-semibold text-foreground">{formData.primaryPlatform}</span>
                 </div>
                 <div>
-                  <span className="text-foreground-muted block text-[11px]">Recovery Speed</span>
+                  <span className="text-foreground-secondary block text-xs">Recovery Speed</span>
                   <span className="font-semibold text-foreground">{formData.typicalRecoveryDays} Days</span>
                 </div>
               </div>
@@ -783,7 +786,7 @@ export default function NewApplicationPage() {
                   onChange={(e) => updateField('consentGiven', e.target.checked)}
                   className="size-4 rounded accent-[#472393] dark:accent-foreground mt-0.5 cursor-pointer"
                 />
-                <span className="text-xs text-foreground-secondary leading-relaxed">
+                <span className="text-xs sm:text-sm text-foreground-secondary leading-relaxed">
                   I grant voluntary consent for PARAKH to evaluate my alternative cashflow frequency,
                   shock recovery metrics, and platform telemetry. I understand that PARAKH is an explainable assessment
                   intelligence prototype and does not represent an automated legal lending decision.

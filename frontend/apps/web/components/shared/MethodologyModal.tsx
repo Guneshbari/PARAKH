@@ -217,11 +217,11 @@ export function MethodologyModal({ isOpen, onClose }: MethodologyModalProps) {
               <h2 id="methodology-modal-title" className="text-lg sm:text-xl font-semibold text-foreground tracking-tight">
                 PARAKH Assessment Methodology
               </h2>
-              <Badge variant="outline" className="text-[10px] py-0.5 px-2 font-mono">
+              <Badge variant="outline" className="text-xs py-0.5 px-2 font-mono">
                 v2.4 Framework
               </Badge>
             </div>
-            <p className="text-xs text-foreground-muted max-w-2xl leading-relaxed">
+            <p className="text-xs sm:text-sm text-foreground-secondary max-w-2xl leading-relaxed">
               How PARAKH translates informal earnings, seasonal volatility, and shock rebound dynamics into explainable alternative credit intelligence.
             </p>
           </div>
@@ -229,20 +229,20 @@ export function MethodologyModal({ isOpen, onClose }: MethodologyModalProps) {
           <button
             onClick={onClose}
             aria-label="Close modal"
-            className="p-1.5 rounded-xl text-foreground-muted hover:text-foreground hover:bg-surface-highlight transition-colors cursor-pointer"
+            className="p-1.5 rounded-xl text-foreground-secondary hover:text-foreground hover:bg-surface-highlight transition-colors cursor-pointer"
           >
             <X className="size-5" />
           </button>
         </div>
 
         {/* Pillar Navigation Pills */}
-        <div className="px-5 py-3 border-b border-border bg-surface-elevated/40 flex items-center gap-1.5 overflow-x-auto text-xs scrollbar-none">
+        <div className="px-5 py-3 border-b border-border bg-surface-elevated/40 flex items-center gap-1.5 overflow-x-auto text-xs sm:text-sm scrollbar-none">
           <button
             onClick={() => setActiveTab('all')}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${
+            className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap transition-all cursor-pointer ${
               activeTab === 'all'
                 ? 'bg-[#472393] text-white font-semibold shadow-xs dark:bg-foreground dark:text-background'
-                : 'text-foreground-muted hover:text-[#472393] hover:bg-[#F5F1FF] dark:hover:text-foreground dark:hover:bg-surface-highlight'
+                : 'text-foreground-secondary hover:text-[#472393] hover:bg-[#F5F1FF] dark:hover:text-foreground dark:hover:bg-surface-highlight'
             }`}
           >
             All 6 Pillars
@@ -251,10 +251,10 @@ export function MethodologyModal({ isOpen, onClose }: MethodologyModalProps) {
             <button
               key={sec.id}
               onClick={() => setActiveTab(sec.id as MethodologyPillarId)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${
+              className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap transition-all cursor-pointer ${
                 activeTab === sec.id
                   ? 'bg-[#472393] text-white font-semibold shadow-xs dark:bg-foreground dark:text-background'
-                  : 'text-foreground-muted hover:text-[#472393] hover:bg-[#F5F1FF] dark:hover:text-foreground dark:hover:bg-surface-highlight'
+                  : 'text-foreground-secondary hover:text-[#472393] hover:bg-[#F5F1FF] dark:hover:text-foreground dark:hover:bg-surface-highlight'
               }`}
             >
               {sec.number}. {sec.title.split(' ')[0]}
@@ -263,14 +263,14 @@ export function MethodologyModal({ isOpen, onClose }: MethodologyModalProps) {
         </div>
 
         {/* Scrollable Content Body */}
-        <div className="p-5 sm:p-6 overflow-y-auto space-y-6 text-xs divide-y divide-border">
+        <div className="p-5 sm:p-6 overflow-y-auto space-y-6 text-xs sm:text-sm divide-y divide-border">
           {displayedSections.map((sec) => {
             const Icon = sec.icon;
             return (
               <div key={sec.id} className="pt-6 first:pt-0 space-y-3.5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-2.5">
-                    <span className="font-mono font-semibold text-foreground-muted text-sm">
+                    <span className="font-mono font-semibold text-foreground-secondary text-sm">
                       {sec.number}
                     </span>
                     <Icon className="size-4 text-foreground-secondary" />
@@ -278,12 +278,12 @@ export function MethodologyModal({ isOpen, onClose }: MethodologyModalProps) {
                       {sec.title}
                     </h3>
                   </div>
-                  <Badge variant="outline" className="text-[10px] font-mono">
+                  <Badge variant="outline" className="text-xs font-mono">
                     {sec.badge}
                   </Badge>
                 </div>
 
-                <p className="text-foreground-secondary text-xs leading-relaxed max-w-3xl">
+                <p className="text-foreground-secondary text-xs sm:text-sm leading-relaxed max-w-3xl">
                   {sec.summary}
                 </p>
 
@@ -293,11 +293,11 @@ export function MethodologyModal({ isOpen, onClose }: MethodologyModalProps) {
                       key={pt.label}
                       className="p-3 rounded-xl bg-surface-highlight/40 border border-border space-y-1"
                     >
-                      <span className="font-semibold text-foreground flex items-center gap-1.5 text-xs">
+                      <span className="font-semibold text-foreground flex items-center gap-1.5 text-xs sm:text-sm">
                         <CheckCircle2 className="size-3 text-foreground-secondary shrink-0" />
                         {pt.label}
                       </span>
-                      <p className="text-[11px] text-foreground-muted leading-relaxed pl-4.5">
+                      <p className="text-xs text-foreground-secondary leading-relaxed pl-4.5">
                         {pt.desc}
                       </p>
                     </div>
@@ -309,7 +309,7 @@ export function MethodologyModal({ isOpen, onClose }: MethodologyModalProps) {
         </div>
 
         {/* Footer */}
-        <div className="p-4 sm:p-5 border-t border-border bg-surface flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-foreground-muted">
+        <div className="p-4 sm:p-5 border-t border-border bg-surface flex flex-col sm:flex-row items-center justify-between gap-3 text-xs sm:text-sm text-foreground-secondary">
           <div className="flex items-center gap-2">
             <Info className="size-3.5 text-foreground-secondary shrink-0" />
             <span>

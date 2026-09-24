@@ -1,0 +1,263 @@
+{
+  "catalog_purpose": "Standardized borrower-facing translations converting technical model telemetry into respectful explanations while preserving statistical uncertainty.",
+  "disclaimer": "IMPORTANT REGULATORY & FAIRNESS NOTICE: The evaluation dataset is entirely synthetic and does not contain real-world legally protected demographic attributes (e.g., race, gender, religion, national origin, age). Subgroup divisions represent synthetic behavioral cohorts and simulated platform metadata. Observed disparities reflect intentionally designed synthetic population profiles and do not demonstrate real-world demographic fairness or compliance with statutory lending fairness standards (e.g., ECOA, FHA). Rigorous empirical fair-lending testing requires representative population data with audited demographic attributes.",
+  "feature_count": 42,
+  "catalog": {
+    "feat_inc_median_90d": {
+      "title": "Baseline 90-day median earnings",
+      "unit": "\u20b9 / week",
+      "protective": "Consistent baseline earnings level provides stable debt-servicing capacity.",
+      "risk": "Lower periodic baseline earnings leave tighter margins for recurring debt service."
+    },
+    "feat_inc_mean_90d": {
+      "title": "Average 90-day gross earnings",
+      "unit": "\u20b9 / week",
+      "protective": "Healthy cumulative earning volume supports overall financial resilience.",
+      "risk": "Modest average earnings restrict buffer accumulation against unexpected disruptions."
+    },
+    "feat_inc_p25_90d": {
+      "title": "Floor earnings during lean weeks",
+      "unit": "\u20b9 / week",
+      "protective": "Reliable minimum earnings floor ensures debt service is protected even in slow weeks.",
+      "risk": "Severe drops in lean weeks elevate cashflow strain during off-peak cycles."
+    },
+    "feat_inc_cv_90d": {
+      "title": "Earnings dispersion (relative volatility)",
+      "unit": "ratio",
+      "protective": "Predictable week-to-week payouts facilitate planned debt settlement.",
+      "risk": "Unconditioned payout fluctuations introduce uncertainty in periodic cashflow availability."
+    },
+    "feat_inc_downside_var": {
+      "title": "Downside earnings shortfall exposure",
+      "unit": "variance",
+      "protective": "Minimal frequency and depth of below-median earnings shortfalls.",
+      "risk": "Concentration of adverse payout dips increases vulnerability during demand contractions."
+    },
+    "feat_inc_iqr_ratio": {
+      "title": "Interquartile earnings stability",
+      "unit": "ratio",
+      "protective": "Narrow interquartile spread confirms steady baseline earning habits.",
+      "risk": "Wide middle-range earning spreads indicate inconsistent weekly demand."
+    },
+    "feat_liq_net_margin": {
+      "title": "Net cash retained after operating expenses",
+      "unit": "\u20b9 / week",
+      "protective": "Strong retained net margins demonstrate genuine disposable cashflow for repayment.",
+      "risk": "Compressed operating margins leave limited discretionary income for loan repayment."
+    },
+    "feat_liq_burn_months": {
+      "title": "Living expense reserve runway",
+      "unit": "months",
+      "protective": "Substantial living cost reserves provide ample time to absorb temporary work gaps.",
+      "risk": "Depleted emergency reserves leave zero runway to cover living costs if income drops."
+    },
+    "feat_liq_buffer_to_loan": {
+      "title": "Available liquid buffer relative to loan",
+      "unit": "ratio",
+      "protective": "Liquid reserves comfortably cover substantial portion of requested loan facility.",
+      "risk": "Low immediate liquidity relative to loan principal creates reliance on uninterrupted payouts."
+    },
+    "feat_bur_total_dti": {
+      "title": "Total debt obligations relative to income",
+      "unit": "ratio",
+      "protective": "Modest aggregate debt burden leaves comfortable cashflow cushion for new credit.",
+      "risk": "Heavy aggregate debt servicing commitments consume substantial share of weekly income."
+    },
+    "feat_bur_installment_dti": {
+      "title": "Fixed loan installment commitments ratio",
+      "unit": "ratio",
+      "protective": "Low existing fixed monthly installment liabilities ensure repayment feasibility.",
+      "risk": "High recurring installment deductions create fixed obligations regardless of gig earnings."
+    },
+    "feat_bur_dti_ratio": {
+      "title": "Periodic debt service ratio",
+      "unit": "ratio",
+      "protective": "Comfortable headroom between total debt service obligations and weekly inflows.",
+      "risk": "Elevated debt service ratio signals potential cashflow insolvency if payouts dip."
+    },
+    "feat_bur_loan_to_income": {
+      "title": "Total loan balance relative to monthly income",
+      "unit": "ratio",
+      "protective": "Borrowing exposure is well-proportioned to verified monthly earning capacity.",
+      "risk": "High borrowing leverage relative to monthly earnings elevates default sensitivity."
+    },
+    "feat_act_active_days_ratio": {
+      "title": "Active working days engagement ratio",
+      "unit": "ratio",
+      "protective": "Consistent daily engagement across the 90-day window indicates dependable work habit.",
+      "risk": "Sporadic platform activity reduces aggregate earning opportunities."
+    },
+    "feat_act_zero_earn_weeks": {
+      "title": "Zero-earning weeks in observation period",
+      "unit": "weeks",
+      "protective": "Unbroken streak of earning weeks verifies steady platform demand and availability.",
+      "risk": "Multiple zero-earning weeks reflect work interruptions or platform disengagement."
+    },
+    "feat_act_max_idle_streak": {
+      "title": "Longest consecutive inactive days",
+      "unit": "days",
+      "protective": "Brief idle gaps suggest reliable, uninterrupted gig work participation.",
+      "risk": "Extended periods of inactivity create cumulative income shortfalls."
+    },
+    "feat_act_weekend_intensity": {
+      "title": "Weekend earning concentration",
+      "unit": "ratio",
+      "protective": "Balanced earning distribution across weekdays and weekends.",
+      "risk": "Over-dependence on weekend surge earnings increases vulnerability to localized shifts."
+    },
+    "average_working_days": {
+      "title": "Average monthly active working days",
+      "unit": "days",
+      "protective": "Regular platform presence correlates with established, sustainable earning patterns.",
+      "risk": "Infrequent active days restrict aggregate monthly cashflow generation."
+    },
+    "feat_ten_years_working": {
+      "title": "Verified gig platform tenure",
+      "unit": "years",
+      "protective": "Long-standing platform history demonstrates durable earning viability.",
+      "risk": "Recent entry into gig work provides shorter track record of earning stability."
+    },
+    "feat_ten_platform_rating": {
+      "title": "Customer and platform service rating",
+      "unit": "stars (1-5)",
+      "protective": "Consistently high customer ratings support prioritized task allocation on platforms.",
+      "risk": "Sub-optimal platform rating may reduce order dispatch prioritization."
+    },
+    "feat_ten_trips_completed": {
+      "title": "Total lifetime completed deliveries or trips",
+      "unit": "count",
+      "protective": "Substantial completed task volume proves experienced platform navigation.",
+      "risk": "Limited task volume indicates early-stage platform familiarity."
+    },
+    "feat_trend_slope_90d": {
+      "title": "90-day linear earnings trajectory",
+      "unit": "\u20b9 / week change",
+      "protective": "Expanding or stationary income trajectory confirms business health.",
+      "risk": "Negative income trend signals contracting demand or declining work hours."
+    },
+    "feat_trend_momentum_30_90": {
+      "title": "Recent 30-day vs 90-day momentum",
+      "unit": "ratio",
+      "protective": "Recent earning momentum matches or exceeds historical baseline.",
+      "risk": "Decelerating recent earnings relative to 90-day average indicates near-term slowdown."
+    },
+    "feat_rec_bounceback_ratio": {
+      "title": "Post-shock earnings rebound elasticity",
+      "unit": "ratio",
+      "protective": "Rapid and complete earnings recovery following periodic dips verifies resilience.",
+      "risk": "Incomplete recovery after income troughs signals persistent financial drag."
+    },
+    "feat_rec_days_to_recover": {
+      "title": "Days required to recover from income dip",
+      "unit": "days",
+      "protective": "Prompt return to normal earning baseline within days of a disruption.",
+      "risk": "Protracted recovery timelines prolong debt service stress."
+    },
+    "feat_pay_utility_on_time": {
+      "title": "On-time utility and bill settlement rate",
+      "unit": "ratio",
+      "protective": "Consistent on-time utility settlements reflect disciplined financial management.",
+      "risk": "Irregular bill settlements indicate cashflow strain or administrative disorganization."
+    },
+    "feat_pay_repay_reliability": {
+      "title": "Alternative credit repayment track record",
+      "unit": "ratio",
+      "protective": "Impeccable historical loan and credit repayment reliability.",
+      "risk": "Prior delayed settlements suggest recurring cashflow mismatch."
+    },
+    "requested_loan_amount": {
+      "title": "Requested loan principal",
+      "unit": "\u20b9",
+      "protective": "Modest loan request is easily amortized within baseline income capacity.",
+      "risk": "Large borrowing facility requires higher weekly debt servicing commitment."
+    },
+    "loan_tenure_months": {
+      "title": "Requested loan repayment tenure",
+      "unit": "months",
+      "protective": "Appropriate amortization period keeps weekly installments manageable.",
+      "risk": "Compressed tenure elevates weekly installment amounts."
+    },
+    "feat_eng_vol_to_baseline": {
+      "title": "Scale-normalized volatility index",
+      "unit": "ratio",
+      "protective": "High absolute income baseline safely absorbs proportional earnings dispersion.",
+      "risk": "Volatility occurring at low absolute earnings levels threatens basic solvency."
+    },
+    "feat_eng_downside_to_median": {
+      "title": "Downside shortfall to median income ratio",
+      "unit": "ratio",
+      "protective": "Low downside exposure confirms volatility is driven primarily by upward spikes.",
+      "risk": "Significant downside shortfalls relative to median income threaten debt service."
+    },
+    "feat_eng_vol_x_trend": {
+      "title": "Directional volatility interaction",
+      "unit": "interaction index",
+      "protective": "Volatility is coupled with positive growth momentum, representing healthy business expansion.",
+      "risk": "Volatility is coupled with negative momentum, representing deteriorating business conditions."
+    },
+    "feat_eng_vol_to_bounceback": {
+      "title": "Unbuffered volatility ratio",
+      "unit": "ratio",
+      "protective": "High recovery elasticity safely insulates earnings variance from causing default.",
+      "risk": "High volatility unmitigated by post-dip recovery elasticity elevates credit risk."
+    },
+    "feat_eng_recovery_velocity": {
+      "title": "Earnings recovery velocity per week",
+      "unit": "velocity index",
+      "protective": "Vigorous earnings rebound per week elapsed from an earning trough.",
+      "risk": "Sluggish post-trough recovery leaves worker vulnerable to successive shocks."
+    },
+    "feat_eng_buffer_burn_coverage": {
+      "title": "Combined reserve runway and loan coverage",
+      "unit": "index",
+      "protective": "Multi-month living cost reserves paired with ample capital coverage.",
+      "risk": "Inadequate combined reserves provide limited insulation against repayment shocks."
+    },
+    "feat_eng_vol_cushion_ratio": {
+      "title": "Liquidity cushion per volatility unit",
+      "unit": "ratio",
+      "protective": "Generous capital reserves relative to the magnitude of weekly payout variance.",
+      "risk": "Thin liquidity buffer fails to insulate against historical earnings variance."
+    },
+    "feat_eng_dti_risk_multiplier": {
+      "title": "Compounding debt-to-income volatility stress",
+      "unit": "multiplier",
+      "protective": "Manageable debt obligations paired with predictable earning cycles.",
+      "risk": "High debt commitments amplified by erratic payout swings threaten insolvency."
+    },
+    "feat_eng_installment_floor_coverage": {
+      "title": "Installment coverage during 25th percentile lean weeks",
+      "unit": "coverage ratio",
+      "protective": "Leanest earning weeks still generate comfortable excess above monthly loan installments.",
+      "risk": "Lean-week earnings fall short of covering monthly loan installment obligations."
+    },
+    "feat_int_vol_x_recovery": {
+      "title": "Joint volatility and recovery interaction",
+      "unit": "index",
+      "protective": "Proven bounceback capability mitigates the risk of weekly income fluctuations.",
+      "risk": "High variance paired with weak bounceback elevates risk of protracted insolvency."
+    },
+    "feat_int_vol_x_buffer": {
+      "title": "Joint volatility and liquidity cushion interaction",
+      "unit": "index",
+      "protective": "Ample liquid reserves absorb temporary earning swings without default.",
+      "risk": "High variance without compensating liquid reserves elevates repayment risk."
+    },
+    "feat_int_trend_x_dti": {
+      "title": "Trend momentum and debt burden interaction",
+      "unit": "index",
+      "protective": "Expanding earning trajectory easily services committed debt.",
+      "risk": "Contracting earning momentum compounds the burden of existing debt obligations."
+    },
+    "feat_int_resilience_idx": {
+      "title": "Composite financial resilience index",
+      "unit": "score",
+      "protective": "High composite resilience across recovery speed, liquid reserves, and engagement.",
+      "risk": "Subdued resilience across emergency reserves and recovery indicators."
+    }
+  },
+  "insufficient_evidence_guidance": {
+    "title": "Insufficient Evidence Routing Notice",
+    "explanation": "When an applicant has fewer than 30 days of observed platform history or fewer than 4 verified payout cycles, the assessment refuse protocol is engaged. No default probability is generated, avoiding unjustified adverse inferences from missing data."
+  }
+}

@@ -33,7 +33,7 @@ export function LandingNavbar() {
             <span className="text-base sm:text-lg font-black tracking-tight text-[#101828] dark:text-foreground flex items-center gap-1">
               PARAKH
             </span>
-            <span className="text-[10px] text-[#667085] dark:text-foreground-muted -mt-1 font-medium tracking-wide">
+            <span className="text-xs text-[#334155] dark:text-foreground-secondary -mt-0.5 font-medium tracking-wide">
               Credit for the invisible.
             </span>
           </div>
@@ -53,7 +53,7 @@ export function LandingNavbar() {
                 onMouseEnter={() => setHoveredIdx(idx)}
                 onFocus={() => setHoveredIdx(idx)}
                 onBlur={() => setHoveredIdx(null)}
-                className={`relative px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#472393]/30 dark:focus-visible:ring-foreground/20 focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+                className={`relative px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#472393]/30 dark:focus-visible:ring-foreground/20 focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
                   link.active
                     ? 'text-[#472393] dark:text-foreground font-semibold'
                     : isHovered
@@ -109,7 +109,7 @@ export function LandingNavbar() {
             <Button
               variant="default"
               size="sm"
-              className="rounded-full text-xs font-semibold h-8 px-3.5 gap-1.5 bg-[#472393] text-white hover:bg-[#5630A3] active:bg-[#3B1D7A] border-transparent dark:bg-secondary dark:text-secondary-foreground dark:border-border dark:hover:bg-surface-elevated cursor-pointer"
+              className="rounded-full text-xs sm:text-sm font-semibold h-8.5 px-4 gap-1.5 bg-[#472393] text-white hover:bg-[#5630A3] active:bg-[#3B1D7A] border-transparent dark:bg-secondary dark:text-secondary-foreground dark:border-border dark:hover:bg-surface-elevated cursor-pointer"
             >
               <span>Applicant Portal</span>
               <ArrowRight className="size-3 text-white/90 dark:text-foreground-muted" />
@@ -121,7 +121,7 @@ export function LandingNavbar() {
             <Button
               variant="secondary"
               size="sm"
-              className="rounded-full text-xs font-bold h-8 px-4 shadow-xs bg-white text-[#472393] border border-[rgba(71,35,147,0.22)] hover:bg-[#F6F2FF] hover:border-[rgba(71,35,147,0.35)] dark:bg-primary dark:text-primary-foreground dark:border-transparent dark:hover:bg-primary/90 cursor-pointer"
+              className="rounded-full text-xs sm:text-sm font-bold h-8.5 px-4 shadow-xs bg-white text-[#472393] border border-[rgba(71,35,147,0.22)] hover:bg-[#F6F2FF] hover:border-[rgba(71,35,147,0.35)] dark:bg-primary dark:text-primary-foreground dark:border-transparent dark:hover:bg-primary/90 cursor-pointer"
             >
               <ShieldCheck className="size-3.5 mr-1 text-[#472393] dark:text-primary-foreground" />
               <span>Credit Reviewer</span>
@@ -134,7 +134,7 @@ export function LandingNavbar() {
           type="button"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           aria-label="Open mobile menu"
-          className="flex sm:hidden p-2 rounded-xl text-foreground-secondary hover:text-foreground hover:bg-surface-highlight"
+          className="flex sm:hidden p-2 rounded-xl text-foreground-secondary hover:text-foreground hover:bg-surface-highlight cursor-pointer"
         >
           {mobileMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
         </button>
@@ -144,11 +144,11 @@ export function LandingNavbar() {
       {mobileMenuOpen && (
         <div className="sm:hidden mt-2 p-4 rounded-2xl bg-surface/95 dark:bg-[#0D0E10]/95 backdrop-blur-xl border border-border shadow-2xl space-y-3 animate-in fade-in duration-200">
           <div className="flex items-center justify-between pb-2 border-b border-border">
-            <span className="text-xs font-bold text-foreground">Menu</span>
+            <span className="text-sm font-bold text-foreground">Menu</span>
             <button
               type="button"
               onClick={toggleTheme}
-              className="flex items-center gap-1.5 text-xs font-medium text-foreground-secondary px-2.5 py-1 rounded-full bg-surface-elevated border border-border"
+              className="flex items-center gap-1.5 text-xs sm:text-sm font-medium text-foreground-secondary px-2.5 py-1 rounded-full bg-surface-elevated border border-border cursor-pointer"
             >
               {isDark ? <Sun className="size-3" /> : <Moon className="size-3" />}
               <span>{isDark ? 'Light Mode' : 'Dark Mode'}</span>
@@ -177,7 +177,7 @@ export function LandingNavbar() {
               <Button
                 variant="default"
                 size="sm"
-                className="w-full justify-center rounded-xl text-xs gap-1.5 h-9 bg-[#472393] text-white hover:bg-[#5630A3] active:bg-[#3B1D7A] border-transparent dark:bg-secondary dark:text-secondary-foreground dark:border-border dark:hover:bg-surface-elevated"
+                className="w-full justify-center rounded-xl text-sm gap-1.5 h-10 bg-[#472393] text-white hover:bg-[#5630A3] active:bg-[#3B1D7A] border-transparent dark:bg-secondary dark:text-secondary-foreground dark:border-border dark:hover:bg-surface-elevated"
               >
                 <span>Applicant Portal</span>
                 <ArrowRight className="size-3 text-white/90 dark:text-foreground-muted" />
@@ -188,7 +188,7 @@ export function LandingNavbar() {
               <Button
                 variant="secondary"
                 size="sm"
-                className="w-full justify-center rounded-xl text-xs font-bold h-9 bg-white text-[#472393] border border-[rgba(71,35,147,0.22)] hover:bg-[#F6F2FF] hover:border-[rgba(71,35,147,0.35)] dark:bg-primary dark:text-primary-foreground dark:border-transparent dark:hover:bg-primary/90"
+                className="w-full justify-center rounded-xl text-sm font-bold h-10 bg-white text-[#472393] border border-[rgba(71,35,147,0.22)] hover:bg-[#F6F2FF] hover:border-[rgba(71,35,147,0.35)] dark:bg-primary dark:text-primary-foreground dark:border-transparent dark:hover:bg-primary/90"
               >
                 <ShieldCheck className="size-3.5 mr-1 text-[#472393] dark:text-primary-foreground" />
                 <span>Credit Reviewer</span>

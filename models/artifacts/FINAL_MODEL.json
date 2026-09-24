@@ -1,0 +1,112 @@
+{
+  "selected_model_name": "volatility-aware-risk-model",
+  "model_class": "src.ml.models.volatility_aware.VolatilityAwareRiskModel",
+  "artifact_path": "models/artifacts/volatility_aware_risk_model.joblib",
+  "model_version": "1.0.0",
+  "feature_variant": "VOLATILITY_AWARE",
+  "feature_count": 64,
+  "training_commit": "2d47a35",
+  "selection_phase": "Phase 8 \u2014 Final Model Validation & Selection",
+  "selection_timestamp": "2026-09-23T18:34:19.741367+00:00",
+  "required_preprocessing": {
+    "preprocessor_class": "src.ml.data.preprocessing.CreditRiskPreprocessor",
+    "scaler_type": "robust",
+    "imputer_strategy": "median",
+    "apply_log_transform": true,
+    "clip_leverage_ratios": true,
+    "add_missing_indicators": true,
+    "include_raw_loan_features": true,
+    "categorical_columns": [
+      "gig_work_type",
+      "loan_purpose"
+    ]
+  },
+  "required_feature_engineering": {
+    "engineer_class": "src.ml.features.feature_engineering.FeatureEngineer",
+    "include_engineered_interactions": true,
+    "engineered_features_count": 9,
+    "engineered_feature_names": [
+      "feat_eng_vol_to_baseline",
+      "feat_eng_downside_to_median",
+      "feat_eng_vol_x_trend",
+      "feat_eng_vol_to_bounceback",
+      "feat_eng_recovery_velocity",
+      "feat_eng_buffer_burn_coverage",
+      "feat_eng_vol_cushion_ratio",
+      "feat_eng_dti_risk_multiplier",
+      "feat_eng_installment_floor_coverage"
+    ]
+  },
+  "expected_input_schema": {
+    "raw_application_inputs": [
+      "requested_loan_amount",
+      "loan_tenure_months",
+      "years_working",
+      "average_working_days",
+      "gig_work_type",
+      "loan_purpose"
+    ],
+    "telemetry_summary_inputs": [
+      "feat_inc_median_90d",
+      "feat_inc_p25_90d",
+      "feat_inc_cv_90d",
+      "feat_inc_downside_var",
+      "feat_trend_slope_90d",
+      "feat_trend_momentum_30_90",
+      "feat_act_active_days_ratio",
+      "feat_act_zero_earn_weeks",
+      "feat_rec_bounceback_ratio",
+      "feat_rec_days_to_recover",
+      "feat_liq_buffer_to_loan",
+      "feat_liq_burn_months",
+      "feat_bur_dti_ratio",
+      "feat_bur_installment_dti",
+      "feat_bur_total_dti",
+      "feat_suf_observed_days",
+      "feat_suf_payout_count",
+      "feat_suf_group_count",
+      "feat_suf_missing_ratio",
+      "feat_inc_mean_90d",
+      "feat_inc_trimmed_mean",
+      "feat_inc_iqr_ratio",
+      "feat_inc_min_max_ratio",
+      "feat_trend_consec_drops",
+      "feat_act_max_idle_streak",
+      "feat_act_weekend_intensity",
+      "feat_rec_max_drawdown",
+      "feat_ten_years_working",
+      "feat_ten_platform_rating",
+      "feat_ten_trips_completed",
+      "feat_ten_cancellation_rate",
+      "feat_liq_net_margin",
+      "feat_pay_utility_on_time",
+      "feat_pay_max_bill_delay",
+      "feat_pay_repay_reliability",
+      "feat_bur_loan_to_income",
+      "feat_int_vol_x_recovery",
+      "feat_int_vol_x_buffer",
+      "feat_int_trend_x_dti",
+      "feat_int_resilience_idx"
+    ],
+    "total_pre_encoded_inputs": 46
+  },
+  "expected_output_schema": {
+    "application_id": "str (UUID)",
+    "risk_probability": "float in [0.0, 1.0]",
+    "score": "int in [300, 850]",
+    "risk_level": "str ('LOWER' | 'MODERATE' | 'HIGHER' | 'INSUFFICIENT')",
+    "is_insufficient_evidence": "bool",
+    "confidence": "float in [0.0, 1.0]",
+    "key_factors": "list of str",
+    "explanation": "dict containing local feature contributions",
+    "assessed_at": "str (ISO8601 UTC)"
+  },
+  "diagnostic_threshold": 0.5,
+  "production_threshold_status": "Provisional / Non-Production. Operational lending thresholds require formal credit policy approval.",
+  "limitations": [
+    "Trained and evaluated on synthetic gig worker profiles; requires validation on empirical aggregator data prior to commercial deployment.",
+    "Feature attributions (TreeSHAP) describe mathematical associations within the trained ensemble and do not assert physical causality.",
+    "Applications flagged by Phase 1 Refusal Routing (insufficient observation window or excessive missing telemetry) must be routed to human review or secondary verification rather than being scored.",
+    "Diagnostic threshold 0.50 is an experimental reference; production risk cutoffs must be established based on risk appetite, loss tolerances, and capital requirements."
+  ]
+}

@@ -73,7 +73,7 @@ function LoginFormContent() {
   useEffect(() => {
     if (isAuthenticated) {
       const roleUpper = userRole?.toUpperCase();
-      if (roleUpper === 'REVIEWER') {
+      if (roleUpper === 'REVIEWER' || roleUpper === 'ADMIN') {
         router.push(redirectUrl || '/admin/dashboard');
       } else if (roleUpper === 'APPLICANT') {
         router.push(redirectUrl || '/user/dashboard');
@@ -91,15 +91,30 @@ function LoginFormContent() {
     }
   }, [searchParams]);
 
-  // Reset error state when typing (ensures no shake or error border while typing)
+  // Reset error state when typing and auto-detect role for seamless demo experience
   const handleInputChange = (setter: (val: string) => void) => (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
-    setter(e.target.value);
+    const val = e.target.value;
+    setter(val);
     if (authStatus === 'error') {
       setAuthStatus('idle');
       setError(null);
     }
+    const clean = val.trim().toLowerCase();
+    if (clean === DEMO_PRESETS.reviewer.email.toLowerCase() || clean.endsWith('.internal')) {
+      setActiveRole('reviewer');
+    } else if (clean === DEMO_PRESETS.applicant.email.toLowerCase()) {
+      setActiveRole('applicant');
+    }
+  };
+
+  const getDestinationUrl = (role?: string) => {
+    const roleUpper = role?.toUpperCase();
+    if (roleUpper === 'REVIEWER' || roleUpper === 'ADMIN') {
+      return redirectUrl && redirectUrl.startsWith('/admin') ? redirectUrl : '/admin/dashboard';
+    }
+    return redirectUrl && redirectUrl.startsWith('/user') ? redirectUrl : '/user/dashboard';
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -129,10 +144,16 @@ function LoginFormContent() {
     setIsSubmitting(true);
 
     try {
+      const cleanEmail = email.trim().toLowerCase();
+      const targetRole =
+        cleanEmail === DEMO_PRESETS.reviewer.email.toLowerCase() || cleanEmail.endsWith('.internal')
+          ? 'reviewer'
+          : activeRole;
+
       const authUser = await login({
         email,
         password,
-        portalRole: activeRole,
+        portalRole: targetRole,
       });
 
       // Verification passed!
@@ -141,12 +162,7 @@ function LoginFormContent() {
 
       // Brief confirmation window to showcase verification
       setTimeout(() => {
-        const roleUpper = authUser.role?.toUpperCase();
-        if (roleUpper === 'REVIEWER') {
-          router.push(redirectUrl || '/admin/dashboard');
-        } else {
-          router.push(redirectUrl || '/user/dashboard');
-        }
+        router.push(getDestinationUrl(authUser.role));
       }, 400);
     } catch (err: unknown) {
       const msg =
@@ -192,12 +208,7 @@ function LoginFormContent() {
       setError(null);
 
       setTimeout(() => {
-        const roleUpper = authUser.role?.toUpperCase();
-        if (roleUpper === 'REVIEWER') {
-          router.push(redirectUrl || '/admin/dashboard');
-        } else {
-          router.push(redirectUrl || '/user/dashboard');
-        }
+        router.push(getDestinationUrl(authUser.role));
       }, 400);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Demo authentication failed.';
@@ -232,9 +243,9 @@ function LoginFormContent() {
               <Sparkles className="size-4" />
             </div>
             <div className="flex flex-col">
-              <span className="text-base font-black tracking-tight text-foreground flex items-center gap-1.5">
+              <span className="text-base sm:text-lg font-black tracking-tight text-foreground flex items-center gap-1.5">
                 PARAKH
-                <span className="text-[10px] font-mono uppercase tracking-wider text-foreground-muted px-1.5 py-0.2 rounded-full bg-surface-elevated border border-border">
+                <span className="text-xs font-mono uppercase tracking-wider text-foreground-secondary px-1.5 py-0.5 rounded-full bg-surface-elevated border border-border">
                   Access Control
                 </span>
               </span>
@@ -251,7 +262,7 @@ function LoginFormContent() {
               {isDark ? <Sun className="size-3.5" /> : <Moon className="size-3.5" />}
             </button>
             <Link href="/">
-              <Button variant="ghost" size="sm" className="text-xs text-foreground-secondary hover:text-foreground">
+              <Button variant="ghost" size="sm" className="text-xs sm:text-sm text-foreground-secondary hover:text-foreground">
                 Back to Home
               </Button>
             </Link>
@@ -270,13 +281,13 @@ function LoginFormContent() {
                 setActiveRole('applicant');
                 setError(null);
               }}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
                 activeRole === 'applicant'
                   ? 'bg-[#472393] text-white shadow-xs dark:bg-surface dark:text-foreground dark:border dark:border-border'
                   : 'text-foreground-secondary hover:text-[#472393] hover:bg-[#F5F1FF] dark:hover:text-foreground dark:hover:bg-transparent'
               }`}
             >
-              <User className="size-3.5" />
+              <User className="size-4" />
               <span>Applicant Portal</span>
             </button>
             <button
@@ -285,13 +296,13 @@ function LoginFormContent() {
                 setActiveRole('reviewer');
                 setError(null);
               }}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
                 activeRole === 'reviewer'
                   ? 'bg-[#472393] text-white shadow-xs dark:bg-surface dark:text-foreground dark:border dark:border-border'
                   : 'text-foreground-secondary hover:text-[#472393] hover:bg-[#F5F1FF] dark:hover:text-foreground dark:hover:bg-transparent'
               }`}
             >
-              <ShieldCheck className="size-3.5" />
+              <ShieldCheck className="size-4" />
               <span>Credit Reviewer</span>
             </button>
           </div>
@@ -301,14 +312,14 @@ function LoginFormContent() {
             {/* Header copy */}
             <div className="space-y-1 mb-6">
               <div className="flex items-center justify-between">
-                <h1 className="text-xl font-bold tracking-tight text-foreground">
+                <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
                   {activeRole === 'applicant' ? 'Applicant Sign In' : 'Credit Reviewer Authentication'}
                 </h1>
-                <Badge variant={activeRole === 'applicant' ? 'secondary' : 'default'} className="text-[10px]">
+                <Badge variant={activeRole === 'applicant' ? 'secondary' : 'default'} className="text-xs">
                   {activeRole === 'applicant' ? 'Public Access' : 'Institutional'}
                 </Badge>
               </div>
-              <p className="text-xs text-foreground-secondary leading-relaxed">
+              <p className="text-xs sm:text-sm text-foreground-secondary leading-relaxed">
                 {activeRole === 'applicant'
                   ? 'Access your alternative credit assessments, verification status, and profile.'
                   : 'Certified fiduciary workstation. Session actions are logged and cryptographically audited.'}
@@ -325,11 +336,11 @@ function LoginFormContent() {
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-foreground-secondary">
+                <label className="text-xs sm:text-sm font-medium text-foreground-secondary">
                   {activeRole === 'applicant' ? 'Mobile Number or Email' : 'Enterprise Work Email'}
                 </label>
                 <div className="relative">
-                  <Mail className="size-4 text-foreground-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <Mail className="size-4 text-foreground-secondary absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <Input
                     type="text"
                     placeholder={
@@ -338,7 +349,7 @@ function LoginFormContent() {
                     value={email}
                     onChange={handleInputChange(setEmail)}
                     className={cn(
-                      'pl-9 text-xs h-10 bg-background text-foreground placeholder:text-foreground-muted',
+                      'pl-9 text-sm h-10 bg-background text-foreground placeholder:text-foreground-muted',
                       getAuthInputClassName(authStatus)
                     )}
                   />
@@ -347,24 +358,24 @@ function LoginFormContent() {
 
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-medium text-foreground-secondary">Password</label>
+                  <label className="text-xs sm:text-sm font-medium text-foreground-secondary">Password</label>
                   <button
                     type="button"
                     onClick={() => setError('Password reset instructions will be sent to verified contact.')}
-                    className="text-[11px] text-foreground-muted hover:text-foreground transition-colors cursor-pointer"
+                    className="text-xs sm:text-sm text-foreground-secondary hover:text-foreground transition-colors cursor-pointer"
                   >
                     Forgot password?
                   </button>
                 </div>
                 <div className="relative">
-                  <Lock className="size-4 text-foreground-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <Lock className="size-4 text-foreground-secondary absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <Input
                     type="password"
                     placeholder="••••••••••••"
                     value={password}
                     onChange={handleInputChange(setPassword)}
                     className={cn(
-                      'pl-9 text-xs h-10 bg-background text-foreground placeholder:text-foreground-muted',
+                      'pl-9 text-sm h-10 bg-background text-foreground placeholder:text-foreground-muted',
                       getAuthInputClassName(authStatus)
                     )}
                   />
@@ -375,10 +386,10 @@ function LoginFormContent() {
               {activeRole === 'reviewer' && (
                 <div className="space-y-1.5 pt-1">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-medium text-foreground-secondary flex items-center gap-1">
-                      <KeyRound className="size-3 text-foreground-muted" /> Security Token / MFA Code
+                    <label className="text-xs sm:text-sm font-medium text-foreground-secondary flex items-center gap-1">
+                      <KeyRound className="size-3.5 text-foreground-secondary" /> Security Token / MFA Code
                     </label>
-                    <span className="text-[10px] text-foreground-muted">Station 04 Required</span>
+                    <span className="text-xs text-foreground-secondary">Station 04 Required</span>
                   </div>
                   <Input
                     type="text"
@@ -387,7 +398,7 @@ function LoginFormContent() {
                     onChange={handleInputChange(setMfaCode)}
                     maxLength={6}
                     className={cn(
-                      'text-xs h-10 font-mono tracking-widest bg-background text-foreground placeholder:text-foreground-muted',
+                      'text-sm h-10 font-mono tracking-widest bg-background text-foreground placeholder:text-foreground-muted',
                       getAuthInputClassName(authStatus)
                     )}
                   />
@@ -401,9 +412,9 @@ function LoginFormContent() {
                     type="checkbox"
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
-                    className="rounded border-border text-primary focus:ring-primary size-3.5 accent-primary"
+                    className="rounded border-border text-primary focus:ring-primary size-4 accent-primary"
                   />
-                  <span className="text-xs text-foreground-secondary">Remember session</span>
+                  <span className="text-xs sm:text-sm text-foreground-secondary">Remember session</span>
                 </label>
               </div>
 
@@ -428,7 +439,7 @@ function LoginFormContent() {
             {/* Bottom Links */}
             <div className="mt-6 pt-4 border-t border-border text-center">
               {activeRole === 'applicant' ? (
-                <p className="text-xs text-foreground-secondary">
+                <p className="text-xs sm:text-sm text-foreground-secondary">
                   Don&apos;t have an Applicant account?{' '}
                   <Link
                     href="/signup?role=applicant"
@@ -438,7 +449,7 @@ function LoginFormContent() {
                   </Link>
                 </p>
               ) : (
-                <p className="text-[11px] text-foreground-muted leading-relaxed">
+                <p className="text-xs sm:text-sm text-foreground-secondary leading-relaxed">
                   Notice: Credit Reviewer credentials are strictly issued and managed by enterprise risk administration.
                   Public registration is disabled by policy.
                 </p>
@@ -452,50 +463,50 @@ function LoginFormContent() {
           <div className="rounded-2xl border border-border bg-surface-elevated p-4 sm:p-5 shadow-xs space-y-3 transition-colors duration-200">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="flex h-5 w-5 items-center justify-center rounded-md bg-[#472393] text-white dark:bg-foreground dark:text-background text-[10px] font-black">
+                <div className="flex h-5 w-5 items-center justify-center rounded-md bg-[#472393] text-white dark:bg-foreground dark:text-background text-xs font-black">
                   ⚡
                 </div>
-                <h2 className="text-xs font-bold uppercase tracking-wider text-foreground">
+                <h2 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-foreground">
                   Demo Mode • Pre-provisioned Credentials
                 </h2>
               </div>
-              <Badge variant="outline" className="text-[9px] font-mono">
+              <Badge variant="outline" className="text-xs font-mono">
                 Validated Auth
               </Badge>
             </div>
-            <p className="text-[11px] text-foreground-secondary leading-relaxed">
+            <p className="text-xs sm:text-sm text-foreground-secondary leading-relaxed">
               For evaluation convenience, you can test authentication using the prototype&apos;s registered demo credentials.
               All actions pass through strict credential and role verification.
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
               {/* Applicant Demo Card */}
-              <div className="flex flex-col justify-between p-3 rounded-xl border border-border bg-surface text-left space-y-2">
+              <div className="flex flex-col justify-between p-3.5 rounded-xl border border-border bg-surface text-left space-y-2">
                 <div>
                   <div className="flex items-center justify-between w-full">
-                    <span className="text-xs font-bold text-foreground">
+                    <span className="text-xs sm:text-sm font-bold text-foreground">
                       Applicant Demo
                     </span>
-                    <Badge variant="outline" className="text-[9px] py-0 px-1.5">
+                    <Badge variant="outline" className="text-xs py-0 px-2">
                       User
                     </Badge>
                   </div>
-                  <p className="text-[11px] text-foreground-secondary mt-1 font-medium">
+                  <p className="text-xs sm:text-sm text-foreground-secondary mt-1 font-semibold">
                     {DEMO_PRESETS.applicant.name}
                   </p>
-                  <div className="text-[10px] font-mono text-foreground-muted space-y-0.5 mt-1 bg-surface-highlight/50 p-1.5 rounded-md border border-border">
-                    <div><span className="text-foreground-secondary">Email:</span> {DEMO_PRESETS.applicant.email}</div>
-                    <div><span className="text-foreground-secondary">Pass:</span> {DEMO_PRESETS.applicant.password}</div>
+                  <div className="text-xs font-mono text-foreground-secondary space-y-1 mt-1.5 bg-surface-highlight/50 p-2 rounded-md border border-border">
+                    <div><span className="font-semibold text-foreground">Email:</span> {DEMO_PRESETS.applicant.email}</div>
+                    <div><span className="font-semibold text-foreground">Pass:</span> {DEMO_PRESETS.applicant.password}</div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1.5 pt-1">
+                <div className="flex items-center gap-2 pt-1.5">
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
                     onClick={() => handleFillDemo('applicant')}
-                    className="flex-1 text-[10px] h-7 px-2"
+                    className="flex-1 text-xs h-8 px-2.5 font-medium"
                   >
                     Fill Form
                   </Button>
@@ -504,7 +515,7 @@ function LoginFormContent() {
                     size="sm"
                     onClick={() => handleDemoLogin('applicant')}
                     disabled={isSubmitting}
-                    className="flex-1 text-[10px] h-7 px-2 font-semibold"
+                    className="flex-1 text-xs h-8 px-2.5 font-semibold"
                   >
                     Sign In
                   </Button>
@@ -512,33 +523,32 @@ function LoginFormContent() {
               </div>
 
               {/* Reviewer Demo Card */}
-              <div className="flex flex-col justify-between p-3 rounded-xl border border-border bg-surface text-left space-y-2">
+              <div className="flex flex-col justify-between p-3.5 rounded-xl border border-border bg-surface text-left space-y-2">
                 <div>
                   <div className="flex items-center justify-between w-full">
-                    <span className="text-xs font-bold text-foreground">
+                    <span className="text-xs sm:text-sm font-bold text-foreground">
                       Credit Reviewer Demo
                     </span>
-                    <Badge variant="outline" className="text-[9px] py-0 px-1.5">
+                    <Badge variant="outline" className="text-xs py-0 px-2">
                       Reviewer
                     </Badge>
                   </div>
-                  <p className="text-[11px] text-foreground-secondary mt-1 font-medium">
+                  <p className="text-xs sm:text-sm text-foreground-secondary mt-1 font-semibold">
                     {DEMO_PRESETS.reviewer.name}
                   </p>
-                  <div className="text-[10px] font-mono text-foreground-muted space-y-0.5 mt-1 bg-surface-highlight/50 p-1.5 rounded-md border border-border">
-                    <div><span className="text-foreground-secondary">Email:</span> {DEMO_PRESETS.reviewer.email}</div>
-                    <div><span className="text-foreground-secondary">Pass:</span> {DEMO_PRESETS.reviewer.password}</div>
+                  <div className="text-xs font-mono text-foreground-secondary space-y-1 mt-1.5 bg-surface-highlight/50 p-2 rounded-md border border-border">
+                    <div><span className="font-semibold text-foreground">Email:</span> {DEMO_PRESETS.reviewer.email}</div>
+                    <div><span className="font-semibold text-foreground">Pass:</span> {DEMO_PRESETS.reviewer.password}</div>
                   </div>
                 </div>
 
-
-                <div className="flex items-center gap-1.5 pt-1">
+                <div className="flex items-center gap-2 pt-1.5">
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
                     onClick={() => handleFillDemo('reviewer')}
-                    className="flex-1 text-[10px] h-7 px-2"
+                    className="flex-1 text-xs h-8 px-2.5 font-medium"
                   >
                     Fill Form
                   </Button>
@@ -547,7 +557,7 @@ function LoginFormContent() {
                     size="sm"
                     onClick={() => handleDemoLogin('reviewer')}
                     disabled={isSubmitting}
-                    className="flex-1 text-[10px] h-7 px-2 font-semibold"
+                    className="flex-1 text-xs h-8 px-2.5 font-semibold"
                   >
                     Authenticate
                   </Button>
@@ -560,7 +570,7 @@ function LoginFormContent() {
 
       {/* Institutional Footer */}
       <footer className="relative z-10 w-full border-t border-border py-4 text-center">
-        <p className="text-[11px] text-foreground-muted">
+        <p className="text-xs sm:text-sm text-foreground-secondary">
           © 2026 PARAKH Protocol • Volatility-Aware Credit Intelligence • Human Fiduciary Governance
         </p>
       </footer>

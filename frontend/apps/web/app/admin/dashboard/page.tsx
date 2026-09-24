@@ -205,14 +205,14 @@ export default function AdminDashboardPage() {
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
               Credit Review Dashboard
             </h1>
-            <Badge variant="secondary" className="text-[10px] py-0.5 px-2">
+            <Badge variant="secondary" className="text-xs py-0.5 px-2.5">
               Portfolio Resilient
             </Badge>
-            <Badge variant="outline" className="text-[10px] font-mono text-foreground-muted">
+            <Badge variant="outline" className="text-xs font-mono text-foreground-secondary border-border">
               PostgreSQL Live
             </Badge>
           </div>
-          <p className="text-xs sm:text-sm text-foreground-muted">
+          <p className="text-sm sm:text-base text-foreground-secondary">
             Portfolio alternative credit intelligence, cyclical income volatility monitoring, and priority human-in-the-loop review queue.
           </p>
         </div>
@@ -222,7 +222,7 @@ export default function AdminDashboardPage() {
             variant="ghost"
             size="sm"
             onClick={() => window.print()}
-            className="rounded-full gap-1.5 text-xs text-foreground-muted hover:text-foreground"
+            className="rounded-full gap-1.5 text-xs sm:text-sm text-foreground-secondary hover:text-foreground"
           >
             <Printer className="size-3.5" /> Print Summary
           </Button>
@@ -231,7 +231,7 @@ export default function AdminDashboardPage() {
             <Button
               variant="default"
               size="sm"
-              className="rounded-full gap-1.5 text-xs font-semibold shadow-xs cursor-pointer"
+              className="rounded-full gap-1.5 text-xs sm:text-sm font-semibold shadow-xs cursor-pointer"
             >
               <UserCheck className="size-3.5" />
               <span>Review Queue ({activeQueue.filter(q => q.status === 'MANUAL_REVIEW_REQUIRED' || q.status === 'DATA_VALIDATION').length} Pending)</span>
@@ -312,18 +312,18 @@ export default function AdminDashboardPage() {
               </div>
               <div className="space-y-0.5">
                 <div className="flex items-center gap-2">
-                  <h4 className="text-xs font-semibold text-foreground">{alert.title}</h4>
-                  <Badge variant="outline" className="text-[9px] py-0 px-1.5 uppercase font-mono">
+                  <h4 className="text-sm font-semibold text-foreground">{alert.title}</h4>
+                  <Badge variant="outline" className="text-xs py-0.5 px-2 uppercase font-mono">
                     {alert.category.replace(/_/g, ' ')}
                   </Badge>
                 </div>
-                <p className="text-xs text-foreground-muted leading-relaxed">
+                <p className="text-xs sm:text-sm text-foreground-secondary leading-relaxed">
                   {alert.message}
                 </p>
               </div>
             </div>
 
-            <span className="text-[11px] font-mono text-foreground-muted shrink-0 self-end sm:self-center">
+            <span className="text-xs font-mono text-foreground-secondary shrink-0 self-end sm:self-center">
               {alert.timestamp}
             </span>
           </div>
@@ -336,21 +336,21 @@ export default function AdminDashboardPage() {
         <Card className="p-6 bg-surface border-border space-y-5">
           <div className="flex items-center justify-between pb-2 border-b border-border">
             <div>
-              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <h3 className="text-sm sm:text-base font-semibold text-foreground flex items-center gap-2">
                 <ShieldCheck className="size-4 text-foreground-secondary" />
                 Portfolio Risk Tier Distribution
               </h3>
-              <p className="text-xs text-foreground-muted">
+              <p className="text-xs sm:text-sm text-foreground-secondary">
                 Categorized by approved PARAKH alternative risk classifications.
               </p>
             </div>
-            <span className="text-xs font-mono text-foreground-muted">
+            <span className="text-xs sm:text-sm font-mono text-foreground-secondary">
               {totalAssessed.toLocaleString()} Assessed
             </span>
           </div>
 
           {totalAssessed === 0 ? (
-            <div className="py-8 text-center text-xs text-foreground-muted">
+            <div className="py-8 text-center text-sm text-foreground-secondary">
               No credit assessments generated yet. Risk tiers will populate upon assessment execution.
             </div>
           ) : (
@@ -380,14 +380,14 @@ export default function AdminDashboardPage() {
               </div>
 
               {/* Breakdown Rows */}
-              <div className="space-y-2.5 pt-1 text-xs">
+              <div className="space-y-2.5 pt-1 text-xs sm:text-sm">
                 <div className="flex items-center justify-between p-2.5 rounded-xl bg-surface-highlight/40 border border-border">
                   <div className="flex items-center gap-2.5">
                     <span className="size-2 rounded-full bg-foreground" />
                     <span className="font-semibold text-foreground">LOWER ESTIMATED RISK</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="font-mono text-foreground-muted">
+                    <span className="font-mono text-foreground-secondary">
                       {riskDist.lowerRiskCount.toLocaleString()}
                     </span>
                     <span className="font-mono font-semibold text-foreground w-12 text-right">
@@ -402,7 +402,7 @@ export default function AdminDashboardPage() {
                     <span className="font-semibold text-foreground">MODERATE ESTIMATED RISK</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="font-mono text-foreground-muted">
+                    <span className="font-mono text-foreground-secondary">
                       {riskDist.moderateRiskCount.toLocaleString()}
                     </span>
                     <span className="font-mono font-semibold text-foreground-secondary w-12 text-right">
@@ -417,10 +417,10 @@ export default function AdminDashboardPage() {
                     <span className="font-semibold text-foreground">HIGHER ESTIMATED RISK</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="font-mono text-foreground-muted">
+                    <span className="font-mono text-foreground-secondary">
                       {riskDist.higherRiskCount.toLocaleString()}
                     </span>
-                    <span className="font-mono font-semibold text-foreground-muted w-12 text-right">
+                    <span className="font-mono font-semibold text-foreground-secondary w-12 text-right">
                       {((riskDist.higherRiskCount / totalAssessed) * 100).toFixed(1)}%
                     </span>
                   </div>
@@ -432,10 +432,10 @@ export default function AdminDashboardPage() {
                     <span className="font-semibold text-foreground">INSUFFICIENT EVIDENCE / MANUAL REVIEW</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="font-mono text-foreground-muted">
+                    <span className="font-mono text-foreground-secondary">
                       {riskDist.manualReviewCount.toLocaleString()}
                     </span>
-                    <span className="font-mono font-semibold text-foreground-muted w-12 text-right">
+                    <span className="font-mono font-semibold text-foreground-secondary w-12 text-right">
                       {((riskDist.manualReviewCount / totalAssessed) * 100).toFixed(1)}%
                     </span>
                   </div>
@@ -449,15 +449,15 @@ export default function AdminDashboardPage() {
         <Card className="p-6 bg-surface border-border space-y-5">
           <div className="flex items-center justify-between pb-2 border-b border-border">
             <div>
-              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <h3 className="text-sm sm:text-base font-semibold text-foreground flex items-center gap-2">
                 <Activity className="size-4 text-foreground-secondary" />
                 Evaluation Pipeline & Throughput
               </h3>
-              <p className="text-xs text-foreground-muted">
+              <p className="text-xs sm:text-sm text-foreground-secondary">
                 Lifecycle progression from intake registration to underwriting queue.
               </p>
             </div>
-            <Badge variant="outline" className="text-[10px] font-mono">
+            <Badge variant="outline" className="text-xs font-mono">
               {totalEvaluated > 0 ? `${completionRate}% Synthesized` : 'Pipeline Ready'}
             </Badge>
           </div>
@@ -467,16 +467,16 @@ export default function AdminDashboardPage() {
               const percentage = totalEvaluated > 0 ? ((stage.count / totalEvaluated) * 100).toFixed(1) : '0.0';
               return (
                 <div key={stage.id} className="space-y-1.5">
-                  <div className="flex justify-between items-center text-xs">
+                  <div className="flex justify-between items-center text-xs sm:text-sm">
                     <span className="font-semibold text-foreground flex items-center gap-2">
-                      <span className="font-mono text-foreground-muted text-[11px]">0{idx + 1}</span>
+                      <span className="font-mono text-foreground-secondary text-xs">0{idx + 1}</span>
                       {stage.name}
                     </span>
                     <div className="flex items-center gap-2">
                       <span className="font-mono font-semibold text-foreground">
                         {stage.count.toLocaleString()}
                       </span>
-                      <span className="text-foreground-muted font-mono text-[11px]">({percentage}%)</span>
+                      <span className="text-foreground-secondary font-mono text-xs">({percentage}%)</span>
                     </div>
                   </div>
                   <div className="w-full h-1.5 rounded-full bg-surface-highlight overflow-hidden">
@@ -485,7 +485,7 @@ export default function AdminDashboardPage() {
                       className="h-full rounded-full bg-foreground transition-all duration-500"
                     />
                   </div>
-                  <span className="text-[10px] text-foreground-muted block pl-5">{stage.subtext}</span>
+                  <span className="text-xs text-foreground-secondary block pl-5">{stage.subtext}</span>
                 </div>
               );
             })}
@@ -497,20 +497,20 @@ export default function AdminDashboardPage() {
       <Card className="p-6 bg-surface border-border space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-border">
           <div>
-            <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <h3 className="text-sm sm:text-base font-semibold text-foreground flex items-center gap-2">
               <TrendingUp className="size-4 text-foreground-secondary" />
               Monthly Volume & Score Stability Trend (6 Months)
             </h3>
-            <p className="text-xs text-foreground-muted">
+            <p className="text-xs sm:text-sm text-foreground-secondary">
               Compares applicant volume growth against alternative score resilience across seasonal cycles.
             </p>
           </div>
 
-          <div className="flex items-center gap-4 text-xs">
-            <span className="flex items-center gap-1.5 text-foreground-muted">
+          <div className="flex items-center gap-4 text-xs sm:text-sm">
+            <span className="flex items-center gap-1.5 text-foreground-secondary">
               <span className="size-2.5 rounded-sm bg-foreground" /> Volume
             </span>
-            <span className="flex items-center gap-1.5 text-foreground-muted">
+            <span className="flex items-center gap-1.5 text-foreground-secondary">
               <span className="size-2 rounded-full bg-foreground-secondary" /> Avg Score
             </span>
           </div>
@@ -518,7 +518,7 @@ export default function AdminDashboardPage() {
 
         <div className="h-64 w-full pt-2">
           {monthlyVolume.length === 0 || monthlyVolume.every((m) => m.count === 0) ? (
-            <div className="h-full flex items-center justify-center text-xs text-foreground-muted">
+            <div className="h-full flex items-center justify-center text-sm text-foreground-secondary">
               No application intake recorded in recent months.
             </div>
           ) : (
@@ -531,20 +531,20 @@ export default function AdminDashboardPage() {
                 <XAxis
                   dataKey="month"
                   stroke={chartAxisColor}
-                  fontSize={11}
+                  fontSize={12}
                   tickLine={false}
                 />
                 <YAxis
                   yAxisId="left"
                   stroke={chartAxisColor}
-                  fontSize={11}
+                  fontSize={12}
                   tickLine={false}
                 />
                 <YAxis
                   yAxisId="right"
                   orientation="right"
                   stroke={chartAxisColor}
-                  fontSize={11}
+                  fontSize={12}
                   tickLine={false}
                   domain={[300, 850]}
                 />
@@ -552,7 +552,7 @@ export default function AdminDashboardPage() {
                   content={({ active, payload, label }) => {
                     if (active && payload && payload.length) {
                       return (
-                        <div className="bg-surface p-3 rounded-xl border border-border shadow-xl text-xs space-y-1 text-foreground">
+                        <div className="bg-surface p-3 rounded-xl border border-border shadow-xl text-xs sm:text-sm space-y-1 text-foreground">
                           <span className="font-semibold text-foreground block">{label}</span>
                           <span className="font-mono block text-foreground-secondary">
                             Intake: {payload[0]?.value} evaluations
@@ -593,27 +593,27 @@ export default function AdminDashboardPage() {
         <Card className="p-6 bg-surface border-border space-y-4">
           <div className="flex items-center justify-between pb-2 border-b border-border">
             <div>
-              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <h3 className="text-sm sm:text-base font-semibold text-foreground flex items-center gap-2">
                 <Building2 className="size-4 text-foreground-secondary" />
                 Sector Volatility & Shock Rebound
               </h3>
-              <p className="text-xs text-foreground-muted">
+              <p className="text-xs sm:text-sm text-foreground-secondary">
                 Observed recovery velocity and volatility index by gig worker segment.
               </p>
             </div>
-            <Badge variant="outline" className="text-[10px] font-mono">
+            <Badge variant="outline" className="text-xs font-mono">
               Pending ML Pipeline
             </Badge>
           </div>
 
-          <div className="p-4 rounded-2xl bg-surface-highlight/30 border border-border space-y-2 text-xs">
+          <div className="p-4 rounded-2xl bg-surface-highlight/30 border border-border space-y-2 text-xs sm:text-sm">
             <div className="flex items-center gap-2">
               <AlertCircle className="size-4 text-amber-500 shrink-0" />
               <span className="font-semibold text-foreground">
                 ML Volatility Telemetry Integration
               </span>
             </div>
-            <p className="text-foreground-muted text-[11px] leading-relaxed">
+            <p className="text-foreground-secondary text-xs sm:text-sm leading-relaxed">
               Sector-level recovery velocity curves and cyclical volatility indices are computed by Person 2 & 3's LightGBM/XGBoost ML pipeline. In the interim, live assessments are scored through the deterministic MockAssessmentEngine registered in PostgreSQL. ML analytics unavailable until the production assessment model is integrated.
             </p>
           </div>
@@ -623,36 +623,36 @@ export default function AdminDashboardPage() {
         <Card className="p-6 bg-surface border-border space-y-4">
           <div className="flex items-center justify-between pb-2 border-b border-border">
             <div>
-              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <h3 className="text-sm sm:text-base font-semibold text-foreground flex items-center gap-2">
                 <Sparkles className="size-4 opacity-75" />
                 Alternative Score Distribution
               </h3>
-              <p className="text-xs text-foreground-muted">
+              <p className="text-xs sm:text-sm text-foreground-secondary">
                 Distribution of applicant scores across volatility-calibrated tiers.
               </p>
             </div>
-            <Badge variant="outline" className="text-[10px] font-mono">
+            <Badge variant="outline" className="text-xs font-mono">
               {avgScore !== null ? `Mean: ${avgScore}` : 'Unassessed'}
             </Badge>
           </div>
 
           <div className="space-y-3 pt-1">
             {scoreBuckets.length === 0 ? (
-              <div className="py-8 text-center text-xs text-foreground-muted">
+              <div className="py-8 text-center text-sm text-foreground-secondary">
                 No score histogram available. Scores will populate once applications are assessed.
               </div>
             ) : (
               scoreBuckets.map((bucket) => (
                 <div
                   key={bucket.range}
-                  className="p-3 rounded-2xl bg-surface-highlight/30 border border-border space-y-1.5 text-xs"
+                  className="p-3 rounded-2xl bg-surface-highlight/30 border border-border space-y-1.5 text-xs sm:text-sm"
                 >
                   <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2">
                       <span className="font-mono font-semibold text-foreground">{bucket.range}</span>
-                      <span className="text-foreground-muted text-[11px]">• {bucket.label}</span>
+                      <span className="text-foreground-secondary text-xs">• {bucket.label}</span>
                     </div>
-                    <RiskBadge riskLevel={bucket.riskTier} showIcon={false} className="text-[10px] py-0 px-2" />
+                    <RiskBadge riskLevel={bucket.riskTier} showIcon={false} className="text-xs py-0.5 px-2" />
                   </div>
 
                   <div className="flex items-center gap-3">
@@ -677,11 +677,11 @@ export default function AdminDashboardPage() {
       <Card id="review-queue" className="p-6 bg-surface border-border space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-border">
           <div className="space-y-0.5">
-            <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
+            <h2 className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
               <UserCheck className="size-4 text-foreground-secondary" />
               Priority Credit Review Queue
             </h2>
-            <p className="text-xs text-foreground-muted">
+            <p className="text-xs sm:text-sm text-foreground-secondary">
               Cases flagged for human credit reviewer scrutiny due to non-standard volatility, seasonal weather, or single-platform concentration.
             </p>
           </div>
@@ -689,12 +689,12 @@ export default function AdminDashboardPage() {
           {/* Search & Filter */}
           <div className="flex flex-wrap items-center gap-2">
             <div className="relative w-full sm:w-56">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-foreground-muted" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-foreground-secondary" />
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search queue..."
-                className="pl-9 h-8 text-xs rounded-full bg-surface border-border text-foreground placeholder:text-foreground-muted"
+                className="pl-9 h-8 text-xs sm:text-sm rounded-full bg-surface border-border text-foreground placeholder:text-foreground-muted"
               />
             </div>
 
@@ -707,10 +707,10 @@ export default function AdminDashboardPage() {
                 <button
                   key={f.id}
                   onClick={() => setStatusFilter(f.id)}
-                  className={`px-3 py-1 rounded-full text-xs font-medium cursor-pointer transition-all ${
+                  className={`px-3 py-1 rounded-full text-xs sm:text-sm font-medium cursor-pointer transition-all ${
                     statusFilter === f.id
                       ? 'bg-[#472393] text-white font-semibold shadow-xs dark:bg-foreground dark:text-background'
-                      : 'text-foreground-muted hover:text-[#472393] hover:bg-[#F5F1FF] dark:hover:text-foreground dark:hover:bg-transparent'
+                      : 'text-foreground-secondary hover:text-[#472393] hover:bg-[#F5F1FF] dark:hover:text-foreground dark:hover:bg-transparent'
                   }`}
                 >
                   {f.label}
@@ -722,8 +722,8 @@ export default function AdminDashboardPage() {
 
         {/* Queue Table */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-surface-highlight/40 border-b border-border text-foreground-muted font-medium uppercase tracking-wider text-[11px]">
+          <table className="w-full text-left text-xs sm:text-sm">
+            <thead className="bg-surface-highlight/40 border-b border-border text-foreground-secondary font-semibold uppercase tracking-wider text-xs">
               <tr>
                 <th className="py-3 px-4">Application ID</th>
                 <th className="py-3 px-4">Applicant & Sector</th>
@@ -736,14 +736,14 @@ export default function AdminDashboardPage() {
             <tbody className="divide-y divide-border">
               {isLoading ? (
                 <tr>
-                  <td colSpan={6} className="py-10 text-center text-foreground-muted">
+                  <td colSpan={6} className="py-10 text-center text-foreground-secondary text-sm">
                     <Loader2 className="size-5 animate-spin mx-auto mb-2 text-foreground" />
                     <span>Loading priority review queue from backend...</span>
                   </td>
                 </tr>
               ) : filteredQueue.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-foreground-muted">
+                  <td colSpan={6} className="py-8 text-center text-foreground-secondary text-sm">
                     No credit dossiers currently match the selected queue filter.
                   </td>
                 </tr>
@@ -756,22 +756,22 @@ export default function AdminDashboardPage() {
 
                     <td className="py-3.5 px-4">
                       <div className="space-y-0.5">
-                        <span className="font-semibold text-foreground block">{item.applicantName}</span>
-                        <span className="text-[11px] text-foreground-muted">{item.sectorTag}</span>
+                        <span className="text-sm font-semibold text-foreground block">{item.applicantName}</span>
+                        <span className="text-xs text-foreground-secondary">{item.sectorTag}</span>
                       </div>
                     </td>
 
                     <td className="py-3.5 px-4">
                       <div className="space-y-0.5">
-                        <span className="font-mono font-semibold text-foreground block">
+                        <span className="font-mono text-sm font-semibold text-foreground block">
                           {formatCurrency(item.requestedAmount)}
                         </span>
-                        <span className="text-[10px] text-foreground-muted">{item.purpose}</span>
+                        <span className="text-xs text-foreground-secondary">{item.purpose}</span>
                       </div>
                     </td>
 
                     <td className="py-3.5 px-4 max-w-xs">
-                      <span className="text-foreground-secondary text-xs block truncate" title={item.triggerReason}>
+                      <span className="text-foreground-secondary text-xs sm:text-sm block truncate" title={item.triggerReason}>
                         {item.triggerReason}
                       </span>
                     </td>
@@ -784,7 +784,7 @@ export default function AdminDashboardPage() {
                             <RiskBadge
                               riskLevel={item.assessment.riskLevel}
                               showIcon={false}
-                              className="text-[10px] py-0 px-2"
+                              className="text-xs py-0.5 px-2"
                             />
                           </div>
                         )}
@@ -797,7 +797,7 @@ export default function AdminDashboardPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="rounded-full text-xs h-7 px-2.5 text-foreground-muted hover:text-foreground"
+                            className="rounded-full text-xs sm:text-sm h-8 px-3 text-foreground-secondary hover:text-foreground"
                           >
                             Dossier
                           </Button>
@@ -807,7 +807,7 @@ export default function AdminDashboardPage() {
                           variant="default"
                           size="sm"
                           onClick={() => handleOpenReview(item)}
-                          className="rounded-full text-xs h-7 px-3 font-semibold shadow-xs cursor-pointer"
+                          className="rounded-full text-xs sm:text-sm h-8 px-3.5 font-semibold shadow-xs cursor-pointer"
                         >
                           Review
                         </Button>
@@ -833,33 +833,33 @@ export default function AdminDashboardPage() {
                     {selectedCase.id}
                   </Badge>
                 </div>
-                <p className="text-xs text-foreground-muted">
+                <p className="text-xs sm:text-sm text-foreground-secondary">
                   Record human-in-the-loop qualitative assessment or verification items.
                 </p>
               </div>
 
               <button
                 onClick={() => setSelectedCase(null)}
-                className="text-foreground-muted hover:text-foreground p-1 rounded-lg cursor-pointer"
+                className="text-foreground-secondary hover:text-foreground p-1 rounded-lg cursor-pointer"
               >
                 <X className="size-5" />
               </button>
             </div>
 
             {/* Applicant Summary */}
-            <div className="p-3.5 rounded-2xl bg-surface-highlight/40 border border-border space-y-1.5 text-xs">
+            <div className="p-3.5 rounded-2xl bg-surface-highlight/40 border border-border space-y-1.5 text-xs sm:text-sm">
               <div className="flex justify-between">
-                <span className="text-foreground-muted">Applicant</span>
+                <span className="text-foreground-secondary">Applicant</span>
                 <span className="font-semibold text-foreground">{selectedCase.applicantName}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-foreground-muted">Requested Capital</span>
+                <span className="text-foreground-secondary">Requested Capital</span>
                 <span className="font-mono font-semibold text-foreground">
                   {formatCurrency(selectedCase.requestedAmount)}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-foreground-muted">Trigger / Flag</span>
+                <span className="text-foreground-secondary">Trigger / Flag</span>
                 <span className="text-foreground-secondary font-medium">{selectedCase.triggerReason}</span>
               </div>
             </div>
@@ -867,7 +867,7 @@ export default function AdminDashboardPage() {
             {/* Review Form */}
             <form onSubmit={handleRecordReviewOutcome} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-foreground block">
+                <label className="text-xs sm:text-sm font-semibold text-foreground block">
                   Reviewer Action Type
                 </label>
                 <div className="grid grid-cols-3 gap-2">
@@ -880,10 +880,10 @@ export default function AdminDashboardPage() {
                       key={act.id}
                       type="button"
                       onClick={() => setReviewAction(act.id as ReviewActionType)}
-                      className={`p-2 rounded-xl text-xs font-semibold border text-center transition-all cursor-pointer ${
+                      className={`p-2 rounded-xl text-xs sm:text-sm font-semibold border text-center transition-all cursor-pointer ${
                         reviewAction === act.id
                           ? 'border-[#472393] bg-[#472393] text-white shadow-xs dark:border-foreground dark:bg-foreground dark:text-background'
-                          : 'border-border bg-surface-highlight text-foreground-muted hover:text-[#472393] hover:border-[rgba(71,35,147,0.3)] dark:hover:text-foreground dark:hover:border-border'
+                          : 'border-border bg-surface-highlight text-foreground-secondary hover:text-[#472393] hover:border-[rgba(71,35,147,0.3)] dark:hover:text-foreground dark:hover:border-border'
                       }`}
                     >
                       {act.label}
@@ -893,7 +893,7 @@ export default function AdminDashboardPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-foreground block">
+                <label className="text-xs sm:text-sm font-semibold text-foreground block">
                   Reviewer Decision & Rationale Notes
                 </label>
                 <textarea
@@ -902,19 +902,19 @@ export default function AdminDashboardPage() {
                   value={reviewNotes}
                   onChange={(e) => setReviewNotes(e.target.value)}
                   placeholder="Record qualitative rationale on volatility rebound, micro-obligations, or supplementary items required..."
-                  className="w-full text-xs p-3 rounded-xl bg-surface-highlight/30 border border-border text-foreground focus:outline-none focus:border-[#472393] dark:focus:border-foreground leading-relaxed resize-none"
+                  className="w-full text-sm p-3 rounded-xl bg-surface-highlight/30 border border-border text-foreground focus:outline-none focus:border-[#472393] dark:focus:border-foreground leading-relaxed resize-none placeholder:text-foreground-muted"
                 />
               </div>
 
               {reviewError && (
-                <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs flex items-center gap-2">
+                <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm flex items-center gap-2">
                   <AlertCircle className="size-4 shrink-0" />
                   <span>{reviewError}</span>
                 </div>
               )}
 
               {reviewSuccess && (
-                <div className="p-3 rounded-xl bg-surface-highlight border border-border text-foreground text-xs flex items-center gap-2">
+                <div className="p-3 rounded-xl bg-surface-highlight border border-border text-foreground text-sm flex items-center gap-2">
                   <CheckCircle2 className="size-4 shrink-0" />
                   <span>Review outcome recorded to PostgreSQL audit ledger successfully.</span>
                 </div>
@@ -927,7 +927,7 @@ export default function AdminDashboardPage() {
                   size="sm"
                   disabled={isSubmitting}
                   onClick={() => setSelectedCase(null)}
-                  className="rounded-full text-xs text-foreground-muted hover:text-foreground"
+                  className="rounded-full text-xs sm:text-sm h-8 text-foreground-secondary hover:text-foreground"
                 >
                   Cancel
                 </Button>
@@ -936,7 +936,7 @@ export default function AdminDashboardPage() {
                   variant="default"
                   size="sm"
                   disabled={isSubmitting}
-                  className="rounded-full text-xs font-semibold gap-1.5 shadow-xs cursor-pointer"
+                  className="rounded-full text-xs sm:text-sm h-8 font-semibold gap-1.5 shadow-xs cursor-pointer"
                 >
                   {isSubmitting ? (
                     <>
@@ -955,7 +955,7 @@ export default function AdminDashboardPage() {
       )}
 
       {/* 9. UNDERWRITER GOVERNANCE & REGULATORY FOOTNOTE */}
-      <div className="p-4 rounded-2xl bg-surface-highlight/30 border border-border text-[11px] text-foreground-muted flex items-start gap-3">
+      <div className="p-4 rounded-2xl bg-surface-highlight/30 border border-border text-xs sm:text-sm text-foreground-secondary flex items-start gap-3">
         <Info className="size-4 text-foreground-secondary shrink-0 mt-0.5" />
         <div className="space-y-0.5">
           <span className="font-semibold text-foreground block">

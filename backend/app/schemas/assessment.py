@@ -48,6 +48,10 @@ class CreditAssessmentBase(BaseModel):
         None,
         description="Historical or platform repayment consistency",
     )
+    explanation: Optional[Dict[str, Any]] = Field(
+        None,
+        description="Structured explanation metadata (TreeSHAP factors, missing signals, diagnostics)",
+    )
     assessment_status: str = Field(
         default="COMPLETED",
         description="Status of assessment generation process",
@@ -73,7 +77,7 @@ class CreditAssessmentResponse(CreditAssessmentBase):
     model_name: Optional[str] = Field(None, description="Scoring algorithm or engine identifier")
     model_version: Optional[str] = Field(None, description="Model semantic version string")
     key_factors: List[str] = Field(default_factory=list, description="Primary driving indicators")
-    explanation: Dict[str, Any] = Field(default_factory=dict, description="Structured explanation metadata")
+    explanation: Optional[Dict[str, Any]] = Field(default=None, description="Structured explanation metadata")
     assessed_at: datetime
     created_at: datetime
 
@@ -98,7 +102,28 @@ class CreditAssessmentResponse(CreditAssessmentBase):
         if score_val is None:
             score_val = getattr(data, "credit_score", None)
 
+        raw_explanation = getattr(data, "_transient_explanation", None)
+        if raw_explanation is None:
+            raw_explanation = getattr(data, "explanation", None)
+
         raw_key_factors = getattr(data, "_transient_key_factors", None) or getattr(data, "key_factors", None)
+        if not raw_key_factors and isinstance(raw_explanation, dict):
+            factors = []
+            for factor in raw_explanation.get("key_protective_factors", []):
+                if isinstance(factor, dict):
+                    name = factor.get("factor_name", "Protective Factor")
+                    borrower_exp = factor.get("borrower_explanation", "")
+                    factors.append(f"{name}: {borrower_exp}" if borrower_exp else name)
+            for factor in raw_explanation.get("key_risk_factors", []):
+                if isinstance(factor, dict):
+                    name = factor.get("factor_name", "Risk Factor")
+                    borrower_exp = factor.get("borrower_explanation", "")
+                    factors.append(f"{name}: {borrower_exp}" if borrower_exp else name)
+            if not factors and raw_explanation.get("is_insufficient_evidence") and raw_explanation.get("missing_signals"):
+                factors = list(raw_explanation["missing_signals"])
+            if factors:
+                raw_key_factors = factors[:4]
+
         if not raw_key_factors:
             raw_key_factors = []
             if getattr(data, "repayment_reliability", None) is not None:
@@ -109,14 +134,6 @@ class CreditAssessmentResponse(CreditAssessmentBase):
                 raw_key_factors.append(f"Credit utilization proxy: {data.utilization}")
             if not raw_key_factors:
                 raw_key_factors = ["Credit evaluation completed based on alternative platform data"]
-
-        raw_explanation = getattr(data, "_transient_explanation", None) or getattr(data, "explanation", None)
-        if not raw_explanation:
-            raw_explanation = {
-                "score": score_val,
-                "risk_level": getattr(data.risk_level, "value", str(data.risk_level)) if getattr(data, "risk_level", None) else None,
-                "confidence": str(getattr(data, "confidence", "")) if getattr(data, "confidence", None) is not None else None,
-            }
 
         return {
             "id": getattr(data, "id", None),

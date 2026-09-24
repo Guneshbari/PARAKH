@@ -39,12 +39,12 @@ export function MetricCard({
       hoverable={!!onClick}
     >
       <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold uppercase tracking-wider text-foreground-muted">
+        <span className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-foreground-secondary">
           {title}
         </span>
         {Icon && <Icon className="size-4 text-foreground-secondary" />}
         {pillLabel && !Icon && (
-          <Badge variant={pillVariant} className="text-[10px] py-0.5 px-2">
+          <Badge variant={pillVariant} className="text-xs py-0.5 px-2">
             {pillLabel}
           </Badge>
         )}
@@ -60,14 +60,14 @@ export function MetricCard({
           />
         </span>
         {pillLabel && Icon && (
-          <Badge variant={pillVariant} className="text-[10px] py-0.5 px-2">
+          <Badge variant={pillVariant} className="text-xs py-0.5 px-2">
             {pillLabel}
           </Badge>
         )}
       </div>
 
       {subtext && (
-        <div className="pt-2 border-t border-border flex items-center justify-between text-xs text-foreground-muted">
+        <div className="pt-2 border-t border-border flex items-center justify-between text-xs sm:text-sm text-foreground-secondary">
           <span>{subtext}</span>
         </div>
       )}

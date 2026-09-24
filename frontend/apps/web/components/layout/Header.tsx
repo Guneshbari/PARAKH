@@ -147,11 +147,11 @@ export function Header() {
             <div className="flex flex-col">
               <span className="text-base sm:text-lg font-black tracking-tight text-foreground flex items-center gap-1.5">
                 PARAKH
-                <span className="text-[10px] font-mono uppercase tracking-wider text-foreground-muted px-1.5 py-0.2 rounded-full bg-surface-elevated border border-border">
+                <span className="text-xs font-mono uppercase tracking-wider text-foreground-secondary px-1.5 py-0.5 rounded-full bg-surface-elevated border border-border">
                   AI
                 </span>
               </span>
-              <span className="text-[10px] text-foreground-muted -mt-1 font-medium">
+              <span className="text-xs text-foreground-secondary -mt-0.5 font-medium">
                 Credit for the invisible.
               </span>
             </div>
@@ -159,12 +159,12 @@ export function Header() {
 
           {/* Role-specific Active Portal Label */}
           {isReviewer && (
-            <Badge variant="outline" className="ml-3 text-[11px] font-semibold hidden sm:inline-flex">
-              <ShieldCheck className="size-3 text-foreground-muted mr-1" /> Credit Reviewer
+            <Badge variant="outline" className="ml-3 text-xs font-semibold hidden sm:inline-flex">
+              <ShieldCheck className="size-3 text-foreground-secondary mr-1" /> Credit Reviewer
             </Badge>
           )}
           {isApplicant && (
-            <Badge variant="outline" className="ml-3 text-[11px] font-semibold hidden sm:inline-flex">
+            <Badge variant="outline" className="ml-3 text-xs font-semibold hidden sm:inline-flex">
               Applicant Portal
             </Badge>
           )}
@@ -179,7 +179,7 @@ export function Header() {
                 <Button
                   variant={pathname.startsWith('/user') ? 'secondary' : 'ghost'}
                   size="sm"
-                  className="rounded-full text-xs h-7 px-3.5"
+                  className="rounded-full text-xs sm:text-sm h-8 px-3.5"
                 >
                   Applicant Dashboard
                 </Button>
@@ -193,7 +193,7 @@ export function Header() {
                 <Button
                   variant={pathname.startsWith('/admin') ? 'secondary' : 'ghost'}
                   size="sm"
-                  className="rounded-full text-xs h-7 px-3.5"
+                  className="rounded-full text-xs sm:text-sm h-8 px-3.5"
                 >
                   Credit Review Dashboard
                 </Button>
@@ -236,9 +236,9 @@ export function Header() {
               >
                 <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-surface-highlight/30">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-foreground">Notifications</span>
+                    <span className="text-sm font-bold text-foreground">Notifications</span>
                     {unreadCount > 0 && (
-                      <Badge variant="outline" className="text-[10px] py-0 px-1.5 font-mono">
+                      <Badge variant="outline" className="text-xs py-0 px-2 font-mono">
                         {unreadCount} new
                       </Badge>
                     )}
@@ -247,7 +247,7 @@ export function Header() {
                     <button
                       type="button"
                       onClick={markAllRead}
-                      className="text-[11px] font-medium text-[#472393] dark:text-foreground hover:underline cursor-pointer"
+                      className="text-xs font-semibold text-[#472393] dark:text-foreground hover:underline cursor-pointer"
                     >
                       Mark all read
                     </button>
@@ -274,14 +274,14 @@ export function Header() {
                       />
                       <div className="flex-1 min-w-0 space-y-1">
                         <div className="flex items-center justify-between gap-2">
-                          <p className="text-xs font-semibold text-foreground truncate">
+                          <p className="text-sm font-semibold text-foreground truncate">
                             {n.title}
                           </p>
-                          <span className="text-[10px] text-foreground-muted shrink-0">
+                          <span className="text-xs text-foreground-secondary shrink-0">
                             {n.time}
                           </span>
                         </div>
-                        <p className="text-[11px] text-foreground-secondary line-clamp-2 leading-relaxed">
+                        <p className="text-xs sm:text-sm text-foreground-secondary line-clamp-2 leading-relaxed">
                           {n.message}
                         </p>
                       </div>
@@ -299,7 +299,7 @@ export function Header() {
                 <div className="size-6.5 rounded-full bg-[#472393] text-white dark:bg-foreground dark:text-background flex items-center justify-center font-bold text-xs">
                   <User className="size-3.5" />
                 </div>
-                <span className="text-xs font-medium text-foreground-secondary hidden sm:inline">
+                <span className="text-sm font-medium text-foreground-secondary hidden sm:inline">
                   {user?.name || (isReviewer ? 'Priya Sharma (Reviewer)' : 'Arjun Verma')}
                 </span>
               </div>

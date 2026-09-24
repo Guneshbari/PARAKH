@@ -194,14 +194,45 @@ export function adaptAssessment(
   backendAssessment: BackendCreditAssessmentResponse,
   applicantName?: string
 ): CreditAssessmentResult {
-  const score = Number(backendAssessment.score ?? backendAssessment.credit_score ?? 0);
-  const riskProbability = Number(backendAssessment.risk_probability || 0);
-  const confidence = Number(backendAssessment.confidence || 0);
+  const rawScore = backendAssessment.score ?? backendAssessment.credit_score;
+  const score = rawScore !== null && rawScore !== undefined ? Number(rawScore) : null;
 
-  // Parse SHAP contributions or structured explanation metadata
-  const featureContributions: SHAPContribution[] = [];
+  const rawRiskProb = backendAssessment.risk_probability;
+  const riskProbability = rawRiskProb !== null && rawRiskProb !== undefined ? Number(rawRiskProb) : null;
+  const estimatedRepaymentDifficulty =
+    riskProbability !== null
+      ? Math.round(riskProbability > 1 ? riskProbability : riskProbability * 100)
+      : null;
+
+  const rawConfidence = backendAssessment.confidence;
+  const confidence = rawConfidence !== null && rawConfidence !== undefined ? Number(rawConfidence) : null;
+  const modelConfidence =
+    confidence !== null
+      ? Math.round(confidence > 1 ? confidence : confidence * 100)
+      : null;
+
+  // Parse explanation metadata
   const explanation = backendAssessment.explanation || {};
+  const isInsufficientEvidence = Boolean(
+    explanation.is_insufficient_evidence ??
+    (backendAssessment.risk_level?.toUpperCase() === 'INSUFFICIENT')
+  );
+  const missingSignals: string[] = Array.isArray(explanation.missing_signals)
+    ? explanation.missing_signals
+    : [];
+  const disclaimer: string | undefined =
+    typeof explanation.disclaimer === 'string' ? explanation.disclaimer : undefined;
 
+  const modelName = backendAssessment.model_name ?? null;
+  const modelVersion = backendAssessment.model_version ?? null;
+  const assessmentStatus = backendAssessment.assessment_status ?? undefined;
+  const debtToIncome =
+    backendAssessment.debt_to_income != null ? Number(backendAssessment.debt_to_income) : null;
+  const utilization =
+    backendAssessment.utilization != null ? Number(backendAssessment.utilization) : null;
+
+  // Parse SHAP contributions
+  const featureContributions: SHAPContribution[] = [];
   if (Array.isArray(explanation.shap_values)) {
     for (const item of explanation.shap_values) {
       if (item && typeof item === 'object') {
@@ -229,7 +260,8 @@ export function adaptAssessment(
       factorStr.toLowerCase().includes('volat') ||
       factorStr.toLowerCase().includes('debt') ||
       factorStr.toLowerCase().includes('irregular') ||
-      factorStr.toLowerCase().includes('dip');
+      factorStr.toLowerCase().includes('dip') ||
+      factorStr.toLowerCase().includes('insufficient');
 
     const factorItem: FactorSummary = {
       id: `factor-${idx + 1}`,
@@ -253,9 +285,13 @@ export function adaptAssessment(
   });
 
   // Extract or synthesize VolatilityProfile safely from available metrics
-  const stability = Number(backendAssessment.income_stability ?? 0.85);
+  const stability =
+    backendAssessment.income_stability != null ? Number(backendAssessment.income_stability) : 0.85;
   const volatilityIndex = Math.max(0, Math.min(1, 1 - stability));
-  const repaymentHistoryRate = Math.round(Number(backendAssessment.repayment_reliability ?? 0.95) * 100);
+  const repaymentHistoryRate =
+    backendAssessment.repayment_reliability != null
+      ? Math.round(Number(backendAssessment.repayment_reliability) * 100)
+      : 95;
 
   const volatilityProfile: VolatilityProfile = {
     incomeFrequency: 'weekly',
@@ -274,14 +310,26 @@ export function adaptAssessment(
       },
     ],
     repaymentHistoryRate,
-    existingObligationsMonthly: Math.round(Number(backendAssessment.debt_to_income ?? 0.2) * 10000),
-    dataQualityScore: Number(confidence > 0 ? (confidence > 1 ? confidence / 100 : confidence).toFixed(2) : 0.88),
-    confidenceInterval: [Math.max(300, score - 35), Math.min(850, score + 35)],
+    existingObligationsMonthly:
+      debtToIncome != null ? Math.round(debtToIncome * 10000) : 2000,
+    dataQualityScore:
+      confidence !== null
+        ? Number((confidence > 1 ? confidence / 100 : confidence).toFixed(2))
+        : 0.0,
+    confidenceInterval:
+      score !== null
+        ? [Math.max(300, score - 35), Math.min(850, score + 35)]
+        : [300, 850],
   };
 
   // Safe recommendations derived from factors or backend
   const recommendations: string[] = Array.isArray(explanation.recommendations)
     ? explanation.recommendations
+    : isInsufficientEvidence
+    ? [
+        'Connect verified digital payment accounts with at least 30 days of continuous inflow history.',
+        'Ensure primary gig platform payout accounts are actively linked.',
+      ]
     : [
         'Maintain current average weekly active order volume.',
         'Keep recurring platform payouts linked to primary UPI handle.',
@@ -294,8 +342,16 @@ export function adaptAssessment(
     score,
     maxScore: 850,
     riskLevel: adaptRiskLevel(backendAssessment.risk_level),
-    estimatedRepaymentDifficulty: Math.round(riskProbability > 1 ? riskProbability : riskProbability * 100),
-    modelConfidence: Math.round(confidence > 1 ? confidence : (confidence || 0.85) * 100),
+    estimatedRepaymentDifficulty,
+    modelConfidence,
+    isInsufficientEvidence,
+    missingSignals,
+    disclaimer,
+    modelName,
+    modelVersion,
+    debtToIncome,
+    utilization,
+    assessmentStatus,
     volatilityProfile,
     keyPositiveFactors,
     keyAttentionFactors,

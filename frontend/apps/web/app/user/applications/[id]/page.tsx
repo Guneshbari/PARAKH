@@ -269,11 +269,11 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailPageP
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
         <div className="flex items-center gap-3">
           <Link href="/user/applications">
-            <Button variant="outline" size="sm" className="rounded-full gap-1.5 text-xs px-4 cursor-pointer">
+            <Button variant="outline" size="sm" className="rounded-full gap-1.5 text-xs sm:text-sm px-4 cursor-pointer">
               <ArrowLeft className="size-3.5" /> Back to Applications
             </Button>
           </Link>
-          <span className="text-xs text-foreground-muted font-mono">
+          <span className="text-xs sm:text-sm text-foreground-secondary font-mono">
             {application.id}
           </span>
         </div>
@@ -283,14 +283,14 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailPageP
             variant="ghost"
             size="sm"
             onClick={() => window.print()}
-            className="rounded-full gap-1.5 text-xs text-foreground-muted hover:text-foreground px-3.5 cursor-pointer"
+            className="rounded-full gap-1.5 text-xs sm:text-sm text-foreground-secondary hover:text-foreground px-3.5 cursor-pointer"
           >
             <Printer className="size-3.5" /> Print Summary
           </Button>
 
           {application.assessment && (
             <Link href={`/user/results/${application.id}`}>
-              <Button variant="default" size="sm" className="rounded-full gap-1.5 text-xs px-4 font-semibold cursor-pointer">
+              <Button variant="default" size="sm" className="rounded-full gap-1.5 text-xs sm:text-sm px-4 font-semibold cursor-pointer">
                 <span>View Full Assessment Dossier</span>
                 <ChevronRight className="size-3.5" />
               </Button>
@@ -304,7 +304,7 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailPageP
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-mono text-foreground-muted uppercase tracking-wider">
+              <span className="text-xs sm:text-sm font-mono text-foreground-secondary uppercase tracking-wider">
                 Credit Evaluation Request
               </span>
               <StatusBadge status={application.status} />
@@ -315,7 +315,7 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailPageP
           </div>
 
           <div className="text-left md:text-right">
-            <div className="text-xs text-foreground-muted">Requested Amount</div>
+            <div className="text-xs sm:text-sm text-foreground-secondary">Requested Amount</div>
             <div className="text-2xl sm:text-3xl font-extrabold text-foreground">
               {formatCurrency(application.requestedAmount)}
             </div>
@@ -324,28 +324,28 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailPageP
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-border">
           <div className="space-y-1">
-            <span className="text-[11px] text-foreground-muted flex items-center gap-1">
+            <span className="text-xs text-foreground-secondary flex items-center gap-1">
               <Building2 className="size-3" /> Borrower Profile
             </span>
-            <div className="text-xs font-semibold text-foreground">
+            <div className="text-sm font-semibold text-foreground">
               {application.applicantName}
             </div>
           </div>
 
           <div className="space-y-1">
-            <span className="text-[11px] text-foreground-muted flex items-center gap-1">
+            <span className="text-xs text-foreground-secondary flex items-center gap-1">
               <UserCheck className="size-3" /> Employment Model
             </span>
-            <div className="text-xs font-semibold text-foreground">
+            <div className="text-sm font-semibold text-foreground">
               {application.employmentType.replace('_', ' ')}
             </div>
           </div>
 
           <div className="space-y-1">
-            <span className="text-[11px] text-foreground-muted flex items-center gap-1">
+            <span className="text-xs text-foreground-secondary flex items-center gap-1">
               <Calendar className="size-3" /> Submitted Date
             </span>
-            <div className="text-xs font-semibold text-foreground">
+            <div className="text-sm font-semibold text-foreground">
               {new Date(application.submittedAt).toLocaleDateString('en-IN', {
                 month: 'short',
                 day: 'numeric',
@@ -355,7 +355,7 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailPageP
           </div>
 
           <div className="space-y-1">
-            <span className="text-[11px] text-foreground-muted flex items-center gap-1">
+            <span className="text-xs text-foreground-secondary flex items-center gap-1">
               <Sparkles className="size-3" /> Evaluation Tier
             </span>
             <div>
@@ -368,10 +368,10 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailPageP
       {/* 3. STEP-BY-STEP EVALUATION PIPELINE LIFECYCLE */}
       <section className="space-y-4">
         <div className="space-y-1">
-          <h2 className="text-lg font-bold text-foreground">
+          <h2 className="text-lg sm:text-xl font-bold text-foreground">
             Evaluation Pipeline Progress
           </h2>
-          <p className="text-xs text-foreground-muted">
+          <p className="text-xs sm:text-sm text-foreground-secondary">
             Auditable tracking of each stage in the PARAKH alternative assessment workflow.
           </p>
         </div>
@@ -391,12 +391,12 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailPageP
               <div className="flex items-start gap-4">
                 {/* Step indicator */}
                 <div
-                  className={`size-8 rounded-full flex items-center justify-center shrink-0 font-mono font-bold text-xs ${
+                  className={`size-8 rounded-full flex items-center justify-center shrink-0 font-mono font-bold text-xs sm:text-sm ${
                     stage.status === 'COMPLETED'
                       ? 'bg-primary text-primary-foreground'
                       : stage.status === 'ACTIVE'
                       ? 'bg-primary/20 text-primary border-2 border-primary animate-pulse'
-                      : 'bg-surface-highlight border border-border text-foreground-muted'
+                      : 'bg-surface-highlight border border-border text-foreground-secondary'
                   }`}
                 >
                   {stage.status === 'COMPLETED' ? (
@@ -409,19 +409,19 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailPageP
                 <div className="flex-1 space-y-1">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                     <h3
-                      className={`text-sm font-semibold ${
+                      className={`text-sm sm:text-base font-semibold ${
                         stage.status === 'ACTIVE' ? 'text-foreground' : 'text-foreground-secondary'
                       }`}
                     >
                       {stage.title}
                     </h3>
                     {stage.timestamp && (
-                      <span className="text-[11px] text-foreground-muted font-mono">
+                      <span className="text-xs text-foreground-secondary font-mono">
                         {stage.timestamp}
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-foreground-muted leading-relaxed">
+                  <p className="text-xs sm:text-sm text-foreground-secondary leading-relaxed">
                     {stage.description}
                   </p>
                 </div>
@@ -434,20 +434,20 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailPageP
       {/* 4. UNDERWRITER REVIEW SECTION IF RECORDED */}
       {application.review && (
         <section className="space-y-3">
-          <h2 className="text-lg font-bold text-foreground">
+          <h2 className="text-lg sm:text-xl font-bold text-foreground">
             Credit Reviewer Readout
           </h2>
           <Card className="p-5 space-y-3 border-border bg-surface">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-foreground">
+              <span className="text-sm font-semibold text-foreground">
                 Review Status: {application.review.status.replace(/_/g, ' ')}
               </span>
-              <span className="text-xs text-foreground-muted">
+              <span className="text-xs sm:text-sm text-foreground-secondary">
                 Reviewer: {application.review.underwriterName || 'Underwriting Officer'}
               </span>
             </div>
             {application.review.decisionNotes && (
-              <p className="text-xs text-foreground-secondary bg-surface-highlight p-3 rounded-lg border border-border">
+              <p className="text-sm text-foreground-secondary bg-surface-highlight p-3 rounded-lg border border-border">
                 &ldquo;{application.review.decisionNotes}&rdquo;
               </p>
             )}

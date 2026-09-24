@@ -3,7 +3,7 @@ import enum
 import uuid
 from datetime import datetime
 from decimal import Decimal
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Any, Dict, Optional
 from sqlalchemy import (
     CheckConstraint,
     DateTime,
@@ -15,7 +15,9 @@ from sqlalchemy import (
     Uuid,
     func,
 )
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.types import JSON
 from app.models.base import Base, UUIDPrimaryKeyMixin
 
 if TYPE_CHECKING:
@@ -98,6 +100,11 @@ class CreditAssessment(Base, UUIDPrimaryKeyMixin):
     )
     repayment_reliability: Mapped[Optional[Decimal]] = mapped_column(
         Numeric(5, 4),
+        nullable=True,
+    )
+    # Structured explainability metadata (TreeSHAP factors, missing signals, diagnostics)
+    explanation: Mapped[Optional[Dict[str, Any]]] = mapped_column(
+        JSON().with_variant(JSONB, "postgresql"),
         nullable=True,
     )
     assessment_status: Mapped[str] = mapped_column(

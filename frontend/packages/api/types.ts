@@ -68,6 +68,10 @@ export interface BackendUserResponse {
 
 export interface BackendApplicantProfileCreate {
   user_id?: string;
+  gig_work_type?: string;
+  years_working?: number;
+  average_working_days?: number;
+  business_or_loan_purpose?: string;
   full_name?: string;
   phone_number?: string;
   city?: string;
@@ -80,6 +84,10 @@ export interface BackendApplicantProfileCreate {
 }
 
 export interface BackendApplicantProfileUpdate {
+  gig_work_type?: string;
+  years_working?: number;
+  average_working_days?: number;
+  business_or_loan_purpose?: string;
   full_name?: string;
   phone_number?: string;
   city?: string;
@@ -94,10 +102,14 @@ export interface BackendApplicantProfileUpdate {
 export interface BackendApplicantProfileResponse {
   id: string;
   user_id: string;
+  gig_work_type?: string;
+  years_working?: number | null;
+  average_working_days?: number | null;
+  business_or_loan_purpose?: string | null;
+  work_type?: string | null;
   full_name?: string | null;
   phone_number?: string | null;
   city?: string | null;
-  work_type?: string | null;
   experience_months?: number | null;
   average_working_days_per_week?: number | null;
   primary_income_source?: string | null;

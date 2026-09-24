@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -28,5 +29,10 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440  # 24 hours
     # Assessment Engine Selection ("mock" or "ml")
     ASSESSMENT_ENGINE: str = "mock"
+
+    # ML Inference Pipeline Configuration
+    ML_MANIFEST_PATH: Optional[str] = None
+    ML_DATASET_PATH: Optional[str] = None
+
 
 settings = Settings()

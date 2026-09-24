@@ -74,19 +74,22 @@ class TestAlembicMigrationSetup(unittest.TestCase):
         )
 
     def test_initial_migration_script_registered(self) -> None:
-        """Verify ScriptDirectory discovers the initial migration head."""
+        """Verify ScriptDirectory discovers migrations and has a single head."""
         alembic_cfg = Config(str(self.alembic_ini_path))
         script = ScriptDirectory.from_config(alembic_cfg)
         heads = script.get_heads()
         self.assertEqual(len(heads), 1, "Expected exactly 1 migration head")
-        head_revision = script.get_revision(heads[0])
-        self.assertIsNotNone(head_revision)
-        self.assertIn("initial_schema", head_revision.doc)
+        revisions = [rev.doc for rev in script.walk_revisions() if rev.doc]
+        self.assertTrue(
+            any("initial_schema" in doc for doc in revisions),
+            "Expected initial_schema migration in revision history",
+        )
 
     def test_offline_sql_generation(self) -> None:
         """Verify Alembic can generate full SQL DDL offline without active PostgreSQL."""
+        import sys
         result = subprocess.run(
-            ["alembic", "upgrade", "base:head", "--sql"],
+            [sys.executable, "-m", "alembic", "upgrade", "base:head", "--sql"],
             cwd=str(self.backend_dir),
             capture_output=True,
             text=True,

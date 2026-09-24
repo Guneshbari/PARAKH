@@ -1,0 +1,289 @@
+{
+  "model_name": "baseline-logistic-regression",
+  "model_version": "1.0.0",
+  "intercept": -5.7379681314831075,
+  "feature_count": 35,
+  "coefficients": [
+    {
+      "feature": "feat_liq_burn_months",
+      "coefficient": -4.463119,
+      "abs_coefficient": 4.463119,
+      "odds_ratio": 0.011526,
+      "association_direction": "Protective (Reduces Default Odds)",
+      "interpretation_note": "Describes model association, not direct causality."
+    },
+    {
+      "feature": "feat_inc_mean_90d",
+      "coefficient": -4.022591,
+      "abs_coefficient": 4.022591,
+      "odds_ratio": 0.017907,
+      "association_direction": "Protective (Reduces Default Odds)",
+      "interpretation_note": "Describes model association, not direct causality."
+    },
+    {
+      "feature": "requested_loan_amount",
+      "coefficient": -2.783892,
+      "abs_coefficient": 2.783892,
+      "odds_ratio": 0.061797,
+      "association_direction": "Protective (Reduces Default Odds)",
+      "interpretation_note": "Describes model association, not direct causality."
+    },
+    {
+      "feature": "average_working_days",
+      "coefficient": -2.238133,
+      "abs_coefficient": 2.238133,
+      "odds_ratio": 0.106657,
+      "association_direction": "Protective (Reduces Default Odds)",
+      "interpretation_note": "Describes model association, not direct causality."
+    },
+    {
+      "feature": "feat_ten_trips_completed",
+      "coefficient": 1.557968,
+      "abs_coefficient": 1.557968,
+      "odds_ratio": 4.749163,
+      "association_direction": "Risk Driver (Increases Default Odds)",
+      "interpretation_note": "Describes model association, not direct causality."
+    },
+    {
+      "feature": "feat_eng_installment_floor_coverage",
+      "coefficient": -1.105015,
+      "abs_coefficient": 1.105015,
+      "odds_ratio": 0.331206,
+      "association_direction": "Protective (Reduces Default Odds)",
+      "interpretation_note": "Describes model association, not direct causality."
+    },
+    {
+      "feature": "feat_act_active_days_ratio",
+      "coefficient": 0.979708,
+      "abs_coefficient": 0.979708,
+      "odds_ratio": 2.663679,
+      "association_direction": "Risk Driver (Increases Default Odds)",
+      "interpretation_note": "Describes model association, not direct causality."
+    },
+    {
+      "feature": "feat_liq_buffer_to_loan",
+      "coefficient": 0.76768,
+      "abs_coefficient": 0.76768,
+      "odds_ratio": 2.154761,
+      "association_direction": "Risk Driver (Increases Default Odds)",
+      "interpretation_note": "Describes model association, not direct causality."
+    },
+    {
+      "feature": "feat_inc_median_90d",
+      "coefficient": 0.673106,
+      "abs_coefficient": 0.673106,
+      "odds_ratio": 1.960316,
+      "association_direction": "Risk Driver (Increases Default Odds)",
+      "interpretation_note": "Describes model association, not direct causality."
+    },
+    {
+      "feature": "feat_bur_total_dti",
+      "coefficient": 0.492282,
+      "abs_coefficient": 0.492282,
+      "odds_ratio": 1.636045,
+      "association_direction": "Risk Driver (Increases Default Odds)",
+      "interpretation_note": "Describes model association, not direct causality."
+    },
+    {
+      "feature": "loan_purpose_OTHER",
+      "coefficient": -0.434932,
+      "abs_coefficient": 0.434932,
+      "odds_ratio": 0.647309,
+      "association_direction": "Protective (Reduces Default Odds)",
+      "interpretation_note": "Describes model association, not direct causality."
+    },
+    {
+      "feature": "feat_bur_installment_dti",
+      "coefficient": 0.393667,
+      "abs_coefficient": 0.393667,
+      "odds_ratio": 1.482406,
+      "association_direction": "Risk Driver (Increases Default Odds)",
+      "interpretation_note": "Describes model association, not direct causality."
+    },
+    {
+      "feature": "feat_bur_dti_ratio",
+      "coefficient": 0.37674,
+      "abs_coefficient": 0.37674,
+      "odds_ratio": 1.457526,
+      "association_direction": "Risk Driver (Increases Default Odds)",
+      "interpretation_note": "Describes model association, not direct causality."
+    },
+    {
+      "feature": "gig_work_type_OTHER",
+      "coefficient": 0.317742,
+      "abs_coefficient": 0.317742,
+      "odds_ratio": 1.374021,
+      "association_direction": "Risk Driver (Increases Default Odds)",
+      "interpretation_note": "Describes model association, not direct causality."
+    },
+    {
+      "feature": "loan_purpose_WORKING_CAPITAL",
+      "coefficient": 0.280767,
+      "abs_coefficient": 0.280767,
+      "odds_ratio": 1.324145,
+      "association_direction": "Risk Driver (Increases Default Odds)",
+      "interpretation_note": "Describes model association, not direct causality."
+    },
+    {
+      "feature": "feat_inc_cv_90d",
+      "coefficient": -0.270884,
+      "abs_coefficient": 0.270884,
+      "odds_ratio": 0.762705,
+      "association_direction": "Protective (Reduces Default Odds)",
+      "interpretation_note": "Describes model association, not direct causality."
+    },
+    {
+      "feature": "gig_work_type_FREELANCE_MICRO",
+      "coefficient": -0.269181,
+      "abs_coefficient": 0.269181,
+      "odds_ratio": 0.764005,
+      "association_direction": "Protective (Reduces Default Odds)",
+      "interpretation_note": "Describes model association, not direct causality."
+    },
+    {
+      "feature": "loan_tenure_months",
+      "coefficient": 0.243318,
+      "abs_coefficient": 0.243318,
+      "odds_ratio": 1.275474,
+      "association_direction": "Risk Driver (Increases Default Odds)",
+      "interpretation_note": "Describes model association, not direct causality."
+    },
+    {
+      "feature": "feat_act_zero_earn_weeks",
+      "coefficient": -0.197387,
+      "abs_coefficient": 0.197387,
+      "odds_ratio": 0.820873,
+      "association_direction": "Protective (Reduces Default Odds)",
+      "interpretation_note": "Describes model association, not direct causality."
+    },
+    {
+      "feature": "gig_work_type_HOME_SERVICES",
+      "coefficient": -0.156267,
+      "abs_coefficient": 0.156267,
+      "odds_ratio": 0.855331,
+      "association_direction": "Protective (Reduces Default Odds)",
+      "interpretation_note": "Describes model association, not direct causality."
+    },
+    {
+      "feature": "feat_inc_p25_90d",
+      "coefficient": 0.144326,
+      "abs_coefficient": 0.144326,
+      "odds_ratio": 1.15526,
+      "association_direction": "Risk Driver (Increases Default Odds)",
+      "interpretation_note": "Describes model association, not direct causality."
+    },
+    {
+      "feature": "gig_work_type_LOGISTICS",
+      "coefficient": -0.143138,
+      "abs_coefficient": 0.143138,
+      "odds_ratio": 0.866635,
+      "association_direction": "Protective (Reduces Default Odds)",
+      "interpretation_note": "Describes model association, not direct causality."
+    },
+    {
+      "feature": "gig_work_type_RIDE_HAILING",
+      "coefficient": -0.082445,
+      "abs_coefficient": 0.082445,
+      "odds_ratio": 0.920862,
+      "association_direction": "Protective (Reduces Default Odds)",
+      "interpretation_note": "Describes model association, not direct causality."
+    },
+    {
+      "feature": "loan_purpose_EQUIPMENT_PURCHASE",
+      "coefficient": -0.079765,
+      "abs_coefficient": 0.079765,
+      "odds_ratio": 0.923334,
+      "association_direction": "Protective (Reduces Default Odds)",
+      "interpretation_note": "Describes model association, not direct causality."
+    },
+    {
+      "feature": "loan_purpose_PERSONAL_EMERGENCY",
+      "coefficient": -0.07888,
+      "abs_coefficient": 0.07888,
+      "odds_ratio": 0.924151,
+      "association_direction": "Protective (Reduces Default Odds)",
+      "interpretation_note": "Describes model association, not direct causality."
+    },
+    {
+      "feature": "feat_ten_platform_rating",
+      "coefficient": -0.07138,
+      "abs_coefficient": 0.07138,
+      "odds_ratio": 0.931108,
+      "association_direction": "Protective (Reduces Default Odds)",
+      "interpretation_note": "Describes model association, not direct causality."
+    },
+    {
+      "feature": "loan_purpose_VEHICLE_MAINTENANCE",
+      "coefficient": -0.033445,
+      "abs_coefficient": 0.033445,
+      "odds_ratio": 0.967108,
+      "association_direction": "Protective (Reduces Default Odds)",
+      "interpretation_note": "Describes model association, not direct causality."
+    },
+    {
+      "feature": "feat_act_max_idle_streak",
+      "coefficient": -0.014677,
+      "abs_coefficient": 0.014677,
+      "odds_ratio": 0.98543,
+      "association_direction": "Protective (Reduces Default Odds)",
+      "interpretation_note": "Describes model association, not direct causality."
+    },
+    {
+      "feature": "gig_work_type_DELIVERY",
+      "coefficient": -0.012964,
+      "abs_coefficient": 0.012964,
+      "odds_ratio": 0.987119,
+      "association_direction": "Protective (Reduces Default Odds)",
+      "interpretation_note": "Describes model association, not direct causality."
+    },
+    {
+      "feature": "feat_ten_years_working",
+      "coefficient": -0.003984,
+      "abs_coefficient": 0.003984,
+      "odds_ratio": 0.996024,
+      "association_direction": "Protective (Reduces Default Odds)",
+      "interpretation_note": "Describes model association, not direct causality."
+    },
+    {
+      "feature": "years_working",
+      "coefficient": -0.003984,
+      "abs_coefficient": 0.003984,
+      "odds_ratio": 0.996024,
+      "association_direction": "Protective (Reduces Default Odds)",
+      "interpretation_note": "Describes model association, not direct causality."
+    },
+    {
+      "feature": "feat_pay_utility_on_time",
+      "coefficient": 0.001763,
+      "abs_coefficient": 0.001763,
+      "odds_ratio": 1.001765,
+      "association_direction": "Risk Driver (Increases Default Odds)",
+      "interpretation_note": "Describes model association, not direct causality."
+    },
+    {
+      "feature": "feat_pay_repay_reliability",
+      "coefficient": 0.001763,
+      "abs_coefficient": 0.001763,
+      "odds_ratio": 1.001765,
+      "association_direction": "Risk Driver (Increases Default Odds)",
+      "interpretation_note": "Describes model association, not direct causality."
+    },
+    {
+      "feature": "feat_suf_observed_days",
+      "coefficient": 0.0,
+      "abs_coefficient": 0.0,
+      "odds_ratio": 1.0,
+      "association_direction": "Risk Driver (Increases Default Odds)",
+      "interpretation_note": "Describes model association, not direct causality."
+    },
+    {
+      "feature": "feat_suf_payout_count",
+      "coefficient": 0.0,
+      "abs_coefficient": 0.0,
+      "odds_ratio": 1.0,
+      "association_direction": "Risk Driver (Increases Default Odds)",
+      "interpretation_note": "Describes model association, not direct causality."
+    }
+  ],
+  "methodology_note": "Coefficients reflect adjusted log-odds change per unit standard deviation in normalized predictor. Coefficients describe empirical statistical associations, not causal relationships."
+}

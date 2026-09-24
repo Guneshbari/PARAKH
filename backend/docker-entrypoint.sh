@@ -60,6 +60,55 @@ with SessionLocal() as db:
         db.add(admin_user)
         print(f"Seeded default administrator user ({admin_email}).")
 
+    # Seed Demo Applicant: arjun.verma@example.com
+    from app.models.applicant import ApplicantProfile
+    from decimal import Decimal
+
+    applicant_email = "arjun.verma@example.com"
+    app_user = db.query(User).filter(User.email == applicant_email).first()
+    if not app_user:
+        app_user = User(
+            email=applicant_email,
+            password_hash=hash_password("Password123!"),
+            role=UserRole.APPLICANT,
+            is_active=True,
+        )
+        db.add(app_user)
+        db.flush()
+        print(f"Seeded demo applicant user ({applicant_email}).")
+    else:
+        app_user.password_hash = hash_password("Password123!")
+        app_user.is_active = True
+        db.flush()
+
+    if not db.query(ApplicantProfile).filter(ApplicantProfile.user_id == app_user.id).first():
+        profile = ApplicantProfile(
+            user_id=app_user.id,
+            gig_work_type="GIG_WORKER",
+            years_working=Decimal("1.5"),
+            average_working_days=24,
+            business_or_loan_purpose="Two-Wheeler EV Battery Upgrade & Gear",
+        )
+        db.add(profile)
+        print(f"Seeded demo applicant profile for ({applicant_email}).")
+
+    # Seed Demo Reviewer: reviewer@parakh.internal
+    reviewer_email = "reviewer@parakh.internal"
+    rev_user = db.query(User).filter(User.email == reviewer_email).first()
+    if not rev_user:
+        rev_user = User(
+            email=reviewer_email,
+            password_hash=hash_password("Password123!"),
+            role=UserRole.REVIEWER,
+            is_active=True,
+        )
+        db.add(rev_user)
+        print(f"Seeded demo reviewer user ({reviewer_email}).")
+    else:
+        rev_user.password_hash = hash_password("Password123!")
+        rev_user.is_active = True
+        rev_user.role = UserRole.REVIEWER
+
     db.commit()
 EOF
 

@@ -5,6 +5,9 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --font-sans: var(--font-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
+
   --color-background: var(--background);
   --color-background-secondary: var(--background-secondary);
   --color-foreground: var(--foreground);
@@ -77,12 +80,12 @@
   --surface-elevated: #F8FAFC;
   --surface-highlight: #EEF2F6;
 
-  --foreground: #101828;
-  --foreground-secondary: #475467;
-  --foreground-muted: #667085;
+  --foreground: #0F172A;
+  --foreground-secondary: #334155;
+  --foreground-muted: #475569;
 
-  --border: rgba(15, 23, 42, 0.08);
-  --border-strong: rgba(15, 23, 42, 0.16);
+  --border: rgba(15, 23, 42, 0.09);
+  --border-strong: rgba(15, 23, 42, 0.18);
 
   --primary: #472393;
   --primary-foreground: #FFFFFF;
@@ -99,12 +102,12 @@
   --accent-secondary: rgba(71, 35, 147, 0.03);
 
   --card: #FFFFFF;
-  --card-foreground: #101828;
+  --card-foreground: #0F172A;
   --popover: #FFFFFF;
-  --popover-foreground: #101828;
+  --popover-foreground: #0F172A;
 
   --muted: #F2F4FA;
-  --muted-foreground: #475467;
+  --muted-foreground: #334155;
 
   --destructive: #EF4444;
   --destructive-foreground: #FFFFFF;
@@ -156,7 +159,7 @@
   --star-color: #64748B;
 
   /* Charts (Light: Minimal Slate / Navy / Soft Pastels) */
-  --chart-primary: #101828;
+  --chart-primary: #0F172A;
   --chart-secondary: #45C4DB;
   --chart-tertiary: #9B7DE3;
   --chart-grid: rgba(15, 23, 42, 0.06);
@@ -188,29 +191,29 @@
   --surface-elevated: #181A1D;
   --surface-highlight: #22252A;
 
-  --foreground: #F5F5F5;
-  --foreground-secondary: #A1A1AA;
-  --foreground-muted: #71717A;
+  --foreground: #F8FAFC;
+  --foreground-secondary: #CBD5E1;
+  --foreground-muted: #94A3B8;
 
-  --border: rgba(255, 255, 255, 0.10);
-  --border-strong: rgba(255, 255, 255, 0.16);
+  --border: rgba(255, 255, 255, 0.12);
+  --border-strong: rgba(255, 255, 255, 0.20);
 
-  --primary: #F5F5F5;
+  --primary: #F8FAFC;
   --primary-foreground: #08090A;
 
-  --secondary: rgba(255, 255, 255, 0.05);
-  --secondary-foreground: #F5F5F5;
+  --secondary: rgba(255, 255, 255, 0.06);
+  --secondary-foreground: #F8FAFC;
 
   --accent: rgba(255, 255, 255, 0.08);
   --accent-secondary: rgba(255, 255, 255, 0.04);
 
   --card: #121416;
-  --card-foreground: #F5F5F5;
+  --card-foreground: #F8FAFC;
   --popover: #121416;
-  --popover-foreground: #F5F5F5;
+  --popover-foreground: #F8FAFC;
 
   --muted: #181A1D;
-  --muted-foreground: #71717A;
+  --muted-foreground: #94A3B8;
 
   --destructive: #F87171;
   --destructive-foreground: #08090A;
@@ -278,9 +281,21 @@
     @apply border-border outline-ring/50;
     box-sizing: border-box;
   }
+  html {
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
   body {
     @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 1rem;
+    line-height: 1.6;
+    letter-spacing: -0.011em;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     transition: background-color 200ms cubic-bezier(0.4, 0, 0.2, 1),
                 color 200ms cubic-bezier(0.4, 0, 0.2, 1);
   }

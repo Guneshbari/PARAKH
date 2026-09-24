@@ -143,19 +143,19 @@ export default function AdminProfilePage() {
               <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
                 {officerName}
               </h2>
-              <Badge variant="secondary" className="text-[10px] py-0.5 px-2">
+              <Badge variant="secondary" className="text-xs py-0.5 px-2.5">
                 Certified {officerRole}
               </Badge>
-              <Badge variant="outline" className="text-[10px] py-0.5 px-2 font-mono">
+              <Badge variant="outline" className="text-xs py-0.5 px-2.5 font-mono">
                 {officerId}
               </Badge>
             </div>
 
-            <p className="text-xs text-foreground-secondary font-medium">
+            <p className="text-xs sm:text-sm text-foreground-secondary font-medium">
               Senior Credit Reviewer • Station 04 Desk
             </p>
 
-            <div className="flex flex-wrap items-center gap-3 text-xs text-foreground-muted pt-0.5">
+            <div className="flex flex-wrap items-center gap-3 text-xs sm:text-sm text-foreground-secondary pt-0.5">
               <span className="flex items-center gap-1">
                 <Building2 className="size-3.5 opacity-70" />
                 PARAKH Partner Lending Consortium
@@ -167,12 +167,12 @@ export default function AdminProfilePage() {
               </span>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2 pt-1 text-[11px]">
-              <span className="text-foreground-muted flex items-center gap-1">
+            <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
+              <span className="text-foreground-secondary flex items-center gap-1">
                 <Calendar className="size-3.5 opacity-70" />
                 Review Desk Active since Jan 2024
               </span>
-              <span className="text-foreground-muted">•</span>
+              <span className="text-foreground-secondary">•</span>
               <span className="text-foreground-secondary font-medium">
                 {completedReviewsCount} Human Reviews Logged
               </span>
@@ -184,7 +184,7 @@ export default function AdminProfilePage() {
           <Button
             variant="default"
             size="sm"
-            className="rounded-full gap-2 text-xs font-semibold px-5 shadow-xs shrink-0 cursor-pointer"
+            className="rounded-full gap-2 text-xs sm:text-sm font-semibold px-5 h-9 shadow-xs shrink-0 cursor-pointer"
           >
             <UserCheck className="size-3.5" />
             <span>Open Review Queue</span>
@@ -196,38 +196,38 @@ export default function AdminProfilePage() {
       <Card className="p-6 bg-surface border-border space-y-4">
         <div className="flex items-center justify-between pb-2 border-b border-border">
           <div className="space-y-0.5">
-            <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+            <h3 className="text-sm sm:text-base font-bold text-foreground flex items-center gap-2">
               <Scale className="size-4 text-foreground-secondary" />
               Underwriting Discretion Limits & Statutory Mandate
             </h3>
-            <p className="text-xs text-foreground-muted">
+            <p className="text-xs sm:text-sm text-foreground-secondary">
               Parameters governing independent qualitative reviews under RBI Fair Practice Code guidelines.
             </p>
           </div>
-          <Badge variant="mint" className="text-[10px]">
+          <Badge variant="mint" className="text-xs py-0.5 px-2">
             Level-2 Authorized
           </Badge>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
           <div className="p-4 rounded-2xl bg-surface-highlight/30 border border-border space-y-1.5">
-            <span className="text-xs text-foreground-muted block">Discretionary Capital Cap</span>
-            <span className="text-xl font-bold text-foreground font-mono">₹2,00,000</span>
-            <span className="text-[10px] text-foreground-secondary block">Single Applicant Limit</span>
+            <span className="text-xs sm:text-sm text-foreground-secondary block">Discretionary Capital Cap</span>
+            <span className="text-xl sm:text-2xl font-bold text-foreground font-mono">₹2,00,000</span>
+            <span className="text-xs text-foreground-secondary block">Single Applicant Limit</span>
           </div>
 
           <div className="p-4 rounded-2xl bg-surface-highlight/30 border border-border space-y-1.5">
-            <span className="text-xs text-foreground-muted block">Authorized Sectors</span>
-            <span className="text-sm font-bold text-foreground block">Gig & Informal</span>
-            <span className="text-[10px] text-foreground-muted block">Food, Salon, Auto, Retail</span>
+            <span className="text-xs sm:text-sm text-foreground-secondary block">Authorized Sectors</span>
+            <span className="text-sm sm:text-base font-bold text-foreground block">Gig & Informal</span>
+            <span className="text-xs text-foreground-secondary block">Food, Salon, Auto, Retail</span>
           </div>
 
           <div className="p-4 rounded-2xl bg-surface-highlight/30 border border-border space-y-1.5">
-            <span className="text-xs text-foreground-muted block">Fair Lending Certification</span>
-            <span className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+            <span className="text-xs sm:text-sm text-foreground-secondary block">Fair Lending Certification</span>
+            <span className="text-sm sm:text-base font-semibold text-foreground flex items-center gap-1.5">
               <CheckCircle2 className="size-3.5 text-foreground" /> Validated
             </span>
-            <span className="text-[10px] text-foreground-muted block">Annual Audit Certified</span>
+            <span className="text-xs text-foreground-secondary block">Annual Audit Certified</span>
           </div>
         </div>
       </Card>
@@ -236,11 +236,11 @@ export default function AdminProfilePage() {
       <Card className="p-6 bg-surface border-border space-y-5">
         <div className="flex items-center justify-between pb-2 border-b border-border">
           <div className="space-y-0.5">
-            <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+            <h3 className="text-sm sm:text-base font-bold text-foreground flex items-center gap-2">
               <ShieldCheck className="size-4 text-foreground-secondary" />
               Operational Desk Notifications
             </h3>
-            <p className="text-xs text-foreground-muted">
+            <p className="text-xs sm:text-sm text-foreground-secondary">
               Automated alerts when non-standard volatility cases enter the review queue.
             </p>
           </div>
@@ -249,10 +249,10 @@ export default function AdminProfilePage() {
         <div className="space-y-3.5">
           <div className="flex items-start justify-between gap-4 p-3.5 rounded-2xl bg-surface-highlight/30 border border-border">
             <div className="space-y-0.5">
-              <span className="text-xs font-semibold text-foreground block">
+              <span className="text-sm font-semibold text-foreground block">
                 Priority Review Queue Inflow Alerts
               </span>
-              <p className="text-[11px] text-foreground-muted">
+              <p className="text-xs sm:text-sm text-foreground-secondary">
                 Receive immediate desktop alerts when an application is flagged with INSUFFICIENT EVIDENCE / MANUAL REVIEW.
               </p>
             </div>
@@ -273,10 +273,10 @@ export default function AdminProfilePage() {
 
           <div className="flex items-start justify-between gap-4 p-3.5 rounded-2xl bg-surface-highlight/30 border border-border">
             <div className="space-y-0.5">
-              <span className="text-xs font-semibold text-foreground block">
+              <span className="text-sm font-semibold text-foreground block">
                 Monsoon & Seasonal Extreme Variance Warnings
               </span>
-              <p className="text-[11px] text-foreground-muted">
+              <p className="text-xs sm:text-sm text-foreground-secondary">
                 Notifies when regional rain dips exceed 30% to prevent misattribution of weather shocks to applicant distress.
               </p>
             </div>
@@ -297,10 +297,10 @@ export default function AdminProfilePage() {
 
           <div className="flex items-start justify-between gap-4 p-3.5 rounded-2xl bg-surface-highlight/30 border border-border">
             <div className="space-y-0.5">
-              <span className="text-xs font-semibold text-foreground block">
+              <span className="text-sm font-semibold text-foreground block">
                 Algorithmic Demographic Parity Drift Alerts
               </span>
-              <p className="text-[11px] text-foreground-muted">
+              <p className="text-xs sm:text-sm text-foreground-secondary">
                 Automatic escalation if Fairlearn demographic parity ratio falls below 0.85 across any gig cohort.
               </p>
             </div>
@@ -325,28 +325,28 @@ export default function AdminProfilePage() {
       <Card className="p-6 bg-surface border-border space-y-4">
         <div className="flex items-center justify-between pb-2 border-b border-border">
           <div className="space-y-0.5">
-            <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+            <h3 className="text-sm sm:text-base font-bold text-foreground flex items-center gap-2">
               <Key className="size-4 text-foreground-secondary" />
               Cryptographic Audit Signing & Security
             </h3>
-            <p className="text-xs text-foreground-muted">
+            <p className="text-xs sm:text-sm text-foreground-secondary">
               Credit Reviewer decisions are digitally signed and hashed to guarantee immutability.
             </p>
           </div>
-          <Badge variant="outline" className="text-[10px] font-mono">
+          <Badge variant="outline" className="text-xs font-mono">
             FIDO2 Hardware Attested
           </Badge>
         </div>
 
-        <div className="space-y-2.5 text-xs">
+        <div className="space-y-2.5 text-xs sm:text-sm">
           <div className="p-3.5 rounded-xl bg-surface-highlight/40 border border-border flex items-center justify-between">
             <div>
               <span className="font-semibold text-foreground block">Digital Signing Certificate</span>
-              <span className="text-[11px] text-foreground-muted font-mono">
+              <span className="text-xs text-foreground-secondary font-mono">
                 SHA-256 Fingerprint: 4F:9A:82:1C:E4:01:B7:90 • Valid till Dec 2027
               </span>
             </div>
-            <Badge variant="secondary" className="text-[10px]">
+            <Badge variant="secondary" className="text-xs">
               Active
             </Badge>
           </div>
@@ -354,17 +354,17 @@ export default function AdminProfilePage() {
           <div className="p-3.5 rounded-xl bg-surface-highlight/40 border border-border flex items-center justify-between">
             <div>
               <span className="font-semibold text-foreground block">Current Credit Reviewer Session</span>
-              <span className="text-[11px] text-foreground-muted font-mono">
+              <span className="text-xs text-foreground-secondary font-mono">
                 Session ID: AUD-2026-904 • Authenticated via Hardware Key
               </span>
             </div>
-            <span className="text-foreground-secondary font-mono text-[11px]">TLS 1.3 Secure</span>
+            <span className="text-foreground-secondary font-mono text-xs">TLS 1.3 Secure</span>
           </div>
         </div>
       </Card>
 
       {/* 6. STATUTORY GOVERNANCE FOOTNOTE */}
-      <div className="p-4 rounded-2xl bg-surface-highlight/30 border border-border text-[11px] text-foreground-muted flex items-start gap-3">
+      <div className="p-4 rounded-2xl bg-surface-highlight/30 border border-border text-xs sm:text-sm text-foreground-secondary flex items-start gap-3">
         <Info className="size-4 text-foreground-secondary shrink-0 mt-0.5" />
         <div className="space-y-0.5">
           <span className="font-semibold text-foreground block">

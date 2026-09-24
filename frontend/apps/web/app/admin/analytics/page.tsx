@@ -107,11 +107,11 @@ export default function AdminAnalyticsPage() {
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
               Portfolio Risk & Volatility Analytics
             </h1>
-            <Badge variant="mint" className="text-[10px] py-0.5 px-2">
+            <Badge variant="mint" className="text-xs py-0.5 px-2">
               Cohort Telemetry Live
             </Badge>
           </div>
-          <p className="text-xs sm:text-sm text-foreground-muted">
+          <p className="text-xs sm:text-sm text-foreground-secondary">
             Deep-dive cohort telemetry, recovery velocity dynamics, sector-wise risk segmentation, and long-term assessment stability.
           </p>
         </div>
@@ -131,7 +131,7 @@ export default function AdminAnalyticsPage() {
                 className={`px-3 py-1 rounded-full text-xs font-medium transition-all cursor-pointer ${
                   timeRange === t.id
                     ? 'bg-[#472393] text-white font-semibold shadow-xs dark:bg-foreground dark:text-background'
-                    : 'text-foreground-muted hover:text-[#472393] hover:bg-[#F5F1FF] dark:hover:text-foreground dark:hover:bg-transparent'
+                    : 'text-foreground-secondary hover:text-[#472393] hover:bg-[#F5F1FF] dark:hover:text-foreground dark:hover:bg-transparent'
                 }`}
               >
                 {t.label}
@@ -143,7 +143,7 @@ export default function AdminAnalyticsPage() {
             variant="ghost"
             size="sm"
             onClick={() => window.print()}
-            className="rounded-full gap-1.5 text-xs text-foreground-muted hover:text-foreground"
+            className="rounded-full gap-1.5 text-xs text-foreground-secondary hover:text-foreground"
           >
             <Printer className="size-3.5" /> Print Analytics
           </Button>
@@ -217,29 +217,29 @@ export default function AdminAnalyticsPage() {
               <Building2 className="size-4 text-foreground-secondary" />
               Risk Classification Distribution Across Gig Sectors
             </h3>
-            <p className="text-xs text-foreground-muted">
+            <p className="text-xs sm:text-sm text-foreground-secondary">
               Segmented risk volume showing proportion of Lower, Moderate, Higher, and Manual Review cases by worker cohort.
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-3 text-xs">
-            <span className="flex items-center gap-1.5 text-foreground-muted">
+            <span className="flex items-center gap-1.5 text-foreground-secondary">
               <span className="size-2.5 rounded-sm bg-foreground" /> Lower Risk
             </span>
-            <span className="flex items-center gap-1.5 text-foreground-muted">
+            <span className="flex items-center gap-1.5 text-foreground-secondary">
               <span className="size-2.5 rounded-sm bg-foreground-secondary opacity-70" /> Moderate Risk
             </span>
-            <span className="flex items-center gap-1.5 text-foreground-muted">
+            <span className="flex items-center gap-1.5 text-foreground-secondary">
               <span className="size-2.5 rounded-sm bg-foreground-muted opacity-50" /> Higher Risk
             </span>
-            <span className="flex items-center gap-1.5 text-foreground-muted">
+            <span className="flex items-center gap-1.5 text-foreground-secondary">
               <span className="size-2.5 rounded-sm bg-foreground-muted opacity-30" /> Manual Review
             </span>
           </div>
         </div>
 
         {sectorRiskData.length === 0 ? (
-          <div className="py-16 text-center text-xs text-foreground-muted space-y-1">
+          <div className="py-16 text-center text-xs sm:text-sm text-foreground-secondary space-y-1">
             <p className="font-semibold text-foreground">No Sector Risk Data Available</p>
             <p>Risk distribution across gig sectors will populate as applicants with profiles submit applications and complete assessments.</p>
           </div>
@@ -251,8 +251,8 @@ export default function AdminAnalyticsPage() {
                 margin={{ top: 15, right: 10, left: -10, bottom: 0 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke={chartGridColor} />
-                <XAxis dataKey="sector" stroke={chartAxisColor} fontSize={11} tickLine={false} />
-                <YAxis stroke={chartAxisColor} fontSize={11} tickLine={false} />
+                <XAxis dataKey="sector" stroke={chartAxisColor} fontSize={12} tickLine={false} />
+                <YAxis stroke={chartAxisColor} fontSize={12} tickLine={false} />
                 <Tooltip
                   content={({ active, payload, label }) => {
                     if (active && payload && payload.length) {
@@ -290,11 +290,11 @@ export default function AdminAnalyticsPage() {
               <Clock className="size-4 text-foreground-secondary" />
               Income Shock Rebound Trajectory Curves (Days 0 to 21)
             </h3>
-            <p className="text-xs text-foreground-muted">
+            <p className="text-xs sm:text-sm text-foreground-secondary">
               Tracks normalized post-shock earning recovery against traditional salaried baseline expectations.
             </p>
           </div>
-          <Badge variant="outline" className="text-[10px] font-mono">
+          <Badge variant="outline" className="text-xs font-mono">
             Pending ML Pipeline
           </Badge>
         </div>
@@ -305,23 +305,23 @@ export default function AdminAnalyticsPage() {
             <AlertTriangle className="size-5" />
           </div>
           <div className="space-y-1 max-w-md mx-auto">
-            <h4 className="text-xs font-semibold text-foreground">
+            <h4 className="text-sm font-semibold text-foreground">
               ML Analytics Unavailable Until Production Assessment Model Is Integrated
             </h4>
-            <p className="text-[11px] text-foreground-muted leading-relaxed">
+            <p className="text-xs sm:text-sm text-foreground-secondary leading-relaxed">
               Empirical recovery rebound curves and cyclical variance calibrations depend on Person 3&apos;s upcoming LightGBM/XGBoost volatility pipeline. In the interim, live assessments are scored through the deterministic MockAssessmentEngine.
             </p>
           </div>
         </div>
 
         {/* Explainability Callout */}
-        <div className="p-3.5 rounded-2xl bg-surface-highlight/40 border border-border text-xs text-foreground-secondary flex items-start gap-2.5">
+        <div className="p-3.5 rounded-2xl bg-surface-highlight/40 border border-border text-xs sm:text-sm text-foreground-secondary flex items-start gap-2.5">
           <Sparkles className="size-4 text-foreground-secondary shrink-0 mt-0.5" />
           <div className="space-y-0.5">
             <span className="font-semibold text-foreground block">
               Core PARAKH Methodology: Volatility Resilience & Recovery
             </span>
-            <p className="text-foreground-muted leading-relaxed">
+            <p className="text-foreground-secondary leading-relaxed">
               Traditional credit models treat sharp week-to-week income drops as insolvency risk. PARAKH alternative scoring is designed to recognize rapid cashflow rebound velocity across delivery and platform workers once seasonal dips resolve.
             </p>
           </div>
@@ -331,35 +331,35 @@ export default function AdminAnalyticsPage() {
       {/* 5. DETAILED SECTOR PERFORMANCE COMPARISON GRID */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {sectorRiskData.length === 0 ? (
-          <div className="col-span-full p-6 text-center rounded-2xl bg-surface border border-border text-xs text-foreground-muted">
+          <div className="col-span-full p-6 text-center rounded-2xl bg-surface border border-border text-xs sm:text-sm text-foreground-secondary">
             No sector breakdown records registered yet. Real applicant data will display here as profiles are registered.
           </div>
         ) : (
           sectorRiskData.map((s) => (
             <Card key={s.sector} className="p-5 bg-surface border-border space-y-3">
               <div className="space-y-0.5">
-                <h4 className="text-xs font-semibold text-foreground line-clamp-1">{s.sector}</h4>
-                <span className="text-[11px] font-mono text-foreground-muted">
+                <h4 className="text-sm font-semibold text-foreground line-clamp-1">{s.sector}</h4>
+                <span className="text-xs font-mono text-foreground-secondary">
                   {s.total.toLocaleString()} Assessed Applications
                 </span>
               </div>
 
-              <div className="space-y-2 text-xs pt-1 border-t border-border">
+              <div className="space-y-2 text-xs sm:text-sm pt-1 border-t border-border">
                 <div className="flex justify-between">
-                  <span className="text-foreground-muted">Lower Risk</span>
+                  <span className="text-foreground-secondary">Lower Risk</span>
                   <span className="font-mono font-semibold text-foreground">
                     {s.lowerRisk}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-foreground-muted">Moderate Risk</span>
+                  <span className="text-foreground-secondary">Moderate Risk</span>
                   <span className="font-mono font-semibold text-foreground">
                     {s.moderateRisk}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-foreground-muted">Higher / Review</span>
-                  <span className="font-mono text-foreground-secondary">
+                  <span className="text-foreground-secondary">Higher / Review</span>
+                  <span className="font-mono font-medium text-foreground-secondary">
                     {s.higherRisk + s.manualReview}
                   </span>
                 </div>
@@ -370,13 +370,13 @@ export default function AdminAnalyticsPage() {
       </div>
 
       {/* 6. STATUTORY GOVERNANCE FOOTNOTE */}
-      <div className="p-4 rounded-2xl bg-surface-highlight/30 border border-border text-[11px] text-foreground-muted flex items-start gap-3">
+      <div className="p-4 rounded-2xl bg-surface-highlight/30 border border-border text-xs text-foreground-secondary flex items-start gap-3">
         <Info className="size-4 text-foreground-secondary shrink-0 mt-0.5" />
         <div className="space-y-0.5">
           <span className="font-semibold text-foreground block">
             Portfolio Analytics Governance Notice
           </span>
-          <p>
+          <p className="leading-relaxed">
             Portfolio analytics reflect anonymized telemetry aggregated across partner platform APIs and RBI Account Aggregators. PARAKH provides explainable risk intelligence without automated lending decisions.
           </p>
         </div>
