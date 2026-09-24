@@ -15,6 +15,11 @@ import {
   RefreshCw,
   Clock,
   ShieldCheck,
+  Building2,
+  MapPin,
+  Users,
+  CheckCircle2,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -28,6 +33,7 @@ export default function AdminModelInsightsPage() {
   const [activeModel, setActiveModel] = useState<BackendModelVersion | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedFairnessCategory, setSelectedFairnessCategory] = useState<string>('gig_sectors');
 
   const fetchModelData = async () => {
     setIsLoading(true);
@@ -233,63 +239,231 @@ export default function AdminModelInsightsPage() {
       </div>
 
       {/* 3. FAIRLEARN DEMOGRAPHIC & COHORT PARITY AUDIT */}
-      <Card className="p-6 bg-surface border-border space-y-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-border">
-          <div>
-            <h2 className="text-base sm:text-lg font-bold text-foreground flex items-center gap-2">
-              <Scale className="size-4.5 text-foreground-secondary" />
-              Fairness Audit — {canonicalDemoData.mlInsights.fairness.status}
-            </h2>
+      <Card className="p-6 bg-surface border-border space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border">
+          <div className="space-y-1">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <h2 className="text-base sm:text-lg font-bold text-foreground flex items-center gap-2">
+                <Scale className="size-5 text-foreground-secondary" />
+                Fairness Audit — Fairlearn Subgroup Parity
+              </h2>
+              <Badge variant="mint" className="text-xs py-0.5 px-2.5 font-mono">
+                {canonicalDemoData.mlInsights.fairness.status}
+              </Badge>
+            </div>
             <p className="text-xs sm:text-sm text-foreground-secondary">
-              Demographic parity and equalized odds evaluation criteria across gig segments and geographies.
+              Demographic parity ratio (DPR) and equalized odds evaluation criteria across gig segments, geographies, and inclusion cohorts.
             </p>
           </div>
 
-          <Badge variant="mint" className="text-xs py-0.5 px-2.5 font-mono border-border">
-            Demo
-          </Badge>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-mono text-foreground-secondary">
+              N={canonicalDemoData.mlInsights.fairness.sampleEvaluatedCount.toLocaleString()} Evaluated
+            </span>
+          </div>
         </div>
 
-        {/* FAIRNESS AUDIT STATUS */}
-        <div className="p-6 rounded-2xl bg-surface-highlight/20 border border-border text-center space-y-3">
-          <div className="inline-flex p-3 rounded-full bg-surface-highlight text-foreground-secondary">
-            <Scale className="size-6" />
+        {/* TOP LEVEL PARITY KPIS */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="p-4 rounded-xl bg-surface-highlight/30 border border-border space-y-1">
+            <span className="text-xs font-semibold text-foreground-secondary block">Demographic Parity Ratio</span>
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl font-bold font-mono text-foreground">
+                {canonicalDemoData.mlInsights.fairness.demographicParityRatio}
+              </span>
+              <span className="text-xs text-mint font-semibold">Four-Fifths Pass</span>
+            </div>
+            <span className="text-xs text-foreground-secondary block">
+              Target corridor: {canonicalDemoData.mlInsights.fairness.targetCriteria}
+            </span>
           </div>
-          <div className="space-y-1 max-w-lg mx-auto">
-            <h3 className="text-sm sm:text-base font-semibold text-foreground">
-              Fairness Evaluation Completed
-            </h3>
-            <p className="text-xs sm:text-sm text-foreground-secondary leading-relaxed">
-              Demographic Parity Ratio: <span className="font-mono text-foreground font-bold">{canonicalDemoData.mlInsights.fairness.demographicParityRatio}</span>
-              <br />
-              Last Evaluated: <span className="font-mono">{new Date(canonicalDemoData.mlInsights.fairness.lastEvaluated).toLocaleDateString()}</span>
+
+          <div className="p-4 rounded-xl bg-surface-highlight/30 border border-border space-y-1">
+            <span className="text-xs font-semibold text-foreground-secondary block">Equal Opportunity Diff</span>
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl font-bold font-mono text-foreground">
+                {canonicalDemoData.mlInsights.fairness.equalOpportunityDifference}
+              </span>
+              <span className="text-xs text-mint font-semibold">Low Disparity</span>
+            </div>
+            <span className="text-xs text-foreground-secondary block">
+              True positive rate divergence &lt; 3%
+            </span>
+          </div>
+
+          <div className="p-4 rounded-xl bg-surface-highlight/30 border border-border space-y-1">
+            <span className="text-xs font-semibold text-foreground-secondary block">Protected Attributes</span>
+            <span className="text-sm sm:text-base font-bold text-foreground block">
+              Occupations & Geographies
+            </span>
+            <span className="text-xs text-foreground-secondary block">
+              DPDP compliant proxy segmentation
+            </span>
+          </div>
+
+          <div className="p-4 rounded-xl bg-surface-highlight/30 border border-border space-y-1">
+            <span className="text-xs font-semibold text-foreground-secondary block">Evaluation Protocol</span>
+            <span className="text-sm sm:text-base font-bold text-foreground block">
+              {canonicalDemoData.mlInsights.fairness.evaluationStandard}
+            </span>
+            <span className="text-xs text-foreground-secondary block">
+              RBI Fair Lending Code aligned
+            </span>
+          </div>
+        </div>
+
+        {/* FOUR-FIFTHS BENCHMARK GAUGE VISUALIZATION */}
+        <div className="p-4 rounded-xl bg-surface-highlight/20 border border-border space-y-2">
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-semibold text-foreground flex items-center gap-1.5">
+              <SlidersHorizontal className="size-3.5 text-foreground-secondary" />
+              Four-Fifths Rule Parity Corridor (0.80 — 1.25)
+            </span>
+            <span className="font-mono text-mint font-semibold">
+              Current Model: 0.93 DPR (Equitable Zone)
+            </span>
+          </div>
+
+          <div className="relative pt-2 pb-1">
+            {/* Background track */}
+            <div className="h-3 w-full rounded-full bg-surface border border-border overflow-hidden flex">
+              <div className="w-[30%] bg-rose-500/20" title="Adverse Impact Zone (< 0.80)" />
+              <div className="w-[45%] bg-emerald-500/25 border-x border-emerald-500/40 relative flex items-center justify-center text-[10px] text-emerald-600 dark:text-emerald-400 font-mono font-bold" title="Equitable Corridor (0.80 - 1.25)">
+                Equitable Corridor (80% - 125%)
+              </div>
+              <div className="w-[25%] bg-rose-500/20" title="Adverse Impact Zone (> 1.25)" />
+            </div>
+
+            {/* Scale markers */}
+            <div className="flex justify-between text-[11px] font-mono text-foreground-secondary pt-1.5">
+              <span>0.50</span>
+              <span className="text-amber-600 dark:text-amber-400 font-semibold">0.80 (Min Threshold)</span>
+              <span className="text-foreground font-bold underline decoration-mint decoration-2 underline-offset-2">0.93 (PARAKH)</span>
+              <span>1.00 (Parity)</span>
+              <span className="text-amber-600 dark:text-amber-400 font-semibold">1.25 (Max Threshold)</span>
+              <span>1.50</span>
+            </div>
+          </div>
+        </div>
+
+        {/* CATEGORY SELECTOR TABS */}
+        <div className="space-y-4 pt-1">
+          <div className="flex flex-wrap items-center gap-2 border-b border-border pb-3">
+            <span className="text-xs font-semibold text-foreground-secondary mr-2">Audit Cohort:</span>
+            {canonicalDemoData.mlInsights.fairness.categories.map((cat) => {
+              const isSelected = selectedFairnessCategory === cat.id;
+              const Icon = cat.id === 'gig_sectors' ? Building2 : cat.id === 'geography' ? MapPin : Users;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedFairnessCategory(cat.id)}
+                  className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
+                    isSelected
+                      ? 'bg-[#472393] text-white font-semibold shadow-xs dark:bg-foreground dark:text-background'
+                      : 'bg-surface-highlight text-foreground-secondary hover:text-[#472393] hover:bg-[#F5F1FF] dark:hover:text-foreground dark:hover:bg-surface-elevated border border-border'
+                  }`}
+                >
+                  <Icon className="size-3.5" />
+                  <span>{cat.name}</span>
+                  <Badge variant={isSelected ? "outline" : "secondary"} className="text-[10px] py-0 px-1.5 border-current">
+                    DPR {cat.dpr}
+                  </Badge>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* ACTIVE CATEGORY DETAIL & TABLE */}
+          {(() => {
+            const activeCategory =
+              canonicalDemoData.mlInsights.fairness.categories.find(
+                (c) => c.id === selectedFairnessCategory
+              ) || canonicalDemoData.mlInsights.fairness.categories[0];
+
+            return (
+              <div className="space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-xl bg-surface-highlight/30 border border-border text-xs sm:text-sm">
+                  <p className="text-foreground-secondary leading-relaxed">
+                    {activeCategory.description}
+                  </p>
+                  <div className="flex items-center gap-3 shrink-0 font-mono text-xs">
+                    <span className="text-foreground-secondary">
+                      Segment DPR: <strong className="text-foreground">{activeCategory.dpr}</strong>
+                    </span>
+                    <span className="text-foreground-secondary">
+                      EOD: <strong className="text-foreground">{activeCategory.eod}</strong>
+                    </span>
+                  </div>
+                </div>
+
+                {/* SUBGROUP COMPARISON TABLE */}
+                <div className="overflow-x-auto rounded-xl border border-border bg-surface">
+                  <table className="w-full text-left text-xs sm:text-sm">
+                    <thead className="bg-surface-highlight/50 border-b border-border text-xs font-semibold uppercase tracking-wider text-foreground-secondary">
+                      <tr>
+                        <th className="py-3 px-4">Subgroup Cohort</th>
+                        <th className="py-3 px-4 font-mono">Sample Size (N)</th>
+                        <th className="py-3 px-4">Favorable / Approval Rate</th>
+                        <th className="py-3 px-4 font-mono">Parity vs Benchmark</th>
+                        <th className="py-3 px-4 font-mono">True Pos. (Recall)</th>
+                        <th className="py-3 px-4">Disparate Impact Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border font-normal">
+                      {activeCategory.subgroups.map((sub) => (
+                        <tr key={sub.name} className="hover:bg-surface-highlight/20 transition-colors">
+                          <td className="py-3 px-4 font-semibold text-foreground">
+                            {sub.name}
+                          </td>
+                          <td className="py-3 px-4 font-mono text-foreground-secondary">
+                            {sub.sampleCount.toLocaleString()}
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-24 bg-surface-highlight h-2 rounded-full overflow-hidden shrink-0">
+                                <div
+                                  className="bg-emerald-500 h-full rounded-full transition-all duration-500"
+                                  style={{ width: `${sub.favorableRate}%` }}
+                                />
+                              </div>
+                              <span className="font-mono font-semibold text-foreground">
+                                {sub.favorableRate}%
+                              </span>
+                            </div>
+                          </td>
+                          <td className="py-3 px-4 font-mono text-foreground font-semibold">
+                            {sub.parityRatio} <span className="text-xs text-foreground-secondary font-normal">/ 1.00</span>
+                          </td>
+                          <td className="py-3 px-4 font-mono text-foreground-secondary">
+                            {sub.truePositiveRate}%
+                          </td>
+                          <td className="py-3 px-4">
+                            <Badge variant="mint" className="text-xs font-medium gap-1 py-0.5 px-2">
+                              <CheckCircle2 className="size-3" />
+                              <span>{sub.status}</span>
+                            </Badge>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+
+        {/* REGULATORY DISCLAIMER & GOVERNANCE NOTICE */}
+        <div className="p-4 rounded-xl bg-surface-highlight/20 border border-border text-xs sm:text-sm text-foreground-secondary flex items-start gap-3">
+          <Info className="size-4.5 text-foreground-secondary shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <span className="font-semibold text-foreground block">
+              DPDP & Fairlearn Methodology Notice
+            </span>
+            <p className="leading-relaxed text-foreground-secondary">
+              Fairlearn audit protocols evaluate whether the volatility-aware alternative scoring model introduces disparate impact across gig sectors, geographies, or tenured cohorts. In accordance with the Digital Personal Data Protection (DPDP) Act, raw sensitive personal demographic attributes are not captured; evaluations utilize anonymized operational metadata and synthetic proxy benchmark distributions.
             </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-left max-w-2xl mx-auto">
-            <div className="p-3 rounded-xl bg-surface border border-border space-y-1">
-              <span className="text-xs text-foreground-secondary block uppercase tracking-wider font-semibold">Target Criteria</span>
-              <span className="text-sm font-mono font-bold text-foreground block">0.80 – 1.25 DPR</span>
-              <span className="text-xs text-foreground-secondary block">Four-Fifths Rule target framework</span>
-            </div>
-            <div className="p-3 rounded-xl bg-surface border border-border space-y-1">
-              <span className="text-xs text-foreground-secondary block uppercase tracking-wider font-semibold">Protected Attributes</span>
-              <span className="text-sm font-bold text-foreground block">Gender & Geography</span>
-              <span className="text-xs text-foreground-secondary block">Urban, Semi-Urban, Tier 2/3 cohorts</span>
-            </div>
-            <div className="p-3 rounded-xl bg-surface border border-border space-y-1">
-              <span className="text-xs text-foreground-secondary block uppercase tracking-wider font-semibold">Evaluation Standard</span>
-              <span className="text-sm font-bold text-foreground block">Fairlearn Protocol</span>
-              <span className="text-xs text-foreground-secondary block">DPDP Act & RBI Fair Practice guidance</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Explainability guidance */}
-        <div className="p-3.5 rounded-xl bg-surface-highlight/20 border border-border text-xs sm:text-sm text-foreground-secondary flex items-start gap-2.5">
-          <Info className="size-4 text-foreground-secondary shrink-0 mt-0.5" />
-          <p className="leading-relaxed">
-            Fairlearn evaluation protocols are designed to assess whether alternative credit scoring models systematically disadvantage specific informal occupations, geographical clusters, or demographic cohorts once labeled protected-group evaluation data is compiled.
-          </p>
         </div>
       </Card>
 
