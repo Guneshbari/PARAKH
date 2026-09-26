@@ -215,7 +215,7 @@ export default function NewApplicationPage() {
       </div>
 
       {/* 2. PROGRESS STEPPER WITH RESTRAINED MONOCHROME INDICATORS */}
-      <div className="grid grid-cols-5 gap-2 pt-2">
+      <div className="grid grid-cols-5 gap-1.5 sm:gap-2 pt-2">
         {STEPS.map((s) => {
           const isActive = s.id === currentStep;
           const isCompleted = s.id < currentStep;
@@ -224,7 +224,7 @@ export default function NewApplicationPage() {
             <div
               key={s.id}
               onClick={() => s.id < currentStep && setCurrentStep(s.id)}
-              className={`flex flex-col items-center gap-1.5 p-2.5 rounded-2xl border transition-all cursor-pointer ${
+              className={`flex flex-col items-center gap-1 sm:gap-1.5 p-1.5 sm:p-2.5 rounded-xl sm:rounded-2xl border transition-all cursor-pointer ${
                 isActive
                   ? 'bg-[#472393] text-white border-[#472393] shadow-xs dark:bg-foreground dark:text-background dark:border-foreground'
                   : isCompleted
@@ -233,7 +233,7 @@ export default function NewApplicationPage() {
               }`}
             >
               <div
-                className={`size-6 rounded-full flex items-center justify-center font-bold text-xs ${
+                className={`size-5 sm:size-6 rounded-full flex items-center justify-center font-bold text-[10px] sm:text-xs shrink-0 ${
                   isActive
                     ? 'bg-white text-[#472393] dark:bg-background dark:text-foreground'
                     : isCompleted
@@ -430,7 +430,7 @@ export default function NewApplicationPage() {
                 <label className="text-xs font-semibold uppercase tracking-wider text-foreground-muted">
                   Inflow Settlement Frequency
                 </label>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {[
                     { id: 'daily', label: 'Daily' },
                     { id: 'weekly', label: 'Weekly' },
@@ -635,7 +635,7 @@ export default function NewApplicationPage() {
               <span className="font-semibold text-foreground-muted uppercase tracking-wider text-[11px]">
                 Application Summary
               </span>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-foreground-secondary">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-foreground-secondary">
                 <div>
                   <span className="text-foreground-muted block text-[11px]">Applicant</span>
                   <span className="font-semibold text-foreground">{formData.fullName}</span>

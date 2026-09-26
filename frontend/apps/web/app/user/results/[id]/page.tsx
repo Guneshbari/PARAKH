@@ -35,13 +35,13 @@ export default function CreditAssessmentResultPage({ params }: ResultPageProps) 
     <PageTransition className="space-y-6 sm:space-y-8 w-full pb-16">
       {/* 1. TOP UTILITY BAR & BREADCRUMB */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3 min-w-0">
           <Link href="/user/dashboard">
             <Button variant="outline" size="sm" className="rounded-full gap-1.5 text-xs px-4">
               <ArrowLeft className="size-3.5" /> Back to Dashboard
             </Button>
           </Link>
-          <h1 className="text-xs sm:text-sm font-semibold text-foreground">
+          <h1 className="text-xs sm:text-sm font-semibold text-foreground truncate">
             Credit Assessment Dossier{' '}
             <span className="text-xs text-foreground-muted font-mono font-normal">
               ({id.toUpperCase()})
@@ -49,7 +49,7 @@ export default function CreditAssessmentResultPage({ params }: ResultPageProps) 
           </h1>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button
             variant="ghost"
             size="sm"

@@ -129,8 +129,8 @@ export default function AdminDashboardPage() {
   return (
     <PageTransition className="space-y-6 sm:space-y-8 w-full pb-16">
       {/* 1. TOP HEADER & OPERATIONAL STATUS */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-border">
-        <div className="space-y-1">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-border">
+        <div className="space-y-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2.5">
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
               Credit Review Dashboard
@@ -635,7 +635,7 @@ export default function AdminDashboardPage() {
 
         {/* Queue Table */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full min-w-[700px] text-left text-xs">
             <thead className="bg-surface-highlight/40 border-b border-border text-foreground-muted font-medium uppercase tracking-wider text-[11px]">
               <tr>
                 <th className="py-3 px-4">Application ID</th>
@@ -721,8 +721,8 @@ export default function AdminDashboardPage() {
 
       {/* 8. INTERACTIVE HUMAN-IN-THE-LOOP REVIEW MODAL */}
       {selectedCase && (
-        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-surface border border-border rounded-2xl max-w-xl w-full p-6 sm:p-7 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-surface border border-border rounded-2xl max-w-xl w-full p-5 sm:p-7 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-200 my-auto max-h-[90vh] overflow-y-auto">
             <div className="flex items-start justify-between pb-3 border-b border-border">
               <div>
                 <div className="flex items-center gap-2">
@@ -768,7 +768,7 @@ export default function AdminDashboardPage() {
                 <label className="text-xs font-semibold text-foreground block">
                   Reviewer Action Type
                 </label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   {[
                     { id: 'MANUAL_REVIEW', label: 'Manual Review' },
                     { id: 'REQUEST_VERIFICATION', label: 'Request Verify' },

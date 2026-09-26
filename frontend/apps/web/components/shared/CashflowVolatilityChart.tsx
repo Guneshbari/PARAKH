@@ -162,19 +162,19 @@ export function CashflowVolatilityChart({
       </div>
 
       {/* Footer Legend */}
-      <div className="pt-3 border-t border-border flex items-center justify-between text-xs text-foreground-muted">
-        <div className="flex items-center gap-4">
+      <div className="pt-3 border-t border-border flex flex-wrap items-center justify-between gap-2 text-xs text-foreground-muted">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
           <div className="flex items-center gap-1.5">
-            <span className="size-2 rounded-full bg-foreground" />
+            <span className="size-2 rounded-full bg-foreground shrink-0" />
             <span>Weekly Inflow</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="size-2 rounded-full bg-foreground-muted/40" />
+            <span className="size-2 rounded-full bg-foreground-muted/40 shrink-0" />
             <span>Obligation Threshold</span>
           </div>
         </div>
 
-        <span className="text-[11px] text-foreground-secondary font-medium">Resilient Recovery Pattern</span>
+        <span className="text-[11px] text-foreground-secondary font-medium shrink-0">Resilient Recovery Pattern</span>
       </div>
     </Card>
   );

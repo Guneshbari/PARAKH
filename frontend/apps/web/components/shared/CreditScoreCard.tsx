@@ -49,30 +49,30 @@ export function CreditScoreCard({
       </div>
 
       {/* Secondary Metrics Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4 border-t border-border">
-        <div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4 pt-4 border-t border-border">
+        <div className="min-w-0">
           <span className="text-xs text-foreground-muted block">
             Estimated Repayment Risk
           </span>
-          <span className="text-sm font-bold text-foreground font-mono mt-0.5 block">
+          <span className="text-sm font-bold text-foreground font-mono mt-0.5 block truncate">
             {assessment.estimatedRepaymentDifficulty}% Difficulty
           </span>
         </div>
 
-        <div>
+        <div className="min-w-0">
           <span className="text-xs text-foreground-muted block flex items-center gap-1">
             <ShieldCheck className="size-3 text-foreground-muted" /> Data Confidence
           </span>
-          <span className="text-sm font-bold text-foreground font-mono mt-0.5 block">
+          <span className="text-sm font-bold text-foreground font-mono mt-0.5 block truncate">
             {assessment.modelConfidence}% High Confidence
           </span>
         </div>
 
-        <div className="col-span-2 sm:col-span-1">
+        <div className="min-w-0">
           <span className="text-xs text-foreground-muted block flex items-center gap-1">
             <Activity className="size-3 text-foreground-muted" /> Shock Recovery
           </span>
-          <span className="text-sm font-bold text-foreground font-mono mt-0.5 block">
+          <span className="text-sm font-bold text-foreground font-mono mt-0.5 block truncate">
             {Math.round((assessment.volatilityProfile?.recoveryRateAfterLowIncome ?? 0.94) * 100)}% Rebound Rate
           </span>
         </div>

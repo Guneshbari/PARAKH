@@ -8,12 +8,8 @@ import {
   User,
   Lock,
   Mail,
-  ArrowRight,
   Sun,
   Moon,
-  AlertCircle,
-  ShieldCheck,
-  CheckCircle2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -134,7 +130,7 @@ function SignupFormContent() {
             <div className="flex flex-col">
               <span className="text-base font-black tracking-tight text-foreground flex items-center gap-1.5">
                 PARAKH
-                <span className="text-[10px] font-mono uppercase tracking-wider text-foreground-muted px-1.5 py-0.2 rounded-full bg-surface-elevated border border-border">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-foreground-muted px-1.5 py-0.5 rounded-full bg-surface-elevated border border-border hidden sm:inline-flex">
                   Registration
                 </span>
               </span>

@@ -79,17 +79,19 @@ export function Header() {
   const { isDark, toggleTheme } = useTheme();
   const { user, role, logout } = useAuth();
 
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
-  const notifRef = useRef<HTMLDivElement>(null);
-
   const userRole = user?.role || role;
   const isApplicant = userRole === 'applicant';
   const isReviewer = userRole === 'reviewer';
 
-  useEffect(() => {
-    setNotifications(isReviewer ? REVIEWER_NOTIFICATIONS : APPLICANT_NOTIFICATIONS);
-  }, [isReviewer]);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [readIds, setReadIds] = useState<string[]>([]);
+  const notifRef = useRef<HTMLDivElement>(null);
+
+  const baseNotifs = isReviewer ? REVIEWER_NOTIFICATIONS : APPLICANT_NOTIFICATIONS;
+  const notifications = baseNotifs.map((n) => ({
+    ...n,
+    unread: readIds.includes(n.id) ? false : n.unread,
+  }));
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -118,13 +120,11 @@ export function Header() {
   const unreadCount = notifications.filter((n) => n.unread).length;
 
   const markAllRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
+    setReadIds(baseNotifs.map((n) => n.id));
   };
 
   const handleNotificationClick = (item: NotificationItem) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === item.id ? { ...n, unread: false } : n))
-    );
+    setReadIds((prev) => (prev.includes(item.id) ? prev : [...prev, item.id]));
     setNotificationsOpen(false);
     if (item.link) {
       router.push(item.link);
@@ -174,7 +174,7 @@ export function Header() {
         <div className="flex items-center gap-2 sm:gap-3">
           {/* Explicit Role-Aware Navigation: ONLY render the user's role dashboard */}
           {isApplicant && (
-            <div className="hidden md:flex items-center bg-surface-elevated p-1 rounded-full border border-border">
+            <div className="hidden lg:flex items-center bg-surface-elevated p-1 rounded-full border border-border">
               <Link href="/user/dashboard">
                 <Button
                   variant={pathname.startsWith('/user') ? 'secondary' : 'ghost'}
@@ -188,7 +188,7 @@ export function Header() {
           )}
 
           {isReviewer && (
-            <div className="hidden md:flex items-center bg-surface-elevated p-1 rounded-full border border-border">
+            <div className="hidden lg:flex items-center bg-surface-elevated p-1 rounded-full border border-border">
               <Link href="/admin/dashboard">
                 <Button
                   variant={pathname.startsWith('/admin') ? 'secondary' : 'ghost'}
@@ -232,7 +232,7 @@ export function Header() {
               <div
                 role="dialog"
                 aria-label="Notifications Panel"
-                className="absolute right-0 top-full mt-2 w-80 sm:w-96 rounded-2xl border border-border bg-surface dark:bg-surface-elevated shadow-card-elevated z-50 overflow-hidden text-foreground"
+                className="absolute right-0 top-full mt-2 w-[calc(100vw-2rem)] sm:w-96 max-w-sm rounded-2xl border border-border bg-surface dark:bg-surface-elevated shadow-card-elevated z-50 overflow-hidden text-foreground"
               >
                 <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-surface-highlight/30">
                   <div className="flex items-center gap-2">
@@ -299,7 +299,7 @@ export function Header() {
                 <div className="size-6.5 rounded-full bg-[#472393] text-white dark:bg-foreground dark:text-background flex items-center justify-center font-bold text-xs">
                   <User className="size-3.5" />
                 </div>
-                <span className="text-xs font-medium text-foreground-secondary hidden sm:inline">
+                <span className="text-xs font-medium text-foreground-secondary hidden sm:inline max-w-[130px] lg:max-w-none truncate">
                   {user?.name || (isReviewer ? 'Priya Sharma (Reviewer)' : 'Arjun Verma')}
                 </span>
               </div>

@@ -9,12 +9,8 @@ import {
   User,
   Lock,
   Mail,
-  ArrowRight,
   Sun,
   Moon,
-  Info,
-  CheckCircle2,
-  AlertCircle,
   KeyRound,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -74,6 +70,7 @@ function LoginFormContent() {
   useEffect(() => {
     const roleParam = searchParams.get('role');
     if (roleParam === 'reviewer' || roleParam === 'applicant') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveRole(roleParam);
       setError(null);
       setAuthStatus('idle');
@@ -233,7 +230,7 @@ function LoginFormContent() {
             <div className="flex flex-col">
               <span className="text-base font-black tracking-tight text-foreground flex items-center gap-1.5">
                 PARAKH
-                <span className="text-[10px] font-mono uppercase tracking-wider text-foreground-muted px-1.5 py-0.2 rounded-full bg-surface-elevated border border-border">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-foreground-muted px-1.5 py-0.5 rounded-full bg-surface-elevated border border-border hidden sm:inline-flex">
                   Access Control
                 </span>
               </span>

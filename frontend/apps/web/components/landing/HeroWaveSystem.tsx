@@ -45,7 +45,7 @@ function buildSharedRibbonStrands(side: 'left' | 'right'): RibbonStrandConfig[] 
     let k2 = 2.8;
     let phase1 = i * 0.75 + (isLeft ? 0 : 1.95);
     let phase2 = i * 1.1 + (isLeft ? 1.2 : 0.45);
-    let speed = 0.75 + (i % 4) * 0.12;
+    const speed = 0.75 + (i % 4) * 0.12;
     let strokeWidth = 0.65;
     let opacity = 0.25;
     let tier: RibbonStrandConfig['tier'] = 'hairline';

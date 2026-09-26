@@ -76,7 +76,7 @@ export default function UserApplicationsPage() {
         </div>
 
         {/* Status Filter Pills */}
-        <div className="flex flex-wrap items-center gap-1.5 bg-surface-highlight p-1 rounded-full border border-border w-full sm:w-auto justify-start sm:justify-end">
+        <div className="flex flex-wrap items-center gap-1.5 bg-surface-highlight p-1 rounded-2xl sm:rounded-full border border-border w-full sm:w-auto justify-start sm:justify-end">
           {[
             { id: 'ALL', label: 'All Evaluations' },
             { id: 'COMPLETED', label: 'Completed' },
@@ -132,7 +132,7 @@ export default function UserApplicationsPage() {
           {/* Desktop Table View */}
           <Card className="hidden sm:block overflow-hidden p-0">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
+              <table className="w-full min-w-[620px] text-left text-xs">
                 <thead className="bg-surface-highlight/40 border-b border-border text-foreground-muted font-medium uppercase tracking-wider text-[11px]">
                   <tr>
                     <th className="py-3.5 px-5">Application ID</th>

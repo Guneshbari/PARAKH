@@ -31,18 +31,18 @@ export function FeatureContributionCard({
 
           return (
             <div key={item.featureName} className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs">
-                <div className="flex items-center gap-1.5 font-medium text-foreground-secondary">
+              <div className="flex items-center justify-between gap-2 text-xs">
+                <div className="flex items-center gap-1.5 font-medium text-foreground-secondary min-w-0">
                   {isPositive ? (
-                    <ArrowUpRight className="size-3.5 text-foreground" />
+                    <ArrowUpRight className="size-3.5 text-foreground shrink-0" />
                   ) : (
-                    <ArrowDownRight className="size-3.5 text-foreground-muted" />
+                    <ArrowDownRight className="size-3.5 text-foreground-muted shrink-0" />
                   )}
-                  <span>{item.displayName}</span>
+                  <span className="truncate">{item.displayName}</span>
                 </div>
                 <span
                   className={cn(
-                    'font-mono font-semibold text-[11px]',
+                    'font-mono font-semibold text-[11px] shrink-0',
                     isPositive ? 'text-foreground' : 'text-foreground-muted'
                   )}
                 >

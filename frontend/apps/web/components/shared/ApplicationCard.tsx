@@ -47,27 +47,27 @@ export function ApplicationCard({
         </div>
       </div>
 
-      <div className="pt-3 flex items-center justify-between">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
+      <div className="pt-3 flex items-center justify-between gap-3">
+        <div className="space-y-1 min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="text-xl sm:text-2xl font-semibold text-foreground font-mono">
               {formatCurrency(application.requestedAmount)}
             </span>
-            <span className="text-xs px-2.5 py-0.5 rounded-full bg-surface-highlight border border-border text-foreground-secondary">
+            <span className="text-xs px-2.5 py-0.5 rounded-full bg-surface-highlight border border-border text-foreground-secondary truncate max-w-full">
               {application.purpose}
             </span>
           </div>
 
-          <div className="flex items-center gap-2 text-xs text-foreground-muted">
-            <Layers className="size-3" />
-            <span>{application.applicantName}</span>
-            <span>•</span>
-            <span className="capitalize">{application.employmentType.replace('_', ' ').toLowerCase()}</span>
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-foreground-muted min-w-0">
+            <Layers className="size-3 shrink-0" />
+            <span className="truncate">{application.applicantName}</span>
+            <span className="shrink-0">•</span>
+            <span className="capitalize shrink-0">{application.employmentType.replace('_', ' ').toLowerCase()}</span>
           </div>
         </div>
 
         {onSelect && (
-          <div className="size-8 rounded-full bg-surface-highlight border border-border flex items-center justify-center text-foreground-muted hover:text-[#472393] hover:border-[rgba(71,35,147,0.3)] dark:hover:text-foreground dark:hover:border-border transition-colors">
+          <div className="size-8 shrink-0 rounded-full bg-surface-highlight border border-border flex items-center justify-center text-foreground-muted hover:text-[#472393] hover:border-[rgba(71,35,147,0.3)] dark:hover:text-foreground dark:hover:border-border transition-colors">
             <ChevronRight className="size-4" />
           </div>
         )}

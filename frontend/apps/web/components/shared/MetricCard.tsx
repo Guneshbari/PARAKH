@@ -50,8 +50,8 @@ export function MetricCard({
         )}
       </div>
 
-      <div className="flex items-baseline gap-2">
-        <span className="text-3xl sm:text-4xl font-semibold text-foreground tracking-tight font-mono">
+      <div className="flex flex-wrap items-baseline gap-2 min-w-0">
+        <span className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-foreground tracking-tight font-mono min-w-0">
           <AnimatedNumber
             value={value}
             format={format}
@@ -60,7 +60,7 @@ export function MetricCard({
           />
         </span>
         {pillLabel && Icon && (
-          <Badge variant={pillVariant} className="text-[10px] py-0.5 px-2">
+          <Badge variant={pillVariant} className="text-[10px] py-0.5 px-2 shrink-0">
             {pillLabel}
           </Badge>
         )}

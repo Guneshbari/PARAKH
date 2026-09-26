@@ -162,7 +162,7 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailPageP
           </span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button
             variant="ghost"
             size="sm"
@@ -186,8 +186,8 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailPageP
       </div>
 
       {/* 2. APPLICATION HEADER HERO */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 p-6 rounded-2xl bg-surface dark:bg-surface-elevated border border-border-strong shadow-card-elevated">
-        <div className="space-y-2">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 p-6 rounded-2xl bg-surface dark:bg-surface-elevated border border-border-strong shadow-card-elevated">
+        <div className="space-y-2 min-w-0">
           <div className="flex flex-wrap items-center gap-2.5">
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight font-mono">
               {application.id}

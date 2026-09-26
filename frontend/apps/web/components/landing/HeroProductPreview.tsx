@@ -13,7 +13,6 @@ import {
   CheckCircle2,
   ShieldCheck,
 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { MethodologyModal } from '@/components/shared/MethodologyModal';
 
@@ -80,7 +79,7 @@ export function HeroProductPreview() {
                 <div className="size-7 rounded-xl bg-[#EEF2FF] hover:bg-[#E0E7FF] dark:bg-surface-elevated border border-[#C7D2FE]/60 dark:border-border flex items-center justify-center text-[#4F46E5] dark:text-foreground-secondary shadow-2xs transition-colors">
                   <TrendingUp className="size-3.5" />
                 </div>
-                <span className="text-xs font-semibold text-[#172033] dark:text-foreground-secondary">
+                <span className="text-xs font-semibold text-[#172033] dark:text-zinc-200">
                   Total balance (12 month)
                 </span>
               </div>
@@ -94,7 +93,7 @@ export function HeroProductPreview() {
                 +17%
               </span>
             </div>
-            <span className="text-[10px] sm:text-[11px] text-[#667085] dark:text-foreground-muted block -mt-1 font-medium">
+            <span className="text-[10px] sm:text-[11px] text-slate-500 dark:text-zinc-400 block -mt-1 font-medium">
               credit the invisible
             </span>
 
@@ -203,7 +202,7 @@ export function HeroProductPreview() {
                     <h2 className="text-[11.5px] sm:text-[12px] font-bold text-[#0F172A] dark:text-foreground tracking-tight leading-tight">
                       Good morning, Arjun
                     </h2>
-                    <p className="text-[8.5px] sm:text-[9px] text-[#475569] dark:text-foreground-muted leading-tight pt-0.5 font-medium">Credit for the invisible.</p>
+                    <p className="text-[8.5px] sm:text-[9px] text-slate-500 dark:text-zinc-400 leading-tight pt-0.5 font-medium">Credit for the invisible.</p>
                   </div>
                   <span className="text-[7.5px] sm:text-[8px] font-mono text-emerald-600 dark:text-emerald-400 flex items-center gap-1 bg-white dark:bg-white/[0.04] border border-[rgba(15,23,42,0.08)] dark:border-border/60 px-1.5 py-0.5 rounded-full font-semibold">
                     <span className="size-1 rounded-full bg-emerald-500" />
@@ -218,7 +217,7 @@ export function HeroProductPreview() {
                       <span className="text-[26px] sm:text-[28px] font-black text-[#0F172A] dark:text-foreground font-mono tracking-tight leading-none">
                         742
                       </span>
-                      <span className="text-[8.5px] font-mono text-[#64748B] dark:text-foreground-muted font-semibold">/ 850</span>
+                      <span className="text-[8.5px] font-mono text-slate-500 dark:text-zinc-400 font-semibold">/ 850</span>
                     </div>
                     <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-600 dark:text-emerald-400 text-[8px] font-bold tracking-wide">
                       <CheckCircle2 className="size-2.5 shrink-0" />
@@ -262,7 +261,7 @@ export function HeroProductPreview() {
                       <span className="text-[9.5px] font-black text-[#0F172A] dark:text-foreground font-mono leading-none">
                         742
                       </span>
-                      <span className="text-[6.5px] text-[#64748B] dark:text-foreground-muted font-mono leading-none pt-0.5 font-bold">
+                      <span className="text-[6.5px] text-slate-500 dark:text-zinc-400 font-mono leading-none pt-0.5 font-bold">
                         TOP 15%
                       </span>
                     </div>
@@ -275,7 +274,7 @@ export function HeroProductPreview() {
                     <span className="text-[11px] font-bold text-[#0F172A] dark:text-foreground font-mono block leading-tight">
                       21%
                     </span>
-                    <span className="text-[7.5px] sm:text-[8px] text-[#64748B] dark:text-foreground-muted font-medium block pt-0.5 whitespace-nowrap">
+                    <span className="text-[7.5px] sm:text-[8px] text-slate-500 dark:text-zinc-400 font-medium block pt-0.5 whitespace-nowrap">
                       Difficulty
                     </span>
                   </div>
@@ -283,7 +282,7 @@ export function HeroProductPreview() {
                     <span className="text-[11px] font-bold text-[#0F172A] dark:text-foreground font-mono block leading-tight">
                       87%
                     </span>
-                    <span className="text-[7.5px] sm:text-[8px] text-[#64748B] dark:text-foreground-muted font-medium block pt-0.5 whitespace-nowrap">
+                    <span className="text-[7.5px] sm:text-[8px] text-slate-500 dark:text-zinc-400 font-medium block pt-0.5 whitespace-nowrap">
                       Confidence
                     </span>
                   </div>
@@ -291,7 +290,7 @@ export function HeroProductPreview() {
                     <span className="text-[11px] font-bold text-[#0F172A] dark:text-foreground font-mono block leading-tight">
                       94%
                     </span>
-                    <span className="text-[7.5px] sm:text-[8px] text-[#64748B] dark:text-foreground-muted font-medium block pt-0.5 whitespace-nowrap">
+                    <span className="text-[7.5px] sm:text-[8px] text-slate-500 dark:text-zinc-400 font-medium block pt-0.5 whitespace-nowrap">
                       Recovery
                     </span>
                   </div>
@@ -312,7 +311,7 @@ export function HeroProductPreview() {
                 <div className="mt-2 sm:mt-2.5 pt-1.5 border-t border-[rgba(15,23,42,0.08)] dark:border-border/70 space-y-1 shrink-0">
                   <div className="flex items-center justify-between">
                     <span className="text-[#0F172A] dark:text-foreground font-semibold flex items-center gap-1.5 text-[9.5px] sm:text-[10px]">
-                      <Activity className="size-3 text-[#64748B] dark:text-foreground-muted" />
+                      <Activity className="size-3 text-slate-400 dark:text-zinc-400" />
                       Alternative Assessment
                     </span>
                     <span className="text-[8px] font-bold text-[#0F172A] dark:text-foreground bg-[#EEF2F6] dark:bg-surface-elevated border border-[rgba(15,23,42,0.08)] dark:border-border/80 px-1.5 py-0.5 rounded leading-none flex items-center gap-0.5">
@@ -351,15 +350,15 @@ export function HeroProductPreview() {
                   <div className="grid grid-cols-3 gap-1.5 text-center font-mono">
                     <div className="bg-[#F8FAFC] dark:bg-white/[0.03] rounded-md px-1 py-1 border border-[rgba(15,23,42,0.06)] dark:border-border/50">
                       <span className="text-[10.5px] sm:text-[11px] font-bold text-[#0F172A] dark:text-foreground block leading-none">12</span>
-                      <span className="text-[7.5px] text-[#64748B] dark:text-foreground-muted font-sans font-medium block pt-0.5 whitespace-nowrap">Signals</span>
+                      <span className="text-[7.5px] text-slate-500 dark:text-zinc-400 font-sans font-medium block pt-0.5 whitespace-nowrap">Signals</span>
                     </div>
                     <div className="bg-[#F8FAFC] dark:bg-white/[0.03] rounded-md px-1 py-1 border border-[rgba(15,23,42,0.06)] dark:border-border/50">
                       <span className="text-[10.5px] sm:text-[11px] font-bold text-[#0F172A] dark:text-foreground block leading-none">8</span>
-                      <span className="text-[7.5px] text-[#64748B] dark:text-foreground-muted font-sans font-medium block pt-0.5 whitespace-nowrap">Sources</span>
+                      <span className="text-[7.5px] text-slate-500 dark:text-zinc-400 font-sans font-medium block pt-0.5 whitespace-nowrap">Sources</span>
                     </div>
                     <div className="bg-[#F8FAFC] dark:bg-white/[0.03] rounded-md px-1 py-1 border border-[rgba(15,23,42,0.06)] dark:border-border/50">
                       <span className="text-[10.5px] sm:text-[11px] font-bold text-[#0F172A] dark:text-foreground block leading-none">94%</span>
-                      <span className="text-[7.5px] text-[#64748B] dark:text-foreground-muted font-sans font-medium block pt-0.5 whitespace-nowrap">Fresh</span>
+                      <span className="text-[7.5px] text-slate-500 dark:text-zinc-400 font-sans font-medium block pt-0.5 whitespace-nowrap">Fresh</span>
                     </div>
                   </div>
                 </div>
@@ -372,7 +371,7 @@ export function HeroProductPreview() {
                       Income pattern stable
                     </span>
                   </div>
-                  <span className="font-mono text-[#64748B] dark:text-foreground-muted text-[7.5px] sm:text-[8px] shrink-0 ml-1.5 font-medium">
+                  <span className="font-mono text-slate-500 dark:text-zinc-400 text-[7.5px] sm:text-[8px] shrink-0 ml-1.5 font-medium">
                     2h ago
                   </span>
                 </div>
@@ -385,15 +384,15 @@ export function HeroProductPreview() {
                     <span className="text-[8.5px] font-bold tracking-tight">Overview</span>
                     <div className="size-1 rounded-full bg-[#0F172A] dark:bg-foreground" />
                   </div>
-                  <div className="flex flex-col items-center gap-0.5 text-[#64748B] dark:text-foreground-muted hover:text-[#0F172A] dark:hover:text-foreground cursor-pointer">
+                  <div className="flex flex-col items-center gap-0.5 text-slate-500 dark:text-zinc-400 hover:text-slate-800 dark:hover:text-zinc-200 cursor-pointer">
                     <span className="text-[8px] font-semibold">Timeline</span>
                     <div className="size-1 rounded-full bg-transparent" />
                   </div>
-                  <div className="flex flex-col items-center gap-0.5 text-[#64748B] dark:text-foreground-muted hover:text-[#0F172A] dark:hover:text-foreground cursor-pointer">
+                  <div className="flex flex-col items-center gap-0.5 text-slate-500 dark:text-zinc-400 hover:text-slate-800 dark:hover:text-zinc-200 cursor-pointer">
                     <span className="text-[8px] font-semibold">Verify</span>
                     <div className="size-1 rounded-full bg-transparent" />
                   </div>
-                  <div className="flex flex-col items-center gap-0.5 text-[#64748B] dark:text-foreground-muted hover:text-[#0F172A] dark:hover:text-foreground cursor-pointer">
+                  <div className="flex flex-col items-center gap-0.5 text-slate-500 dark:text-zinc-400 hover:text-slate-800 dark:hover:text-zinc-200 cursor-pointer">
                     <span className="text-[8px] font-semibold">SHAP</span>
                     <div className="size-1 rounded-full bg-transparent" />
                   </div>
@@ -434,16 +433,13 @@ export function HeroProductPreview() {
                 <div className="size-7 rounded-xl bg-[#F6F2FF] hover:bg-[#EDE9FE] dark:bg-surface-elevated border border-[rgba(71,35,147,0.22)] dark:border-border flex items-center justify-center text-[#472393] dark:text-foreground shadow-2xs transition-colors">
                   <Sparkles className="size-3.5" />
                 </div>
-                <span className="text-xs font-bold text-[#172033] dark:text-foreground tracking-wide font-mono text-[11px]">
+                <span className="text-xs font-bold text-[#172033] dark:text-zinc-100 tracking-wide font-mono text-[11px]">
                   Trends & Insight
                 </span>
               </div>
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#F6F2FF] dark:bg-surface-elevated border border-[rgba(71,35,147,0.22)] dark:border-border text-[#472393] dark:text-foreground-muted font-semibold">
-                AI
-              </span>
             </div>
 
-            <p className="text-xs text-[#475467] dark:text-foreground-secondary leading-relaxed font-medium">
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-200 leading-relaxed font-normal">
               &ldquo;Your income shows strong stability with positive recovery across multiple
               platforms, indicating healthy cash flow resilience.&rdquo;
             </p>
@@ -458,17 +454,7 @@ export function HeroProductPreview() {
                 <span>View Breakdown</span>
                 <ArrowRight className="size-3 text-[#472393] dark:text-foreground" />
               </Button>
-              <span className="text-[10px] text-[#667085] dark:text-foreground-muted font-mono font-medium">Explainable AI</span>
-            </div>
-
-            {/* Corner diamond sparkle glint */}
-            <div
-              className="absolute -bottom-2 -right-2 size-5 pointer-events-none text-[#7C8DB5] dark:text-foreground opacity-80"
-              aria-hidden="true"
-            >
-              <svg viewBox="0 0 24 24" fill="currentColor" className="size-full">
-                <path d="M 12 0 Q 12 12 24 12 Q 12 12 12 24 Q 12 12 0 12 Q 12 12 12 0 Z" />
-              </svg>
+              <span className="text-[10px] text-slate-500 dark:text-zinc-400 font-mono font-medium">Explainable AI</span>
             </div>
           </motion.div>
         </motion.div>
@@ -486,7 +472,7 @@ export function HeroProductPreview() {
               <TrendingUp className="size-4" />
             </div>
             <div>
-              <span className="text-[11px] text-[#667085] dark:text-foreground-muted block font-medium">Total Balance (12m)</span>
+              <span className="text-[11px] text-slate-500 dark:text-zinc-400 block font-medium">Total Balance (12m)</span>
               <span className="text-base font-bold text-[#101828] dark:text-foreground font-mono">₹1,28,450</span>
             </div>
           </div>
@@ -504,7 +490,7 @@ export function HeroProductPreview() {
               <span className="text-[11px] text-[#172033] dark:text-foreground font-bold block font-mono">
                 Trends & Insight
               </span>
-              <span className="text-[11px] text-[#475467] dark:text-foreground-muted line-clamp-1 font-medium">
+              <span className="text-[11px] text-slate-600 dark:text-zinc-300 line-clamp-1 font-medium">
                 94% Recovery Resilience
               </span>
             </div>

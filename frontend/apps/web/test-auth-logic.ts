@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 /**
  * Comprehensive Automated Test Suite for PARAKH Authentication & Authorization Logic
  * Verifies all 16 required test scenarios.

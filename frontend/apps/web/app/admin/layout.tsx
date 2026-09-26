@@ -11,7 +11,7 @@ export default function AdminLayout({
     <RouteGuard requiredRole="reviewer">
       <div className="flex flex-col md:flex-row w-full dashboard-viewport">
         <Sidebar portal="admin" />
-        <div className="flex-1 w-full dashboard-main-scroll overflow-y-auto">
+        <div className="flex-1 w-full min-w-0 dashboard-main-scroll overflow-y-auto">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
             {children}
           </div>

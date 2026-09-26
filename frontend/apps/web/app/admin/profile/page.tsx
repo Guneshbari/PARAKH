@@ -93,7 +93,7 @@ export default function AdminProfilePage() {
       </div>
 
       {/* 2. UNDERWRITING OFFICER HERO CARD */}
-      <div className="p-6 sm:p-7 rounded-2xl bg-surface dark:bg-surface-elevated border border-border-strong shadow-card-elevated flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+      <div className="p-6 sm:p-7 rounded-2xl bg-surface dark:bg-surface-elevated border border-border-strong shadow-card-elevated flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
         <div className="flex items-start sm:items-center gap-5">
           {/* Avatar */}
           <div className="relative size-16 sm:size-20 rounded-2xl bg-surface-highlight border border-border flex items-center justify-center text-xl sm:text-2xl font-bold text-foreground shrink-0">

@@ -37,8 +37,8 @@ export default function UserDashboardPage() {
     <PageTransition className="space-y-6 sm:space-y-8 w-full pb-12">
       {/* 1. WELCOME & QUICK ACTION BAR */}
       <section className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
+        <div className="space-y-1 min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
               Welcome back, {profile.fullName}
             </h1>
@@ -55,7 +55,7 @@ export default function UserDashboardPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <Link href="/user/applications/new">
             <Button variant="default" className="gap-2 font-semibold px-5 rounded-full cursor-pointer">
               <PlusCircle className="size-4" />

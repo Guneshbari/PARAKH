@@ -150,8 +150,8 @@ export default function AdminApplicationDetailPage({
       </div>
 
       {/* 2. APPLICANT HERO & CAPITAL REQUEST */}
-      <div className="p-6 sm:p-7 rounded-2xl bg-surface border border-border shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="space-y-2">
+      <div className="p-6 sm:p-7 rounded-2xl bg-surface border border-border shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <div className="space-y-2 min-w-0">
           <div className="flex flex-wrap items-center gap-2.5">
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight font-mono">
               {application.id}
@@ -400,7 +400,7 @@ export default function AdminApplicationDetailPage({
             <label className="text-xs font-semibold text-foreground block">
               Calibrated Risk Classification
             </label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
               {[
                 'LOWER_ESTIMATED RISK',
                 'MODERATE_ESTIMATED RISK',
@@ -411,7 +411,7 @@ export default function AdminApplicationDetailPage({
                   key={tier}
                   type="button"
                   onClick={() => setSelectedRisk(tier as RiskLevel)}
-                  className={`p-2.5 rounded-xl text-xs font-medium border text-center transition-all cursor-pointer ${
+                  className={`p-2.5 rounded-xl text-xs font-medium border text-center transition-all cursor-pointer break-words leading-snug ${
                     selectedRisk === tier
                       ? 'border-[#472393] bg-[#472393] text-white font-semibold shadow-xs dark:border-foreground dark:bg-foreground dark:text-background'
                       : 'border-border bg-surface-highlight text-foreground-muted hover:text-[#472393] hover:border-[rgba(71,35,147,0.3)] dark:hover:text-foreground dark:hover:border-border'

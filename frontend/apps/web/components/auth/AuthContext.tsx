@@ -162,6 +162,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             acc.role === parsed.role
         );
         if (matched) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
           setUser(parsed);
           setSessionCookie(parsed.role);
         } else {

@@ -76,8 +76,8 @@ export default function AdminAnalyticsPage() {
   return (
     <PageTransition className="space-y-6 sm:space-y-8 w-full pb-16">
       {/* 1. TOP HEADER & FILTER STRIP */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-border">
-        <div className="space-y-1">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-border">
+        <div className="space-y-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2.5">
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
               Portfolio Risk & Volatility Analytics

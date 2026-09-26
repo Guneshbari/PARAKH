@@ -22,7 +22,7 @@ export function LandingNavbar() {
   ];
 
   return (
-    <header className="relative z-30 w-full pt-4 sm:pt-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <header className="relative z-30 w-full pt-4 sm:pt-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto font-body">
       <div className="flex items-center justify-between h-14 sm:h-16 px-4 sm:px-6 rounded-full bg-white/92 dark:bg-[#0D0E10]/85 backdrop-blur-md border border-[rgba(15,23,42,0.08)] dark:border-border shadow-[0_4px_16px_rgba(15,23,42,0.04)] dark:shadow-xs transition-colors duration-200">
         {/* Brand / Logo */}
         <Link href="/" className="flex items-center gap-2.5 group shrink-0">
@@ -30,7 +30,7 @@ export function LandingNavbar() {
             <Sparkles className="size-4" />
           </div>
           <div className="flex flex-col">
-            <span className="text-base sm:text-lg font-black tracking-tight text-[#101828] dark:text-foreground flex items-center gap-1">
+            <span className="font-display text-base sm:text-lg font-black tracking-tight text-[#101828] dark:text-foreground flex items-center gap-1">
               PARAKH
             </span>
             <span className="text-[10px] text-[#667085] dark:text-foreground-muted -mt-1 font-medium tracking-wide">
@@ -41,7 +41,7 @@ export function LandingNavbar() {
 
         {/* Desktop Center Navigation Links */}
         <nav
-          className="hidden md:flex items-center gap-1 lg:gap-1.5"
+          className="hidden lg:flex items-center gap-1 lg:gap-1.5"
           onMouseLeave={() => setHoveredIdx(null)}
         >
           {navLinks.map((link, idx) => {
@@ -134,7 +134,7 @@ export function LandingNavbar() {
           type="button"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           aria-label="Open mobile menu"
-          className="flex sm:hidden p-2 rounded-xl text-foreground-secondary hover:text-foreground hover:bg-surface-highlight"
+          className="flex lg:hidden p-2 rounded-xl text-foreground-secondary hover:text-foreground hover:bg-surface-highlight"
         >
           {mobileMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
         </button>
@@ -142,7 +142,7 @@ export function LandingNavbar() {
 
       {/* Mobile Expanded Menu */}
       {mobileMenuOpen && (
-        <div className="sm:hidden mt-2 p-4 rounded-2xl bg-surface/95 dark:bg-[#0D0E10]/95 backdrop-blur-xl border border-border shadow-2xl space-y-3 animate-in fade-in duration-200">
+        <div className="lg:hidden mt-2 p-4 rounded-2xl bg-surface/95 dark:bg-[#0D0E10]/95 backdrop-blur-xl border border-border shadow-2xl space-y-3 animate-in fade-in duration-200">
           <div className="flex items-center justify-between pb-2 border-b border-border">
             <span className="text-xs font-bold text-foreground">Menu</span>
             <button

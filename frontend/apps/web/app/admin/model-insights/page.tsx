@@ -54,8 +54,8 @@ export default function AdminModelInsightsPage() {
   return (
     <PageTransition className="space-y-6 sm:space-y-8 w-full pb-16">
       {/* 1. TOP HEADER & GOVERNANCE BADGES */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-border">
-        <div className="space-y-1">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-border">
+        <div className="space-y-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2.5">
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
               Fairness, SHAP & Model Governance
@@ -79,7 +79,9 @@ export default function AdminModelInsightsPage() {
             onClick={handleDownloadModelCard}
             className="rounded-full gap-1.5 text-xs text-foreground-secondary border-border hover:bg-surface-highlight"
           >
-            <Download className="size-3.5" /> Export Model Card (JSON)
+            <Download className="size-3.5" />
+            <span className="hidden sm:inline">Export Model Card (JSON)</span>
+            <span className="sm:hidden">Export Card</span>
           </Button>
 
           <Button

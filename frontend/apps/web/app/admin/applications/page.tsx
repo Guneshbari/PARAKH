@@ -63,8 +63,8 @@ export default function AdminApplicationsPage() {
   return (
     <PageTransition className="space-y-6 sm:space-y-8 w-full pb-16">
       {/* 1. TOP HEADER & KPI STRIP */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-border">
-        <div className="space-y-1">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-border">
+        <div className="space-y-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2.5">
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
               Applications for Review
@@ -139,7 +139,7 @@ export default function AdminApplicationsPage() {
           </div>
 
           {/* Quick Filter Pills */}
-          <div className="flex flex-wrap items-center gap-1.5 bg-surface-highlight p-1 rounded-full border border-border">
+          <div className="flex flex-wrap items-center gap-1.5 bg-surface-highlight p-1 rounded-2xl sm:rounded-full border border-border">
             {[
               { id: 'ALL', label: 'All Queue' },
               { id: 'REVIEW', label: `Priority Review (${pendingCount})` },
@@ -241,7 +241,7 @@ export default function AdminApplicationsPage() {
       ) : (
         <Card className="overflow-hidden p-0">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+            <table className="w-full min-w-[760px] text-left text-xs">
               <thead className="bg-surface-highlight/40 border-b border-border text-foreground-muted font-medium uppercase tracking-wider text-[11px]">
                 <tr>
                   <th className="py-3.5 px-5">Application ID</th>

@@ -63,6 +63,18 @@
   --shadow-card-hover: var(--shadow-card-hover);
   --shadow-sidebar: var(--shadow-sidebar);
   --shadow-floating: var(--shadow-floating);
+
+  /* Landing Page Typography System */
+  --font-display: var(--font-instrument-sans), 'Instrument Sans', sans-serif;
+  --font-body: var(--font-ibm-plex-sans), 'IBM Plex Sans', sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-instrument-sans), 'Instrument Sans', sans-serif;
+}
+
+.font-body {
+  font-family: var(--font-ibm-plex-sans), 'IBM Plex Sans', sans-serif;
 }
 
 /* ==========================================================
