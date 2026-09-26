@@ -481,20 +481,20 @@ function LoginFormContent() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
               {/* Applicant Demo Card */}
-              <div className="flex flex-col justify-between p-3.5 rounded-xl border border-border bg-surface text-left space-y-2">
+              <div className="flex flex-col justify-between p-3 sm:p-3.5 rounded-xl border border-border bg-surface text-left space-y-2 min-w-0">
                 <div>
                   <div className="flex items-center justify-between w-full">
                     <span className="text-xs sm:text-sm font-bold text-foreground">
                       Applicant Demo
                     </span>
-                    <Badge variant="outline" className="text-xs py-0 px-2">
+                    <Badge variant="outline" className="text-xs py-0 px-2 shrink-0">
                       User
                     </Badge>
                   </div>
-                  <p className="text-xs sm:text-sm text-foreground-secondary mt-1 font-semibold">
+                  <p className="text-xs sm:text-sm text-foreground-secondary mt-1 font-semibold truncate">
                     {DEMO_PRESETS.applicant.name}
                   </p>
-                  <div className="text-xs font-mono text-foreground-secondary space-y-1 mt-1.5 bg-surface-highlight/50 p-2 rounded-md border border-border">
+                  <div className="text-xs font-mono text-foreground-secondary space-y-1 mt-1.5 bg-surface-highlight/50 p-2 rounded-md border border-border break-all min-w-0">
                     <div><span className="font-semibold text-foreground">Email:</span> {DEMO_PRESETS.applicant.email}</div>
                     <div><span className="font-semibold text-foreground">Pass:</span> {DEMO_PRESETS.applicant.password}</div>
                   </div>
@@ -506,7 +506,7 @@ function LoginFormContent() {
                     variant="outline"
                     size="sm"
                     onClick={() => handleFillDemo('applicant')}
-                    className="flex-1 text-xs h-8 px-2.5 font-medium"
+                    className="flex-1 text-xs h-8 px-2 font-medium min-w-0 truncate"
                   >
                     Fill Form
                   </Button>
@@ -515,7 +515,7 @@ function LoginFormContent() {
                     size="sm"
                     onClick={() => handleDemoLogin('applicant')}
                     disabled={isSubmitting}
-                    className="flex-1 text-xs h-8 px-2.5 font-semibold"
+                    className="flex-1 text-xs h-8 px-2 font-semibold min-w-0 truncate"
                   >
                     Sign In
                   </Button>
@@ -523,20 +523,20 @@ function LoginFormContent() {
               </div>
 
               {/* Reviewer Demo Card */}
-              <div className="flex flex-col justify-between p-3.5 rounded-xl border border-border bg-surface text-left space-y-2">
+              <div className="flex flex-col justify-between p-3 sm:p-3.5 rounded-xl border border-border bg-surface text-left space-y-2 min-w-0">
                 <div>
                   <div className="flex items-center justify-between w-full">
                     <span className="text-xs sm:text-sm font-bold text-foreground">
                       Credit Reviewer Demo
                     </span>
-                    <Badge variant="outline" className="text-xs py-0 px-2">
+                    <Badge variant="outline" className="text-xs py-0 px-2 shrink-0">
                       Reviewer
                     </Badge>
                   </div>
-                  <p className="text-xs sm:text-sm text-foreground-secondary mt-1 font-semibold">
+                  <p className="text-xs sm:text-sm text-foreground-secondary mt-1 font-semibold truncate">
                     {DEMO_PRESETS.reviewer.name}
                   </p>
-                  <div className="text-xs font-mono text-foreground-secondary space-y-1 mt-1.5 bg-surface-highlight/50 p-2 rounded-md border border-border">
+                  <div className="text-xs font-mono text-foreground-secondary space-y-1 mt-1.5 bg-surface-highlight/50 p-2 rounded-md border border-border break-all min-w-0">
                     <div><span className="font-semibold text-foreground">Email:</span> {DEMO_PRESETS.reviewer.email}</div>
                     <div><span className="font-semibold text-foreground">Pass:</span> {DEMO_PRESETS.reviewer.password}</div>
                   </div>
@@ -548,7 +548,7 @@ function LoginFormContent() {
                     variant="outline"
                     size="sm"
                     onClick={() => handleFillDemo('reviewer')}
-                    className="flex-1 text-xs h-8 px-2.5 font-medium"
+                    className="flex-1 text-xs h-8 px-2 font-medium min-w-0 truncate"
                   >
                     Fill Form
                   </Button>
@@ -557,7 +557,7 @@ function LoginFormContent() {
                     size="sm"
                     onClick={() => handleDemoLogin('reviewer')}
                     disabled={isSubmitting}
-                    className="flex-1 text-xs h-8 px-2.5 font-semibold"
+                    className="flex-1 text-xs h-8 px-2 font-semibold min-w-0 truncate"
                   >
                     Authenticate
                   </Button>

@@ -32,7 +32,46 @@ import {
   type BackendFairnessAuditResponse,
   type BackendGlobalSHAPResponse,
 } from '@parakh/api';
-import { canonicalDemoData } from '@/lib/demo/canonicalDemoData';
+
+interface FairnessCategoryDef {
+  id: string;
+  name: string;
+  subgroupField: string;
+  description: string;
+  icon: React.ComponentType<{ className?: string }>;
+}
+
+const FAIRNESS_CATEGORIES: FairnessCategoryDef[] = [
+  {
+    id: 'gig_sectors',
+    name: 'Gig Work Sectors',
+    subgroupField: 'gig_work_type',
+    description: 'Audited across operational platform occupations to verify income volatility normalization does not systematically penalize specific worker segments.',
+    icon: Building2,
+  },
+  {
+    id: 'cohorts',
+    name: 'Experience Cohorts',
+    subgroupField: 'cohort_archetype',
+    description: 'Segmented by platform tenure and earning stability cohorts to evaluate algorithmic parity between new and tenured gig workers.',
+    icon: Users,
+  },
+  {
+    id: 'loan_purpose',
+    name: 'Loan Purposes',
+    subgroupField: 'loan_purpose',
+    description: 'Segmented by applicant financing intent (vehicle repairs, equipment purchases, working capital) ensuring equitable approval distributions.',
+    icon: MapPin,
+  },
+];
+
+function formatSubgroupName(name: string): string {
+  return name
+    .toLowerCase()
+    .split('_')
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
+}
 
 export default function AdminModelInsightsPage() {
   const [modelVersions, setModelVersions] = useState<BackendModelVersion[]>([]);
@@ -41,14 +80,19 @@ export default function AdminModelInsightsPage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedFairnessCategory, setSelectedFairnessCategory] = useState<string>('gig_sectors');
   const [isActivatingId, setIsActivatingId] = useState<string | null>(null);
-  const [isAuditingFairness, setIsAuditingFairness] = useState(false);
-  const [fairnessAuditResult, setFairnessAuditResult] = useState<BackendFairnessAuditResponse | null>(null);
+  const [fairnessResults, setFairnessResults] = useState<Record<string, BackendFairnessAuditResponse>>({});
+  const [fairnessLoading, setFairnessLoading] = useState(false);
+  const [fairnessError, setFairnessError] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   // P2-10: Global SHAP state
   const [globalSHAP, setGlobalSHAP] = useState<BackendGlobalSHAPResponse | null>(null);
   const [isComputingShap, setIsComputingShap] = useState(false);
   const [shapError, setShapError] = useState<string | null>(null);
 
+  const activeCategory =
+    FAIRNESS_CATEGORIES.find((c) => c.id === selectedFairnessCategory) ||
+    FAIRNESS_CATEGORIES[0];
+  const activeFairness = fairnessResults[activeCategory.subgroupField] || null;
 
   const fetchModelData = async () => {
     setIsLoading(true);
@@ -89,37 +133,36 @@ export default function AdminModelInsightsPage() {
     }
   };
 
-  const handleRunFairnessAudit = async () => {
-    if (!activeModel) return;
-    setIsAuditingFairness(true);
-    setActionMessage(null);
+  const fetchFairnessAuditForField = async (modelId: string, subgroupField: string) => {
+    setFairnessLoading(true);
+    setFairnessError(null);
     try {
-      const subgroupField =
-        selectedFairnessCategory === 'gig_sectors'
-          ? 'gig_work_type'
-          : selectedFairnessCategory === 'inclusion'
-          ? 'cohort_archetype'
-          : 'loan_purpose';
-      const result = await api.runFairnessAudit(activeModel.id, {
+      const result = await api.runFairnessAudit(modelId, {
         subgroup_field: subgroupField,
         threshold: 0.5,
       });
-      setFairnessAuditResult(result);
+      setFairnessResults((prev) => ({ ...prev, [subgroupField]: result }));
     } catch (err: any) {
       console.error('Failed to run fairness audit:', err);
-      setActionMessage(err?.message || 'Fairness audit execution failed.');
+      setFairnessError(err?.message || 'Fairness audit execution failed.');
     } finally {
-      setIsAuditingFairness(false);
+      setFairnessLoading(false);
     }
   };
 
-  // P2-10: Compute real global SHAP feature importance from backend
-  const handleComputeGlobalSHAP = async () => {
+  const handleRunFairnessAudit = () => {
     if (!activeModel) return;
+    fetchFairnessAuditForField(activeModel.id, activeCategory.subgroupField);
+  };
+
+  // P2-10: Compute real global SHAP feature importance from backend
+  const handleComputeGlobalSHAP = async (modelId?: string) => {
+    const targetId = modelId || activeModel?.id;
+    if (!targetId) return;
     setIsComputingShap(true);
     setShapError(null);
     try {
-      const result = await api.getGlobalSHAP(activeModel.id);
+      const result = await api.getGlobalSHAP(targetId);
       setGlobalSHAP(result);
     } catch (err: any) {
       console.error('Failed to compute global SHAP:', err);
@@ -133,6 +176,21 @@ export default function AdminModelInsightsPage() {
     fetchModelData();
   }, []);
 
+  // Automatically trigger backend fairness audit when active model or category changes
+  useEffect(() => {
+    if (!activeModel?.id) return;
+    if (!fairnessResults[activeCategory.subgroupField]) {
+      fetchFairnessAuditForField(activeModel.id, activeCategory.subgroupField);
+    }
+  }, [activeModel?.id, activeCategory.subgroupField]);
+
+  // Automatically load global SHAP on active model identification
+  useEffect(() => {
+    if (activeModel?.id && !globalSHAP && !isComputingShap) {
+      handleComputeGlobalSHAP(activeModel.id);
+    }
+  }, [activeModel?.id]);
+
   const handleDownloadModelCard = () => {
     const cardData = {
       modelName: activeModel?.model_name || 'volatility-aware-risk-model',
@@ -141,17 +199,17 @@ export default function AdminModelInsightsPage() {
       status: activeModel?.is_active ? 'ACTIVE_PROTOTYPE' : 'STANDBY',
       exportedAt: new Date().toISOString(),
       createdAt: activeModel?.created_at || new Date().toISOString(),
-      fairnessAudit: fairnessAuditResult
+      fairnessAudit: activeFairness
         ? {
             framework: 'Fairlearn Diagnostic Evaluation',
             status: 'COMPUTED',
-            subgroupField: fairnessAuditResult.subgroup_field,
-            demographicParityRatio: fairnessAuditResult.demographic_parity_ratio,
-            equalOpportunityDifference: fairnessAuditResult.equal_opportunity_difference,
-            sampleCount: fairnessAuditResult.sample_count,
-            threshold: fairnessAuditResult.threshold,
-            evaluationTimestamp: fairnessAuditResult.evaluation_timestamp,
-            limitationsDisclaimer: fairnessAuditResult.limitations_disclaimer,
+            subgroupField: activeFairness.subgroup_field,
+            demographicParityRatio: activeFairness.demographic_parity_ratio,
+            equalOpportunityDifference: activeFairness.equal_opportunity_difference,
+            sampleCount: activeFairness.sample_count,
+            threshold: activeFairness.threshold,
+            evaluationTimestamp: activeFairness.evaluation_timestamp,
+            limitationsDisclaimer: activeFairness.limitations_disclaimer,
           }
         : {
             framework: 'Fairlearn Diagnostic Evaluation',
@@ -337,7 +395,7 @@ export default function AdminModelInsightsPage() {
       </div>
 
       {/* 3. FAIRLEARN DEMOGRAPHIC & COHORT PARITY AUDIT */}
-      <Card className="p-6 bg-surface border-border space-y-6">
+      <Card className="p-4 sm:p-6 bg-surface border-border space-y-6 min-w-0">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border">
           <div className="space-y-1">
             <div className="flex flex-wrap items-center gap-2.5">
@@ -346,11 +404,11 @@ export default function AdminModelInsightsPage() {
                 Fairness Audit — Fairlearn Subgroup Parity
               </h2>
               <Badge variant="mint" className="text-xs py-0.5 px-2.5 font-mono">
-                {canonicalDemoData.mlInsights.fairness.status}
+                {activeFairness ? 'AUDITED' : fairnessLoading ? 'AUDITING' : 'READY'}
               </Badge>
             </div>
             <p className="text-xs sm:text-sm text-foreground-secondary">
-              Demographic parity ratio (DPR) and equalized odds evaluation criteria across gig segments, geographies, and inclusion cohorts.
+              Demographic parity ratio (DPR) and equalized odds evaluation criteria across gig segments, experience cohorts, and loan purposes.
             </p>
           </div>
 
@@ -359,86 +417,103 @@ export default function AdminModelInsightsPage() {
               variant="outline"
               size="sm"
               onClick={handleRunFairnessAudit}
-              disabled={isAuditingFairness || !activeModel}
+              disabled={fairnessLoading || !activeModel}
               className="rounded-full gap-1.5 text-xs text-foreground-secondary border-border hover:bg-surface-highlight"
             >
-              <RefreshCw className={`size-3.5 ${isAuditingFairness ? 'animate-spin' : ''}`} />
-              {isAuditingFairness ? 'Auditing...' : 'Run Subgroup Audit'}
+              <RefreshCw className={`size-3.5 ${fairnessLoading ? 'animate-spin' : ''}`} />
+              {fairnessLoading ? 'Auditing...' : 'Run Subgroup Audit'}
             </Button>
             <span className="text-xs font-mono text-foreground-secondary">
-              N={fairnessAuditResult ? fairnessAuditResult.sample_count.toLocaleString() : canonicalDemoData.mlInsights.fairness.sampleEvaluatedCount.toLocaleString()} Evaluated
+              {activeFairness ? `N=${activeFairness.sample_count.toLocaleString()} Evaluated` : 'Benchmark Records'}
             </span>
           </div>
         </div>
 
+        {/* ERROR STATE */}
+        {fairnessError && (
+          <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-sm text-rose-600 dark:text-rose-400 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="size-4.5 shrink-0" />
+              <span>{fairnessError}</span>
+            </div>
+            <Button variant="ghost" size="sm" onClick={handleRunFairnessAudit} disabled={fairnessLoading} className="text-rose-600 dark:text-rose-400 text-xs h-8">
+              Retry
+            </Button>
+          </div>
+        )}
+
         {/* AUTHORITATIVE BACKEND FAIRNESS AUDIT RESULT BANNER */}
-        {fairnessAuditResult && (
+        {activeFairness && (
           <div className="p-3.5 rounded-xl bg-surface-highlight/40 border border-border text-xs sm:text-sm space-y-1">
             <div className="flex items-center justify-between font-mono">
               <span className="font-semibold text-foreground flex items-center gap-1.5">
                 <CheckCircle2 className="size-3.5 text-mint" />
-                Backend Audit Report ({fairnessAuditResult.subgroup_field})
+                Backend Audit Report ({activeFairness.subgroup_field})
               </span>
               <span className="text-foreground-secondary text-xs">
-                Evaluated: {new Date(fairnessAuditResult.evaluation_timestamp).toLocaleTimeString()}
+                Evaluated: {new Date(activeFairness.evaluation_timestamp).toLocaleTimeString()}
               </span>
             </div>
             <div className="flex flex-wrap gap-4 text-xs font-mono text-foreground-secondary pt-1">
-              <span>DPR: <strong className="text-foreground">{fairnessAuditResult.demographic_parity_ratio ?? 'N/A'}</strong></span>
-              <span>EOD: <strong className="text-foreground">{fairnessAuditResult.equal_opportunity_difference ?? 'N/A'}</strong></span>
-              <span>Threshold: {fairnessAuditResult.threshold}</span>
-              <span>Samples: {fairnessAuditResult.sample_count}</span>
+              <span>DPR: <strong className="text-foreground">{activeFairness.demographic_parity_ratio ?? 'N/A'}</strong></span>
+              <span>EOD: <strong className="text-foreground">{activeFairness.equal_opportunity_difference ?? 'N/A'}</strong></span>
+              <span>Threshold: {activeFairness.threshold}</span>
+              <span>Samples: {activeFairness.sample_count.toLocaleString()}</span>
             </div>
             <p className="text-[11px] text-foreground-secondary italic pt-1 leading-relaxed">
-              {fairnessAuditResult.limitations_disclaimer}
+              {activeFairness.limitations_disclaimer}
             </p>
           </div>
         )}
 
         {/* TOP LEVEL PARITY KPIS */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <div className="p-4 rounded-xl bg-surface-highlight/30 border border-border space-y-1">
+          <div className="p-4 rounded-xl bg-surface-highlight/30 border border-border space-y-1 min-w-0">
             <span className="text-xs font-semibold text-foreground-secondary block">Demographic Parity Ratio</span>
             <div className="flex items-baseline gap-2">
               <span className="text-2xl font-bold font-mono text-foreground">
-                {canonicalDemoData.mlInsights.fairness.demographicParityRatio}
+                {activeFairness?.demographic_parity_ratio !== null && activeFairness?.demographic_parity_ratio !== undefined ? activeFairness.demographic_parity_ratio.toFixed(2) : '—'}
               </span>
-              <span className="text-xs text-mint font-semibold">Four-Fifths Pass</span>
+              <span className="text-xs text-mint font-semibold">
+                {activeFairness?.demographic_parity_ratio && activeFairness.demographic_parity_ratio >= 0.8 && activeFairness.demographic_parity_ratio <= 1.25 ? 'Four-Fifths Pass' : activeFairness ? 'Review Corridor' : 'Pending Audit'}
+              </span>
             </div>
-            <span className="text-xs text-foreground-secondary block">
-              Target corridor: {canonicalDemoData.mlInsights.fairness.targetCriteria}
+            <span className="text-xs text-foreground-secondary block truncate">
+              Target corridor: 0.80 — 1.25
             </span>
           </div>
 
-          <div className="p-4 rounded-xl bg-surface-highlight/30 border border-border space-y-1">
+          <div className="p-4 rounded-xl bg-surface-highlight/30 border border-border space-y-1 min-w-0">
             <span className="text-xs font-semibold text-foreground-secondary block">Equal Opportunity Diff</span>
             <div className="flex items-baseline gap-2">
               <span className="text-2xl font-bold font-mono text-foreground">
-                {canonicalDemoData.mlInsights.fairness.equalOpportunityDifference}
+                {activeFairness?.equal_opportunity_difference !== null && activeFairness?.equal_opportunity_difference !== undefined ? `${(activeFairness.equal_opportunity_difference * 100).toFixed(1)}%` : '—'}
               </span>
-              <span className="text-xs text-mint font-semibold">Low Disparity</span>
+              <span className="text-xs text-mint font-semibold">
+                {activeFairness?.equal_opportunity_difference && activeFairness.equal_opportunity_difference < 0.15 ? 'Low Disparity' : activeFairness ? 'Moderate' : 'Pending Audit'}
+              </span>
             </div>
-            <span className="text-xs text-foreground-secondary block">
-              True positive rate divergence &lt; 3%
+            <span className="text-xs text-foreground-secondary block truncate">
+              True positive rate divergence
             </span>
           </div>
 
-          <div className="p-4 rounded-xl bg-surface-highlight/30 border border-border space-y-1">
+          <div className="p-4 rounded-xl bg-surface-highlight/30 border border-border space-y-1 min-w-0">
             <span className="text-xs font-semibold text-foreground-secondary block">Protected Attributes</span>
-            <span className="text-sm sm:text-base font-bold text-foreground block">
-              Occupations & Geographies
+            <span className="text-sm sm:text-base font-bold text-foreground block truncate">
+              {activeCategory.name}
             </span>
-            <span className="text-xs text-foreground-secondary block">
+            <span className="text-xs text-foreground-secondary block truncate">
               DPDP compliant proxy segmentation
             </span>
           </div>
 
-          <div className="p-4 rounded-xl bg-surface-highlight/30 border border-border space-y-1">
+          <div className="p-4 rounded-xl bg-surface-highlight/30 border border-border space-y-1 min-w-0">
             <span className="text-xs font-semibold text-foreground-secondary block">Evaluation Protocol</span>
-            <span className="text-sm sm:text-base font-bold text-foreground block">
-              {canonicalDemoData.mlInsights.fairness.evaluationStandard}
+            <span className="text-sm sm:text-base font-bold text-foreground block truncate">
+              Fairlearn 0.97
             </span>
-            <span className="text-xs text-foreground-secondary block">
+            <span className="text-xs text-foreground-secondary block truncate">
               Fair Lending diagnostic protocol
             </span>
           </div>
@@ -446,13 +521,13 @@ export default function AdminModelInsightsPage() {
 
         {/* FOUR-FIFTHS BENCHMARK GAUGE VISUALIZATION */}
         <div className="p-4 rounded-xl bg-surface-highlight/20 border border-border space-y-2">
-          <div className="flex items-center justify-between text-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-1">
             <span className="font-semibold text-foreground flex items-center gap-1.5">
               <SlidersHorizontal className="size-3.5 text-foreground-secondary" />
               Four-Fifths Rule Parity Corridor (0.80 — 1.25)
             </span>
             <span className="font-mono text-mint font-semibold">
-              Current Model: 0.93 DPR (Equitable Zone)
+              Current Model: {activeFairness?.demographic_parity_ratio ? `${activeFairness.demographic_parity_ratio.toFixed(2)} DPR (${activeFairness.demographic_parity_ratio >= 0.8 && activeFairness.demographic_parity_ratio <= 1.25 ? 'Equitable Zone' : 'Review Corridor'})` : 'Awaiting Audit Calculation'}
             </span>
           </div>
 
@@ -470,7 +545,9 @@ export default function AdminModelInsightsPage() {
             <div className="flex justify-between text-[11px] font-mono text-foreground-secondary pt-1.5">
               <span>0.50</span>
               <span className="text-amber-600 dark:text-amber-400 font-semibold">0.80 (Min Threshold)</span>
-              <span className="text-foreground font-bold underline decoration-mint decoration-2 underline-offset-2">0.93 (PARAKH)</span>
+              <span className="text-foreground font-bold underline decoration-mint decoration-2 underline-offset-2">
+                {activeFairness?.demographic_parity_ratio ? `${activeFairness.demographic_parity_ratio.toFixed(2)} (PARAKH)` : '1.00 (Parity)'}
+              </span>
               <span>1.00 (Parity)</span>
               <span className="text-amber-600 dark:text-amber-400 font-semibold">1.25 (Max Threshold)</span>
               <span>1.50</span>
@@ -482,9 +559,10 @@ export default function AdminModelInsightsPage() {
         <div className="space-y-4 pt-1">
           <div className="flex flex-wrap items-center gap-2 border-b border-border pb-3">
             <span className="text-xs font-semibold text-foreground-secondary mr-2">Audit Cohort:</span>
-            {canonicalDemoData.mlInsights.fairness.categories.map((cat) => {
+            {FAIRNESS_CATEGORIES.map((cat) => {
               const isSelected = selectedFairnessCategory === cat.id;
-              const Icon = cat.id === 'gig_sectors' ? Building2 : cat.id === 'geography' ? MapPin : Users;
+              const Icon = cat.icon;
+              const catResult = fairnessResults[cat.subgroupField];
               return (
                 <button
                   key={cat.id}
@@ -497,92 +575,114 @@ export default function AdminModelInsightsPage() {
                 >
                   <Icon className="size-3.5" />
                   <span>{cat.name}</span>
-                  <Badge variant={isSelected ? "outline" : "secondary"} className="text-[10px] py-0 px-1.5 border-current">
-                    DPR {cat.dpr}
-                  </Badge>
+                  {catResult?.demographic_parity_ratio !== null && catResult?.demographic_parity_ratio !== undefined && (
+                    <Badge variant={isSelected ? "outline" : "secondary"} className="text-[10px] py-0 px-1.5 border-current font-mono">
+                      DPR {catResult.demographic_parity_ratio.toFixed(2)}
+                    </Badge>
+                  )}
                 </button>
               );
             })}
           </div>
 
           {/* ACTIVE CATEGORY DETAIL & TABLE */}
-          {(() => {
-            const activeCategory =
-              canonicalDemoData.mlInsights.fairness.categories.find(
-                (c) => c.id === selectedFairnessCategory
-              ) || canonicalDemoData.mlInsights.fairness.categories[0];
-
-            return (
-              <div className="space-y-3">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-xl bg-surface-highlight/30 border border-border text-xs sm:text-sm">
-                  <p className="text-foreground-secondary leading-relaxed">
-                    {activeCategory.description}
-                  </p>
-                  <div className="flex items-center gap-3 shrink-0 font-mono text-xs">
-                    <span className="text-foreground-secondary">
-                      Segment DPR: <strong className="text-foreground">{activeCategory.dpr}</strong>
-                    </span>
-                    <span className="text-foreground-secondary">
-                      EOD: <strong className="text-foreground">{activeCategory.eod}</strong>
-                    </span>
-                  </div>
+          <div className="space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-xl bg-surface-highlight/30 border border-border text-xs sm:text-sm">
+              <p className="text-foreground-secondary leading-relaxed">
+                {activeCategory.description}
+              </p>
+              {activeFairness && (
+                <div className="flex items-center gap-3 shrink-0 font-mono text-xs">
+                  <span className="text-foreground-secondary">
+                    Segment DPR: <strong className="text-foreground">{activeFairness.demographic_parity_ratio !== null && activeFairness.demographic_parity_ratio !== undefined ? activeFairness.demographic_parity_ratio.toFixed(2) : 'N/A'}</strong>
+                  </span>
+                  <span className="text-foreground-secondary">
+                    EOD: <strong className="text-foreground">{activeFairness.equal_opportunity_difference !== null && activeFairness.equal_opportunity_difference !== undefined ? activeFairness.equal_opportunity_difference.toFixed(3) : 'N/A'}</strong>
+                  </span>
                 </div>
+              )}
+            </div>
 
-                {/* SUBGROUP COMPARISON TABLE */}
-                <div className="overflow-x-auto rounded-xl border border-border bg-surface">
-                  <table className="w-full min-w-[650px] text-left text-xs sm:text-sm">
-                    <thead className="bg-surface-highlight/50 border-b border-border text-xs font-semibold uppercase tracking-wider text-foreground-secondary">
-                      <tr>
-                        <th className="py-3 px-4">Subgroup Cohort</th>
-                        <th className="py-3 px-4 font-mono">Sample Size (N)</th>
-                        <th className="py-3 px-4">Favorable / Approval Rate</th>
-                        <th className="py-3 px-4 font-mono">Parity vs Benchmark</th>
-                        <th className="py-3 px-4 font-mono">True Pos. (Recall)</th>
-                        <th className="py-3 px-4">Disparate Impact Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border font-normal">
-                      {activeCategory.subgroups.map((sub) => (
-                        <tr key={sub.name} className="hover:bg-surface-highlight/20 transition-colors">
-                          <td className="py-3 px-4 font-semibold text-foreground">
-                            {sub.name}
-                          </td>
-                          <td className="py-3 px-4 font-mono text-foreground-secondary">
-                            {sub.sampleCount.toLocaleString()}
-                          </td>
-                          <td className="py-3 px-4">
-                            <div className="flex items-center gap-2.5">
-                              <div className="w-24 bg-surface-highlight h-2 rounded-full overflow-hidden shrink-0">
-                                <div
-                                  className="bg-emerald-500 h-full rounded-full transition-all duration-500"
-                                  style={{ width: `${sub.favorableRate}%` }}
-                                />
-                              </div>
-                              <span className="font-mono font-semibold text-foreground">
-                                {sub.favorableRate}%
-                              </span>
-                            </div>
-                          </td>
-                          <td className="py-3 px-4 font-mono text-foreground font-semibold">
-                            {sub.parityRatio} <span className="text-xs text-foreground-secondary font-normal">/ 1.00</span>
-                          </td>
-                          <td className="py-3 px-4 font-mono text-foreground-secondary">
-                            {sub.truePositiveRate}%
-                          </td>
-                          <td className="py-3 px-4">
-                            <Badge variant="mint" className="text-xs font-medium gap-1 py-0.5 px-2">
-                              <CheckCircle2 className="size-3" />
-                              <span>{sub.status}</span>
-                            </Badge>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+            {fairnessLoading ? (
+              <div className="p-8 text-center text-sm text-foreground-secondary space-y-2">
+                <RefreshCw className="size-6 animate-spin mx-auto text-foreground-secondary" />
+                <p>Executing Fairlearn subgroup audit for {activeCategory.name} across offline benchmark records...</p>
               </div>
-            );
-          })()}
+            ) : !activeFairness ? (
+              <div className="p-8 rounded-2xl bg-surface-highlight/20 border border-dashed border-border text-center space-y-2">
+                <Scale className="size-6 text-foreground-secondary mx-auto" />
+                <p className="text-sm font-medium text-foreground">Subgroup Audit Not Yet Executed</p>
+                <p className="text-xs sm:text-sm text-foreground-secondary max-w-sm mx-auto">
+                  Click <strong>Run Subgroup Audit</strong> to evaluate Demographic Parity and Equal Opportunity difference across {activeCategory.name}.
+                </p>
+              </div>
+            ) : (
+              /* SUBGROUP COMPARISON TABLE */
+              <div className="overflow-x-auto rounded-xl border border-border bg-surface">
+                <table className="w-full min-w-[650px] text-left text-xs sm:text-sm">
+                  <thead className="bg-surface-highlight/50 border-b border-border text-xs font-semibold uppercase tracking-wider text-foreground-secondary">
+                    <tr>
+                      <th className="py-3 px-4">Subgroup Cohort</th>
+                      <th className="py-3 px-4 font-mono">Sample Size (N)</th>
+                      <th className="py-3 px-4">Favorable / Approval Rate</th>
+                      <th className="py-3 px-4 font-mono">Parity vs Benchmark</th>
+                      <th className="py-3 px-4 font-mono">True Pos. (Recall)</th>
+                      <th className="py-3 px-4">Disparate Impact Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border font-normal">
+                    {(() => {
+                      const subgroupsList = Object.values(activeFairness.subgroups);
+                      const maxFavRate = Math.max(
+                        ...subgroupsList.map((s) => s.favorable_prediction_rate),
+                        0.001
+                      );
+                      return subgroupsList.map((sub) => {
+                        const favPct = (sub.favorable_prediction_rate * 100).toFixed(1);
+                        const parityRatio = (sub.favorable_prediction_rate / maxFavRate).toFixed(2);
+                        const isCompliant = Number(parityRatio) >= 0.80;
+                        return (
+                          <tr key={sub.subgroup_name} className="hover:bg-surface-highlight/20 transition-colors">
+                            <td className="py-3 px-4 font-semibold text-foreground">
+                              {formatSubgroupName(sub.subgroup_name)}
+                            </td>
+                            <td className="py-3 px-4 font-mono text-foreground-secondary">
+                              {sub.sample_count.toLocaleString()}
+                            </td>
+                            <td className="py-3 px-4">
+                              <div className="flex items-center gap-2.5">
+                                <div className="w-24 bg-surface-highlight h-2 rounded-full overflow-hidden shrink-0">
+                                  <div
+                                    className="bg-emerald-500 h-full rounded-full transition-all duration-500"
+                                    style={{ width: `${Math.min(100, Math.max(0, sub.favorable_prediction_rate * 100))}%` }}
+                                  />
+                                </div>
+                                <span className="font-mono font-semibold text-foreground">
+                                  {favPct}%
+                                </span>
+                              </div>
+                            </td>
+                            <td className="py-3 px-4 font-mono text-foreground font-semibold">
+                              {parityRatio} <span className="text-xs text-foreground-secondary font-normal">/ 1.00</span>
+                            </td>
+                            <td className="py-3 px-4 font-mono text-foreground-secondary">
+                              {sub.true_positive_rate !== null && sub.true_positive_rate !== undefined ? `${(sub.true_positive_rate * 100).toFixed(1)}%` : '—'}
+                            </td>
+                            <td className="py-3 px-4">
+                              <Badge variant={isCompliant ? 'mint' : 'riskHigher'} className="text-xs font-medium gap-1 py-0.5 px-2">
+                                <CheckCircle2 className="size-3" />
+                                <span>{isCompliant ? 'Compliant' : 'Review Required'}</span>
+                              </Badge>
+                            </td>
+                          </tr>
+                        );
+                      });
+                    })()}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* REGULATORY DISCLAIMER & GOVERNANCE NOTICE */}
@@ -633,7 +733,7 @@ export default function AdminModelInsightsPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={handleComputeGlobalSHAP}
+              onClick={() => handleComputeGlobalSHAP()}
               disabled={isComputingShap || !activeModel}
               className="rounded-full gap-1.5 text-xs text-foreground-secondary border-border hover:bg-surface-highlight shrink-0"
             >
@@ -649,7 +749,7 @@ export default function AdminModelInsightsPage() {
                 <AlertTriangle className="size-4.5 shrink-0" />
                 <span>{shapError}</span>
               </div>
-              <Button variant="ghost" size="sm" onClick={handleComputeGlobalSHAP} disabled={isComputingShap} className="text-rose-600 dark:text-rose-400 text-xs h-8">
+              <Button variant="ghost" size="sm" onClick={() => handleComputeGlobalSHAP()} disabled={isComputingShap} className="text-rose-600 dark:text-rose-400 text-xs h-8">
                 Retry
               </Button>
             </div>

@@ -32,6 +32,15 @@ def _extract_dict(obj: Union[Any, Dict[str, Any]]) -> Dict[str, Any]:
     return {k: v for k, v in vars(obj).items() if not k.startswith("_")}
 
 
+def _resolve_repo_root() -> Path:
+    """Resolve the project repository root for both host and container environments."""
+    here = Path(__file__).resolve()
+    for parent in here.parents:
+        if (parent / "models" / "artifacts").exists() and (parent / "data").exists():
+            return parent
+    return here.parents[3] if len(here.parents) > 3 else here.parents[-1]
+
+
 class ModelVersionService:
     """Business service managing algorithmic model registry and versions."""
 
@@ -246,7 +255,7 @@ class ModelVersionService:
             dataset_path = (
                 Path(settings.ML_DATASET_PATH)
                 if settings.ML_DATASET_PATH
-                else Path(__file__).resolve().parents[3]
+                else _resolve_repo_root()
                 / "data"
                 / "synthetic"
                 / "synthetic_credit_applications.parquet"
@@ -400,7 +409,7 @@ class ModelVersionService:
         artifact_path = (
             Path(settings.ML_MODEL_PATH)
             if getattr(settings, "ML_MODEL_PATH", None)
-            else Path(__file__).resolve().parents[3]
+            else _resolve_repo_root()
             / "models"
             / "artifacts"
             / "volatility_aware_risk_model.joblib"
@@ -431,7 +440,7 @@ class ModelVersionService:
         dataset_path = (
             Path(settings.ML_DATASET_PATH)
             if getattr(settings, "ML_DATASET_PATH", None)
-            else Path(__file__).resolve().parents[3]
+            else _resolve_repo_root()
             / "data"
             / "synthetic"
             / "synthetic_credit_applications.parquet"
@@ -455,7 +464,7 @@ class ModelVersionService:
         # input matrix.  We MUST use it rather than raw dataset columns to avoid
         # missing features like feat_eng_vol_to_baseline, gig_work_type_DELIVERY, etc.
         preprocessor_path = (
-            Path(__file__).resolve().parents[3]
+            _resolve_repo_root()
             / "models"
             / "artifacts"
             / "credit_risk_preprocessor.joblib"

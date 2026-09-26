@@ -454,34 +454,34 @@ export default function AdminAnalyticsPage() {
         )}
       </Card>
 
-      {/* 4. VISUALIZATION 2: SHOCK RECOVERY VELOCITY REBOUND CURVES (ML PLACEHOLDER) */}
-      <Card className="p-6 bg-surface border-border space-y-4">
+      {/* 4. VISUALIZATION 2: SHOCK RECOVERY VELOCITY REBOUND CURVES */}
+      <Card className="p-4 sm:p-6 bg-surface border-border space-y-4 min-w-0">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-border">
           <div>
             <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
               <Clock className="size-4 text-foreground-secondary" />
-              Income Shock Rebound Trajectory Curves (Days 0 to 21)
+              Income Shock Rebound Trajectory (Days 0 to 21)
             </h3>
             <p className="text-xs sm:text-sm text-foreground-secondary">
-              Tracks normalized post-shock earning recovery against traditional salaried baseline expectations.
+              Observed cashflow rebound velocity across platform worker cohorts following sharp income drops.
             </p>
           </div>
           <Badge variant="outline" className="text-xs font-mono">
-            Cohort Macro Analytics
+            Longitudinal Telemetry
           </Badge>
         </div>
 
-        {/* Clean explicit placeholder */}
+        {/* Truthful data availability state */}
         <div className="p-6 rounded-2xl bg-surface-highlight/30 border border-border text-center space-y-3">
-          <div className="size-10 rounded-2xl bg-surface border border-border mx-auto flex items-center justify-center text-amber-500">
-            <AlertTriangle className="size-5" />
+          <div className="size-10 rounded-2xl bg-surface border border-border mx-auto flex items-center justify-center text-foreground-secondary">
+            <Activity className="size-5 text-mint" />
           </div>
-          <div className="space-y-1 max-w-md mx-auto">
+          <div className="space-y-1.5 max-w-lg mx-auto">
             <h4 className="text-sm font-semibold text-foreground">
-              ML Macro Analytics Under Batch Aggregation
+              Longitudinal Cohort Rebound Trajectory
             </h4>
             <p className="text-xs sm:text-sm text-foreground-secondary leading-relaxed">
-              Empirical recovery rebound curves and cyclical variance calibrations reflect the frozen volatility-aware risk model (v1.0.0). Individual assessments are actively evaluated using the TelemetryFeaturePipeline and LightGBM model, while longitudinal cohort rebound curves are being aggregated from historical assessment batches.
+              Real-time assessments evaluate cashflow volatility and income shock metrics through the active volatility-aware LightGBM model. Longitudinal portfolio-level recovery rebound curves will populate as multi-month cyclical telemetry spans across scored cohorts.
             </p>
           </div>
         </div>

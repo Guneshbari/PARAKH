@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -16,6 +16,7 @@ import {
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/components/auth/AuthContext';
+import { api } from '@parakh/api';
 
 interface NavLinkItem {
   href: string;
@@ -35,6 +36,36 @@ export function Sidebar({ portal }: SidebarProps) {
   const userRole = (user?.role || role)?.toUpperCase();
   const effectivePortal = userRole === 'APPLICANT' ? 'user' : userRole === 'REVIEWER' ? 'admin' : portal;
 
+  const [pendingCount, setPendingCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (effectivePortal !== 'admin') return;
+    let isMounted = true;
+
+    const fetchPendingCount = async () => {
+      try {
+        const rawApps = await api.getApplications();
+        if (isMounted && rawApps) {
+          const pending = rawApps.filter(
+            (app) =>
+              app.status === 'MANUAL_REVIEW' ||
+              app.status === 'UNDER_REVIEW' ||
+              app.status === 'SUBMITTED'
+          ).length;
+          setPendingCount(pending);
+        }
+      } catch (err) {
+        // Non-blocking for navigation rail
+        console.warn('Sidebar failed to fetch applications count:', err);
+      }
+    };
+
+    fetchPendingCount();
+    return () => {
+      isMounted = false;
+    };
+  }, [effectivePortal]);
+
   const userLinks: NavLinkItem[] = [
     { href: '/user/dashboard', label: 'Applicant Dashboard', icon: Home },
     { href: '/user/applications', label: 'My Applications', icon: FileText },
@@ -45,7 +76,12 @@ export function Sidebar({ portal }: SidebarProps) {
 
   const adminLinks: NavLinkItem[] = [
     { href: '/admin/dashboard', label: 'Credit Review Dashboard', icon: Home },
-    { href: '/admin/applications', label: 'Applications', icon: FileText, badge: '4 Pending' },
+    {
+      href: '/admin/applications',
+      label: 'Applications',
+      icon: FileText,
+      badge: pendingCount !== null ? `${pendingCount} Pending` : undefined,
+    },
     { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
     { href: '/admin/model-insights', label: 'Model Insights', icon: Sparkles },
     { href: '/admin/audit-logs', label: 'Audit Logs', icon: History },
@@ -79,7 +115,7 @@ export function Sidebar({ portal }: SidebarProps) {
                     : 'text-foreground-secondary hover:text-[#472393] hover:bg-[#F7F3FF] dark:hover:text-foreground dark:hover:bg-surface-highlight'
                 )}
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 min-w-0">
                   <Icon
                     className={cn(
                       'size-4.5 shrink-0 transition-colors',

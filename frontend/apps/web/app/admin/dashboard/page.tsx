@@ -705,38 +705,38 @@ export default function AdminDashboardPage() {
 
       {/* 6. SECTOR VOLATILITY & SCORE BUCKETS (TWO COLUMNS) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Sector Volatility Comparison - Explicit ML Placeholder */}
-        <Card className="p-6 bg-surface border-border space-y-4">
+        {/* Sector Volatility & ML Pipeline Active Status */}
+        <Card className="p-4 sm:p-6 bg-surface border-border space-y-4 min-w-0">
           <div className="flex items-center justify-between pb-2 border-b border-border">
             <div>
               <h3 className="text-sm sm:text-base font-semibold text-foreground flex items-center gap-2">
-                <Building2 className="size-4 text-foreground-secondary" />
-                Sector Volatility & Shock Rebound
+                <Sparkles className="size-4 text-mint" />
+                Live ML Volatility Assessment Engine
               </h3>
               <p className="text-xs sm:text-sm text-foreground-secondary">
-                Observed recovery velocity and volatility index by gig worker segment.
+                Production volatility-aware LightGBM risk model (v1.0.0).
               </p>
             </div>
-            <Badge variant="outline" className="text-xs font-mono">
-              Cohort Macro Analytics
+            <Badge variant="mint" className="text-xs font-mono">
+              Active: v1.0.0
             </Badge>
           </div>
 
           <div className="p-4 rounded-2xl bg-surface-highlight/30 border border-border space-y-2 text-xs sm:text-sm">
             <div className="flex items-center gap-2">
-              <AlertCircle className="size-4 text-amber-500 shrink-0" />
+              <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />
               <span className="font-semibold text-foreground">
-                ML Volatility Telemetry Integration
+                ML Assessment Pipeline Active
               </span>
             </div>
             <p className="text-foreground-secondary text-xs sm:text-sm leading-relaxed">
-              Sector-level recovery velocity curves and cyclical volatility indices reflect the frozen volatility-aware risk model (v1.0.0). Live credit assessments are evaluated in real time through the TelemetryFeaturePipeline and LightGBM inference engine with persisted TreeSHAP explanations. Macro sector aggregate curves will refresh as cohort volume expands.
+              Real-time alternative credit evaluations utilize the active volatility-aware LightGBM risk model (v1.0.0) with fitted TelemetryFeaturePipeline preprocessing and persisted TreeSHAP attributions.
             </p>
           </div>
         </Card>
 
         {/* Alternative Score Distribution Buckets */}
-        <Card className="p-6 bg-surface border-border space-y-4">
+        <Card className="p-4 sm:p-6 bg-surface border-border space-y-4 min-w-0">
           <div className="flex items-center justify-between pb-2 border-b border-border">
             <div>
               <h3 className="text-sm sm:text-base font-semibold text-foreground flex items-center gap-2">
