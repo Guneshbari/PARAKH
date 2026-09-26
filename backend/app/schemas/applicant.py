@@ -91,6 +91,12 @@ class ApplicantProfileUpdate(BaseModel):
                     pass
             if not data.get("business_or_loan_purpose") and data.get("preferred_loan_purpose"):
                 data["business_or_loan_purpose"] = str(data["preferred_loan_purpose"])[:255]
+            if data.get("average_working_days") is None and data.get("average_working_days_per_week") is not None:
+                try:
+                    days = float(data["average_working_days_per_week"])
+                    data["average_working_days"] = min(31, max(0, int(round(days * 4.33))))
+                except (ValueError, TypeError):
+                    pass
         return data
 
 

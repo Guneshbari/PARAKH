@@ -21,6 +21,7 @@ import type {
   BackendUserCreate,
   BackendApplicantProfile,
   BackendApplicantProfileCreate,
+  BackendApplicantProfileUpdate,
   BackendApplication,
   BackendApplicationCreate,
   BackendAssessment,
@@ -310,7 +311,7 @@ export class ParakhApiClient {
 
   async updateApplicantProfile(
     profileId: string,
-    data: Partial<BackendApplicantProfileCreate>
+    data: BackendApplicantProfileUpdate | Partial<BackendApplicantProfileCreate>
   ): Promise<BackendApplicantProfile> {
     return this.request<BackendApplicantProfile>(`/api/v1/applicants/${encodeURIComponent(profileId)}`, {
       method: 'PATCH',
