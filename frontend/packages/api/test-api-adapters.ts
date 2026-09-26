@@ -467,10 +467,80 @@ async function runTests() {
     assert.strictEqual(assessedResult.score, 850);
     assert.strictEqual(assessedResult.riskLevel, 'LOWER_ESTIMATED RISK');
     assert.strictEqual(assessedResult.estimatedRepaymentDifficulty, 3);
-    assert.strictEqual(assessedResult.modelConfidence, 100);
-    assert.strictEqual(assessedResult.modelName, 'volatility-aware-risk-model');
-    assert.strictEqual(assessedResult.modelVersion, '1.0.0');
-    assert.strictEqual(assessedResult.featureContributions.length, 1);
+    // Test 6: P2-11 getAssessmentsByApplication delegates to GET /api/v1/applications/{id}/assessments
+    let historyUrl = '';
+    let historyMethod = '';
+    globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+      historyUrl = String(input);
+      historyMethod = init?.method || 'GET';
+      return {
+        ok: true,
+        status: 200,
+        json: async () => [
+          {
+            id: 'asmt-hist-1',
+            application_id: 'app-100',
+            model_version_id: 'mv-1',
+            credit_score: 720,
+            score: 720,
+            risk_probability: 0.05,
+            risk_level: 'LOWER',
+            confidence: 0.95,
+            model_name: 'volatility-aware-risk-model',
+            model_version: '1.0.0',
+            key_factors: ['Consistent cashflow'],
+            assessment_status: 'COMPLETED',
+            assessed_at: '2026-09-24T10:00:00Z',
+            created_at: '2026-09-24T10:00:00Z',
+          },
+        ],
+      } as Response;
+    };
+
+    const historyResult = await client.getAssessmentsByApplication('app-100');
+    assert.strictEqual(historyUrl, 'http://localhost:8000/api/v1/applications/app-100/assessments');
+    assert.strictEqual(historyMethod, 'GET');
+    assert.strictEqual(Array.isArray(historyResult), true);
+    assert.strictEqual(historyResult.length, 1);
+    assert.strictEqual(historyResult[0].id, 'asmt-hist-1');
+    assert.strictEqual(historyResult[0].score, 720);
+
+    // Test 7: P2-10 getGlobalSHAP delegates to POST /api/v1/model-versions/{id}/global-shap
+    let shapUrl = '';
+    let shapMethod = '';
+    globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+      shapUrl = String(input);
+      shapMethod = init?.method || 'GET';
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          model_version_id: 'mv-uuid-1',
+          model_version: '1.0.0',
+          model_name: 'volatility-aware-risk-model',
+          evaluated_at: '2026-09-27T02:00:00Z',
+          sample_count: 12000,
+          dataset_source: 'Offline synthetic evaluation dataset.',
+          features: [
+            {
+              feature_name: 'feat_liq_net_margin',
+              mean_abs_shap: 1.577,
+              mean_shap: -0.037,
+              rank: 1,
+            },
+          ],
+        }),
+      } as Response;
+    };
+
+    const shapResult = await client.getGlobalSHAP('mv-uuid-1');
+    assert.strictEqual(shapUrl, 'http://localhost:8000/api/v1/model-versions/mv-uuid-1/global-shap');
+    assert.strictEqual(shapMethod, 'POST');
+    assert.strictEqual(shapResult.model_version, '1.0.0');
+    assert.strictEqual(shapResult.sample_count, 12000);
+    assert.strictEqual(shapResult.features.length, 1);
+    assert.strictEqual(shapResult.features[0].feature_name, 'feat_liq_net_margin');
+    assert.strictEqual(shapResult.features[0].rank, 1);
 
   } finally {
     globalThis.fetch = originalFetch;

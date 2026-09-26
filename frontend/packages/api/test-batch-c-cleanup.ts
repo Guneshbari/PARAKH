@@ -7,13 +7,14 @@ console.log('=============================================================');
 
 const client = new ParakhApiClient();
 
-// 1. Verify all 17 removed/redundant methods are NO LONGER EXPOSED
+// 1. Verify all 16 removed/redundant methods remain NO LONGER EXPOSED
+// Note: getAssessmentsByApplication was deliberately restored in Batch D (P2-11)
+// for historical assessment auditing in the reviewer/admin application dossier.
 const removedMethods = [
   'getUserById',
   'getUserByEmail',
   'updateUser',
   'updateApplication',
-  'getAssessmentsByApplication',
   'getLatestFinancialSignals',
   'getConsentsByApplication',
   'createModelVersion',
@@ -65,10 +66,11 @@ const retainedMethods = [
   'getApplicationById',
   'getApplicationsByApplicant',
   'updateApplicationStatus',
-  // Assessments
+  // Assessments (including restored P2-11 getAssessmentsByApplication)
   'triggerAssessment',
   'getAssessmentById',
   'getLatestAssessmentByApplication',
+  'getAssessmentsByApplication',
   // Financial Signals
   'recordFinancialSignals',
   'getFinancialSignals',
@@ -83,10 +85,11 @@ const retainedMethods = [
   'createReview',
   'getReviewsByApplication',
   'getReviewsByReviewer',
-  // Model Governance (including Phase 14F)
+  // Model Governance (including Phase 14F and P2-10 getGlobalSHAP)
   'getModelVersions',
   'activateModelVersion',
   'runFairnessAudit',
+  'getGlobalSHAP',
   // Audit Logs (including Phase 14B)
   'getAuditLogs',
   'getAuditLogsAdapted',

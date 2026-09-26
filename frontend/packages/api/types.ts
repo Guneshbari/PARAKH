@@ -460,3 +460,21 @@ export interface BackendOperationalAlertResponse {
 
 export type BackendOperationalAlert = BackendOperationalAlertResponse;
 
+// --- P2-10: Global SHAP Feature Importance Transport Models ---
+
+export interface BackendGlobalSHAPFeatureItem {
+  feature_name: string;
+  mean_abs_shap: number;
+  mean_shap: number;
+  rank: number;
+}
+
+export interface BackendGlobalSHAPResponse {
+  model_version_id: string;
+  model_version: string;
+  model_name: string;
+  evaluated_at: string;
+  sample_count: number;
+  dataset_source: string;
+  features: BackendGlobalSHAPFeatureItem[];
+}

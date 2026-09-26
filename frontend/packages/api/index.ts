@@ -32,6 +32,7 @@ import type {
   BackendModelVersion,
   BackendFairnessAuditRequest,
   BackendFairnessAuditResponse,
+  BackendGlobalSHAPResponse,
   BackendAuditLog,
   BackendPortfolioAnalytics,
   BackendSectorRiskItem,
@@ -381,6 +382,18 @@ export class ParakhApiClient {
     );
   }
 
+  /**
+   * P2-11: Fetch all historical assessments for an application in reverse-chronological order.
+   * Required by the reviewer/admin application dossier historical assessment section.
+   * Authorization follows existing application ownership/role rules enforced by the backend.
+   */
+  async getAssessmentsByApplication(applicationId: string): Promise<BackendAssessment[]> {
+    return this.request<BackendAssessment[]>(
+      `/api/v1/applications/${encodeURIComponent(applicationId)}/assessments`,
+      { method: 'GET' }
+    );
+  }
+
   // =========================================================================
   // 5. FINANCIAL SIGNALS
   // =========================================================================
@@ -529,6 +542,19 @@ export class ParakhApiClient {
         method: 'POST',
         body: JSON.stringify(data || {}),
       }
+    );
+  }
+
+  /**
+   * P2-10: Compute global/model-level SHAP feature importance for a registered model version.
+   * Uses the existing TreeSHAP infrastructure over the offline evaluation dataset.
+   * Results represent model-level feature importance — NOT individual applicant explanations.
+   * Restricted to ADMIN and REVIEWER roles by the backend.
+   */
+  async getGlobalSHAP(modelVersionId: string): Promise<BackendGlobalSHAPResponse> {
+    return this.request<BackendGlobalSHAPResponse>(
+      `/api/v1/model-versions/${encodeURIComponent(modelVersionId)}/global-shap`,
+      { method: 'POST' }
     );
   }
 

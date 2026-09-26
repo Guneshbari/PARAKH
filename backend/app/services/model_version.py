@@ -3,6 +3,7 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
+import numpy as np
 import pandas as pd
 from sqlalchemy.orm import Session
 from app.core.audit_events import AuditAction, AuditOutcome
@@ -12,6 +13,8 @@ from app.repositories.model_version import ModelVersionRepository
 from app.schemas.model_version import (
     FairnessAuditRequest,
     FairnessAuditResponse,
+    GlobalSHAPFeatureItem,
+    GlobalSHAPResponse,
     ModelVersionCreate,
     SubgroupFairnessMetricsResponse,
 )
@@ -351,3 +354,245 @@ class ModelVersionService:
             self.db.commit()
 
         return response
+
+    # ------------------------------------------------------------------
+    # P2-10: Global SHAP Feature Importance Aggregation
+    # ------------------------------------------------------------------
+
+    def compute_global_shap(
+        self,
+        model_version_id: Union[uuid.UUID, str],
+        actor: Optional[Any] = None,
+    ) -> GlobalSHAPResponse:
+        """Compute global/model-level mean absolute SHAP feature importance.
+
+        Uses the existing TreeShapExplainer against the offline evaluation dataset
+        (data/synthetic/synthetic_credit_applications.parquet).  Does NOT execute
+        during live assessment requests and does NOT expose individual applicant records.
+
+        The frozen model artifact is loaded read-only; its SHA-256 hash is unmodified.
+
+        Args:
+            model_version_id: Primary key UUID of the model version to evaluate.
+            actor: User executing the aggregation (for audit logging).
+
+        Returns:
+            GlobalSHAPResponse: Feature importance entries ordered by mean_abs_shap desc.
+
+        Raises:
+            EntityNotFoundError: If model version is not found.
+            ValidationError: If evaluation dataset is missing, incompatible, or the model
+                             artifact cannot be loaded.
+        """
+        import joblib
+
+        mv = self.get_model_version(model_version_id)
+
+        # Resolve model artifact path -----------------------------------------------
+        # Only the volatility-aware LightGBM model supports TreeSHAP.
+        _EXPECTED_MODEL_NAME = "volatility-aware-risk-model"
+        if mv.model_name != _EXPECTED_MODEL_NAME:
+            raise ValidationError(
+                f"Model '{mv.model_name}' does not support TreeSHAP global aggregation. "
+                f"Global TreeSHAP is only supported for '{_EXPECTED_MODEL_NAME}'."
+            )
+
+        artifact_path = (
+            Path(settings.ML_MODEL_PATH)
+            if getattr(settings, "ML_MODEL_PATH", None)
+            else Path(__file__).resolve().parents[3]
+            / "models"
+            / "artifacts"
+            / "volatility_aware_risk_model.joblib"
+        )
+        if not artifact_path.exists():
+            raise ValidationError(
+                f"Frozen model artifact not found at '{artifact_path}'. "
+                "Cannot execute global SHAP aggregation."
+            )
+
+        try:
+            frozen_model = joblib.load(artifact_path)
+        except Exception as exc:
+            raise ValidationError(
+                f"Failed to load frozen model artifact: {exc}"
+            ) from exc
+
+        if not getattr(frozen_model, "is_fitted", False):
+            raise ValidationError("Loaded model artifact is not fitted. Cannot compute SHAP values.")
+
+        if hasattr(frozen_model, "model_version") and mv.version != frozen_model.model_version:
+            raise ValidationError(
+                f"Registered model version '{mv.version}' does not match loaded artifact version "
+                f"'{frozen_model.model_version}'. Cannot compute global SHAP for mismatched versions."
+            )
+
+        # Resolve evaluation dataset -------------------------------------------------
+        dataset_path = (
+            Path(settings.ML_DATASET_PATH)
+            if getattr(settings, "ML_DATASET_PATH", None)
+            else Path(__file__).resolve().parents[3]
+            / "data"
+            / "synthetic"
+            / "synthetic_credit_applications.parquet"
+        )
+        if not dataset_path.exists():
+            raise ValidationError(
+                f"Offline evaluation dataset not found at '{dataset_path}'. "
+                "Cannot execute global SHAP aggregation."
+            )
+
+        try:
+            df = pd.read_parquet(dataset_path)
+        except Exception as exc:
+            raise ValidationError(
+                f"Failed to load offline evaluation dataset: {exc}"
+            ) from exc
+
+        # Resolve preprocessor artifact -------------------------------------------
+        # The persisted preprocessor encapsulates all feature engineering (feat_eng_*
+        # interactions, one-hot encoding) required to produce the 64-column model
+        # input matrix.  We MUST use it rather than raw dataset columns to avoid
+        # missing features like feat_eng_vol_to_baseline, gig_work_type_DELIVERY, etc.
+        preprocessor_path = (
+            Path(__file__).resolve().parents[3]
+            / "models"
+            / "artifacts"
+            / "credit_risk_preprocessor.joblib"
+        )
+        if not preprocessor_path.exists():
+            raise ValidationError(
+                f"Preprocessor artifact not found at '{preprocessor_path}'. "
+                "Cannot derive engineered features for global SHAP aggregation."
+            )
+
+        try:
+            preprocessor = joblib.load(preprocessor_path)
+        except Exception as exc:
+            raise ValidationError(
+                f"Failed to load preprocessor artifact: {exc}"
+            ) from exc
+
+        # Transform raw dataset through the frozen preprocessor to get all 64 features.
+        try:
+            X_transformed = preprocessor.transform(df)
+        except Exception as exc:
+            raise ValidationError(
+                f"Preprocessor failed to transform evaluation dataset: {exc}"
+            ) from exc
+
+        # Validate that the transformed output aligns with model expectations.
+        feature_names = list(frozen_model.feature_names_in_ or [])
+        if not feature_names:
+            raise ValidationError(
+                "Frozen model artifact does not expose feature_names_in_. "
+                "Cannot deterministically align the evaluation dataset."
+            )
+
+        missing_cols = [f for f in feature_names if f not in X_transformed.columns]
+        if missing_cols:
+            raise ValidationError(
+                f"Preprocessor output is missing {len(missing_cols)} model features. "
+                f"Incompatible dataset/preprocessor. Missing: {sorted(missing_cols)}"
+            )
+
+        # Select features in exact model order; drop rows with NaN without imputing.
+        df_clean = X_transformed[feature_names].dropna()
+        if len(df_clean) == 0:
+            raise ValidationError(
+                "No complete rows found in preprocessed evaluation dataset. "
+                "Cannot compute global SHAP values."
+            )
+
+        X_eval = df_clean[feature_names]  # DataFrame aligned to model feature order
+
+
+        # Compute SHAP values via existing TreeShapExplainer -------------------------
+        try:
+            from src.ml.explainability.shap_explainer import TreeShapExplainer
+            explainer = TreeShapExplainer(frozen_model)
+            global_explanation = explainer.explain_global(X_eval)
+        except Exception as exc:
+            raise ValidationError(
+                f"TreeSHAP global aggregation failed: {exc}"
+            ) from exc
+
+        # Compute signed mean SHAP (mean over all samples, preserving direction) ----
+        X_arr = X_eval.values
+        shap_vals_raw = explainer.explainer.shap_values(X_arr)
+        if isinstance(shap_vals_raw, list):
+            sample_shap = shap_vals_raw[1] if len(shap_vals_raw) > 1 else shap_vals_raw[0]
+        else:
+            sample_shap = shap_vals_raw
+        mean_shap_signed = np.mean(sample_shap, axis=0)  # shape: (n_features,)
+
+        # Build ordered feature list ------------------------------------------------
+        # Primary sort: mean_abs_shap descending.
+        # Secondary sort: feature_name ascending (deterministic tie-breaking).
+        abs_importances = global_explanation.mean_absolute_attributions  # dict: name -> float
+        ranked_features = sorted(
+            feature_names,
+            key=lambda n: (-abs_importances.get(n, 0.0), n),
+        )
+
+        feature_name_to_idx = {name: i for i, name in enumerate(feature_names)}
+        features_out: List[GlobalSHAPFeatureItem] = []
+        for rank, fname in enumerate(ranked_features, start=1):
+            idx = feature_name_to_idx[fname]
+            features_out.append(
+                GlobalSHAPFeatureItem(
+                    feature_name=fname,
+                    mean_abs_shap=round(float(abs_importances.get(fname, 0.0)), 6),
+                    mean_shap=round(float(mean_shap_signed[idx]), 6),
+                    rank=rank,
+                )
+            )
+
+        now_utc = datetime.now(timezone.utc)
+        response = GlobalSHAPResponse(
+            model_version_id=mv.id,
+            model_version=mv.version,
+            model_name=mv.model_name,
+            evaluated_at=now_utc,
+            sample_count=int(df_clean.shape[0]),
+            dataset_source=(
+                "Offline synthetic evaluation dataset (data/synthetic/synthetic_credit_applications.parquet). "
+                "No individual applicant records are included in this aggregation."
+            ),
+            features=features_out,
+        )
+
+        # Audit log the computation ---------------------------------------------------
+        if self.audit_service:
+            try:
+                self.audit_service.record_event(
+                    action=AuditAction.MODEL_FAIRNESS_EVALUATED,
+                    entity_type="ModelVersion",
+                    entity_id=getattr(mv, "id", None),
+                    user_id=getattr(actor, "id", None),
+                    actor_role=getattr(actor, "role", None),
+                    outcome=AuditOutcome.SUCCESS,
+                    metadata={
+                        "operation": "global_shap_aggregation",
+                        "model_name": mv.model_name,
+                        "version": mv.version,
+                        "sample_count": response.sample_count,
+                        "feature_count": len(features_out),
+                        "features": [
+                            {
+                                "feature_name": f.feature_name,
+                                "mean_abs_shap": f.mean_abs_shap,
+                                "mean_shap": f.mean_shap,
+                                "rank": f.rank,
+                            }
+                            for f in features_out
+                        ],
+                    },
+                    commit=False,
+                )
+                self.db.commit()
+            except Exception:
+                pass
+
+        return response
+

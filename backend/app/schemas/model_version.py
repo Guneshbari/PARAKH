@@ -98,3 +98,48 @@ class FairnessAuditResponse(BaseModel):
     equal_opportunity_difference: Optional[float] = None
     limitations_disclaimer: str
     audit_notes: List[str] = Field(default_factory=list)
+
+
+# ---------------------------------------------------------------------------
+# P2-10: Global SHAP Feature Importance Schemas
+# ---------------------------------------------------------------------------
+
+class GlobalSHAPFeatureItem(BaseModel):
+    """Per-feature global SHAP importance entry.
+
+    mean_abs_shap: Mean absolute SHAP value across the evaluation population.
+                   Represents the average magnitude of each feature's contribution
+                   to model predictions (primary importance measure).
+    mean_shap:     Signed mean SHAP value, indicating average directional influence.
+                   Positive = average risk-increasing contribution; negative = risk-reducing.
+    rank:          1-based rank by mean_abs_shap descending (deterministic secondary sort
+                   by feature_name ascending when values are equal).
+    """
+
+    feature_name: str = Field(..., description="Model feature identifier")
+    mean_abs_shap: float = Field(..., description="Mean absolute SHAP value (primary importance measure)")
+    mean_shap: float = Field(..., description="Signed mean SHAP value (average directional contribution)")
+    rank: int = Field(..., ge=1, description="1-based rank ordered by mean_abs_shap descending")
+
+
+class GlobalSHAPResponse(BaseModel):
+    """Global/model-level SHAP feature importance aggregation response.
+
+    This result is computed from the offline evaluation dataset using the
+    existing TreeSHAP infrastructure and does NOT expose individual applicant data.
+    It is associated with a specific registered model version for provenance tracking.
+    """
+
+    model_version_id: UUID = Field(..., description="Model version UUID used for computation")
+    model_version: str = Field(..., description="Model semantic version string")
+    model_name: str = Field(..., description="Model name identifier")
+    evaluated_at: datetime = Field(..., description="UTC timestamp of aggregation execution")
+    sample_count: int = Field(..., ge=0, description="Number of evaluation records used for aggregation")
+    dataset_source: str = Field(
+        ...,
+        description="Description of the evaluation dataset used (not individual applicant data)",
+    )
+    features: List[GlobalSHAPFeatureItem] = Field(
+        ...,
+        description="Feature importance entries ordered by mean_abs_shap descending",
+    )

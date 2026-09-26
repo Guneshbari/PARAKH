@@ -11,6 +11,7 @@ from app.models.user import User, UserRole
 from app.schemas.model_version import (
     FairnessAuditRequest,
     FairnessAuditResponse,
+    GlobalSHAPResponse,
     ModelVersionCreate,
     ModelVersionResponse,
 )
@@ -142,3 +143,38 @@ def evaluate_model_version_fairness(
             detail=str(exc.message if hasattr(exc, "message") else exc),
         )
 
+
+@router.post(
+    "/{model_version_id}/global-shap",
+    response_model=GlobalSHAPResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Compute Global SHAP Feature Importance",
+    description=(
+        "Compute model-level global SHAP feature importance using the existing TreeSHAP "
+        "infrastructure over the offline evaluation dataset. "
+        "Returns mean absolute SHAP and signed mean SHAP per feature, ordered by importance. "
+        "Results are computed from the offline benchmark population — NOT from individual applicant data. "
+        "Requires ADMIN or REVIEWER role. Applicants are not granted access to model-governance internals."
+    ),
+)
+def compute_global_shap(
+    model_version_id: UUID,
+    current_user: User = Depends(require_role(UserRole.ADMIN, UserRole.REVIEWER)),
+    mv_service: ModelVersionService = Depends(get_model_version_service),
+) -> GlobalSHAPResponse:
+    """Execute global SHAP aggregation for a registered model version (Admin and Reviewer only)."""
+    try:
+        return mv_service.compute_global_shap(
+            model_version_id=model_version_id,
+            actor=current_user,
+        )
+    except EntityNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(exc),
+        )
+    except ValidationError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(exc.message if hasattr(exc, "message") else exc),
+        )

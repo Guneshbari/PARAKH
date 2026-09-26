@@ -20,6 +20,7 @@ import {
   Users,
   CheckCircle2,
   SlidersHorizontal,
+  BarChart2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -29,6 +30,7 @@ import {
   api,
   type BackendModelVersion,
   type BackendFairnessAuditResponse,
+  type BackendGlobalSHAPResponse,
 } from '@parakh/api';
 import { canonicalDemoData } from '@/lib/demo/canonicalDemoData';
 
@@ -42,6 +44,11 @@ export default function AdminModelInsightsPage() {
   const [isAuditingFairness, setIsAuditingFairness] = useState(false);
   const [fairnessAuditResult, setFairnessAuditResult] = useState<BackendFairnessAuditResponse | null>(null);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
+  // P2-10: Global SHAP state
+  const [globalSHAP, setGlobalSHAP] = useState<BackendGlobalSHAPResponse | null>(null);
+  const [isComputingShap, setIsComputingShap] = useState(false);
+  const [shapError, setShapError] = useState<string | null>(null);
+
 
   const fetchModelData = async () => {
     setIsLoading(true);
@@ -103,6 +110,22 @@ export default function AdminModelInsightsPage() {
       setActionMessage(err?.message || 'Fairness audit execution failed.');
     } finally {
       setIsAuditingFairness(false);
+    }
+  };
+
+  // P2-10: Compute real global SHAP feature importance from backend
+  const handleComputeGlobalSHAP = async () => {
+    if (!activeModel) return;
+    setIsComputingShap(true);
+    setShapError(null);
+    try {
+      const result = await api.getGlobalSHAP(activeModel.id);
+      setGlobalSHAP(result);
+    } catch (err: any) {
+      console.error('Failed to compute global SHAP:', err);
+      setShapError(err?.message || 'Global SHAP computation failed. Ensure the offline evaluation dataset and model artifacts are available.');
+    } finally {
+      setIsComputingShap(false);
     }
   };
 
@@ -565,37 +588,161 @@ export default function AdminModelInsightsPage() {
           </Badge>
         </div>
 
-        {/* GLOBAL FEATURE IMPORTANCE AGGREGATION STATUS */}
-        <div className="p-6 rounded-2xl bg-surface-highlight/20 border border-border text-center space-y-3">
-          <div className="inline-flex p-3 rounded-full bg-surface-highlight text-foreground-secondary">
-            <Sparkles className="size-6" />
-          </div>
-          <div className="space-y-1 max-w-lg mx-auto">
-            <div className="flex items-center justify-center gap-2">
-              <h3 className="text-sm sm:text-base font-semibold text-foreground">
-                Global Feature Importance Aggregation
+        {/* P2-10: GLOBAL SHAP FEATURE IMPORTANCE — BACKEND CONNECTED */}
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="space-y-0.5">
+              <h3 className="text-sm sm:text-base font-semibold text-foreground flex items-center gap-2">
+                <BarChart2 className="size-4 text-foreground-secondary" />
+                Global Feature Importance — Model-Level SHAP Aggregation
               </h3>
-              <Badge variant="mint" className="text-xs py-0 px-2 font-mono border-border">
-                Demo
-              </Badge>
+              <p className="text-xs text-foreground-secondary leading-relaxed max-w-xl">
+                Mean absolute SHAP values computed from the offline evaluation dataset using the existing TreeSHAP infrastructure.
+                This represents <strong className="text-foreground">model-level feature importance</strong>, not individual applicant explanations.
+                No applicant personal data is included in this aggregation.
+              </p>
             </div>
-            <p className="text-xs sm:text-sm text-foreground-secondary leading-relaxed">
-              Canonical Demo Data.
-            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleComputeGlobalSHAP}
+              disabled={isComputingShap || !activeModel}
+              className="rounded-full gap-1.5 text-xs text-foreground-secondary border-border hover:bg-surface-highlight shrink-0"
+            >
+              <RefreshCw className={`size-3.5 ${isComputingShap ? 'animate-spin' : ''}`} />
+              {isComputingShap ? 'Computing SHAP...' : globalSHAP ? 'Recompute' : 'Compute Global SHAP'}
+            </Button>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-left max-w-2xl mx-auto">
-            {canonicalDemoData.mlInsights.globalFeatures.map(feat => (
-              <div key={feat.id} className="p-3 rounded-xl bg-surface border border-border space-y-1">
-                <div className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
-                  <ShieldCheck className="size-4 text-foreground-secondary" />
-                  <span>{feat.name}</span>
-                </div>
-                <p className="text-xs sm:text-sm text-foreground-secondary">
-                  {feat.description}
-                </p>
+
+          {/* SHAP ERROR STATE */}
+          {shapError && (
+            <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-sm text-rose-600 dark:text-rose-400 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="size-4.5 shrink-0" />
+                <span>{shapError}</span>
               </div>
-            ))}
-          </div>
+              <Button variant="ghost" size="sm" onClick={handleComputeGlobalSHAP} disabled={isComputingShap} className="text-rose-600 dark:text-rose-400 text-xs h-8">
+                Retry
+              </Button>
+            </div>
+          )}
+
+          {/* SHAP LOADING STATE */}
+          {isComputingShap && (
+            <div className="p-8 text-center text-sm text-foreground-secondary space-y-2">
+              <RefreshCw className="size-6 animate-spin mx-auto text-foreground-secondary" />
+              <p>Computing global SHAP values from {activeModel?.model_name} over offline evaluation dataset...</p>
+              <p className="text-xs">This may take a few seconds.</p>
+            </div>
+          )}
+
+          {/* SHAP EMPTY STATE */}
+          {!isComputingShap && !globalSHAP && !shapError && (
+            <div className="p-8 rounded-2xl bg-surface-highlight/20 border border-dashed border-border text-center space-y-2">
+              <Sparkles className="size-6 text-foreground-secondary mx-auto" />
+              <p className="text-sm font-medium text-foreground">Global SHAP Feature Importance Not Yet Computed</p>
+              <p className="text-xs sm:text-sm text-foreground-secondary max-w-sm mx-auto">
+                Click <strong>Compute Global SHAP</strong> to aggregate mean absolute SHAP values across the offline evaluation dataset using the frozen {activeModel?.model_name || 'volatility-aware'} model.
+              </p>
+            </div>
+          )}
+
+          {/* SHAP RESULTS TABLE */}
+          {!isComputingShap && globalSHAP && (
+            <div className="space-y-3">
+              {/* Metadata banner */}
+              <div className="p-3.5 rounded-xl bg-surface-highlight/40 border border-border text-xs sm:text-sm space-y-1.5">
+                <div className="flex flex-wrap items-center justify-between gap-2 font-mono">
+                  <span className="font-semibold text-foreground flex items-center gap-1.5">
+                    <CheckCircle2 className="size-3.5 text-mint" />
+                    Backend SHAP Aggregation — {globalSHAP.model_name} v{globalSHAP.model_version}
+                  </span>
+                  <span className="text-foreground-secondary text-xs">
+                    Computed: {new Date(globalSHAP.evaluated_at).toLocaleTimeString()}
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-4 text-xs font-mono text-foreground-secondary">
+                  <span>N={globalSHAP.sample_count.toLocaleString()} evaluation records</span>
+                  <span className="text-foreground-secondary italic">{globalSHAP.dataset_source.split('.')[0]}.</span>
+                </div>
+              </div>
+
+              {/* Feature importance table */}
+              <div className="overflow-x-auto rounded-xl border border-border bg-surface">
+                <table className="w-full text-left text-xs sm:text-sm">
+                  <thead className="bg-surface-highlight/50 border-b border-border text-xs font-semibold uppercase tracking-wider text-foreground-secondary">
+                    <tr>
+                      <th className="py-3 px-4">Rank</th>
+                      <th className="py-3 px-4">Feature Name</th>
+                      <th className="py-3 px-4 font-mono text-right">
+                        Mean |SHAP|
+                        <span className="block text-[10px] font-normal normal-case text-foreground-secondary/70">Primary importance</span>
+                      </th>
+                      <th className="py-3 px-4 font-mono text-right">
+                        Mean SHAP
+                        <span className="block text-[10px] font-normal normal-case text-foreground-secondary/70">Signed direction</span>
+                      </th>
+                      <th className="py-3 px-4">Direction</th>
+                      <th className="py-3 px-4">Importance Bar</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border font-normal">
+                    {globalSHAP.features.slice(0, 20).map((feat) => {
+                      const maxAbsShap = globalSHAP.features[0]?.mean_abs_shap || 1;
+                      const barWidth = Math.round((feat.mean_abs_shap / maxAbsShap) * 100);
+                      const isRiskIncreasing = feat.mean_shap > 0;
+                      return (
+                        <tr key={feat.feature_name} className="hover:bg-surface-highlight/20 transition-colors">
+                          <td className="py-2.5 px-4 font-mono text-foreground-secondary text-xs font-semibold">
+                            #{feat.rank}
+                          </td>
+                          <td className="py-2.5 px-4 font-mono text-foreground text-xs font-medium max-w-[180px] truncate" title={feat.feature_name}>
+                            {feat.feature_name}
+                          </td>
+                          <td className="py-2.5 px-4 font-mono text-foreground font-semibold text-right text-xs">
+                            {feat.mean_abs_shap.toFixed(4)}
+                          </td>
+                          <td className={`py-2.5 px-4 font-mono font-semibold text-right text-xs ${isRiskIncreasing ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                            {feat.mean_shap > 0 ? '+' : ''}{feat.mean_shap.toFixed(4)}
+                          </td>
+                          <td className="py-2.5 px-4 text-xs">
+                            <Badge
+                              variant={isRiskIncreasing ? 'riskHigher' : 'riskLower'}
+                              className="text-[10px] py-0 px-1.5 font-medium"
+                            >
+                              {isRiskIncreasing ? '↑ Risk' : '↓ Risk'}
+                            </Badge>
+                          </td>
+                          <td className="py-2.5 px-4">
+                            <div className="w-28 bg-surface-highlight h-2 rounded-full overflow-hidden">
+                              <div
+                                className={`h-full rounded-full transition-all duration-500 ${isRiskIncreasing ? 'bg-rose-500' : 'bg-emerald-500'}`}
+                                style={{ width: `${barWidth}%` }}
+                              />
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+                {globalSHAP.features.length > 20 && (
+                  <div className="p-3 text-center text-xs text-foreground-secondary border-t border-border">
+                    Showing top 20 of {globalSHAP.features.length} features
+                  </div>
+                )}
+              </div>
+
+              <div className="p-3 rounded-xl bg-surface-highlight/20 border border-border text-xs text-foreground-secondary flex items-start gap-2">
+                <Info className="size-3.5 shrink-0 mt-0.5" />
+                <span>
+                  <strong className="text-foreground">Mean |SHAP|</strong> is the primary importance measure — the average magnitude of each feature's contribution across the evaluation population.
+                  <strong className="text-foreground"> Mean SHAP</strong> (signed) indicates whether the average contribution increases (positive) or decreases (negative) default risk.
+                  These are <em>global/model-level</em> aggregations; individual assessment explanations are shown separately in each application dossier.
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       </Card>
 

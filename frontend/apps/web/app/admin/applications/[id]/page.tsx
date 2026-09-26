@@ -16,6 +16,7 @@ import {
   Send,
   FileCheck,
   Loader2,
+  History,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -34,6 +35,7 @@ import {
   adaptAssessment,
   adaptReviewOutcome,
   ApiError,
+  type BackendAssessment,
 } from '@parakh/api';
 import { formatCurrency } from '@/lib/utils';
 import type {
@@ -65,6 +67,8 @@ export default function AdminApplicationDetailPage({
   ]);
   const [customItem, setCustomItem] = useState('');
   const [recordSuccess, setRecordSuccess] = useState(false);
+  // P2-11: Historical assessment state
+  const [assessmentHistory, setAssessmentHistory] = useState<BackendAssessment[]>([]);
 
   const loadApplicationData = async () => {
     try {
@@ -96,6 +100,15 @@ export default function AdminApplicationDetailPage({
       try {
         reviews = await api.getReviewsByApplication(id);
       } catch {}
+
+      // P2-11: Fetch full assessment history for historical audit section
+      try {
+        const history = await api.getAssessmentsByApplication(id);
+        setAssessmentHistory(history || []);
+      } catch {
+        // Silently ignore — application may have no assessments yet
+        setAssessmentHistory([]);
+      }
 
       const latestReview = reviews && reviews.length > 0 ? reviews[reviews.length - 1] : null;
 
@@ -785,7 +798,144 @@ export default function AdminApplicationDetailPage({
         </Card>
       )}
 
-      {/* 9. LEGAL & GOVERNANCE SEPARATION NOTICE */}
+      {/* 9. P2-11 ASSESSMENT HISTORY — All Historical Credit Evaluations */}
+      {assessmentHistory.length > 0 && (
+        <Card className="p-6 bg-surface border-border space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-border">
+            <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+              <History className="size-4 text-foreground-secondary" />
+              Assessment History — All Credit Evaluations
+            </h3>
+            <span className="font-mono text-xs text-foreground-secondary">
+              {assessmentHistory.length} evaluation{assessmentHistory.length === 1 ? '' : 's'} on record
+            </span>
+          </div>
+
+          <div className="space-y-3">
+            {assessmentHistory.map((a, index) => {
+              const isCurrent = index === 0;
+              const score = a.score ?? a.credit_score ?? null;
+              const riskLevel = a.risk_level ?? null;
+              const confidence = a.confidence !== null && a.confidence !== undefined
+                ? Math.round(parseFloat(String(a.confidence)) * 100)
+                : null;
+              const assessedAt = a.assessed_at || a.created_at;
+              const keyFactors: string[] = Array.isArray(a.key_factors)
+                ? a.key_factors
+                : (a.explanation && Array.isArray((a.explanation as any)?.key_factors)
+                  ? (a.explanation as any).key_factors
+                  : []);
+              const modelVersion = a.model_version ?? 'unknown';
+              const modelName = a.model_name ?? a.model_version ?? 'volatility-aware-risk-model';
+
+              const riskColors: Record<string, string> = {
+                LOWER: 'text-emerald-600 dark:text-emerald-400',
+                MODERATE: 'text-amber-600 dark:text-amber-400',
+                HIGHER: 'text-rose-600 dark:text-rose-400',
+                INSUFFICIENT: 'text-foreground-secondary',
+              };
+              const riskColor = riskColors[riskLevel ?? ''] ?? 'text-foreground-secondary';
+
+              return (
+                <div
+                  key={a.id}
+                  className={`p-4 rounded-xl border space-y-2.5 text-xs sm:text-sm ${
+                    isCurrent
+                      ? 'bg-surface-highlight border-[#472393]/30 dark:border-border'
+                      : 'bg-surface-highlight/40 border-border'
+                  }`}
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {isCurrent && (
+                        <Badge variant="mint" className="text-[10px] px-1.5 py-0 font-semibold">
+                          Current
+                        </Badge>
+                      )}
+                      <span className="font-mono text-foreground-secondary text-[10px] sm:text-xs">
+                        {assessedAt
+                          ? new Date(assessedAt).toLocaleDateString('en-IN', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })
+                          : 'Unknown time'}
+                      </span>
+                      <span className="text-foreground-secondary font-mono text-[10px] sm:text-xs">
+                        • {modelName} v{modelVersion}
+                      </span>
+                    </div>
+                    <span className="font-mono text-[10px] text-foreground-secondary truncate max-w-[140px]" title={a.id}>
+                      ID: {a.id.split('-')[0]}...
+                    </span>
+                  </div>
+
+                  <div className="flex flex-wrap gap-4">
+                    {/* Score */}
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-foreground-secondary">Score:</span>
+                      {score !== null ? (
+                        <span className="font-mono font-semibold text-foreground">{score}<span className="text-foreground-secondary text-[10px]">/850</span></span>
+                      ) : (
+                        <span className="font-mono text-foreground-secondary">UNRATED</span>
+                      )}
+                    </div>
+
+                    {/* Risk Level */}
+                    <div className="flex items-center gap-1">
+                      <span className="text-foreground-secondary">Risk:</span>
+                      <span className={`font-mono font-semibold ${riskColor}`}>
+                        {riskLevel ? riskLevel.replace(/_/g, ' ') : 'N/A'}
+                      </span>
+                    </div>
+
+                    {/* Confidence */}
+                    <div className="flex items-center gap-1">
+                      <span className="text-foreground-secondary">Confidence:</span>
+                      <span className="font-mono text-foreground">
+                        {confidence !== null ? `${confidence}%` : '—'}
+                      </span>
+                    </div>
+
+                    {/* Status */}
+                    <div className="flex items-center gap-1">
+                      <span className="text-foreground-secondary">Status:</span>
+                      <span className="font-mono text-foreground">{a.assessment_status ?? 'COMPLETED'}</span>
+                    </div>
+                  </div>
+
+                  {/* Key Factors */}
+                  {keyFactors.length > 0 && (
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="text-foreground-secondary text-xs">Key factors:</span>
+                      {keyFactors.slice(0, 4).map((factor, fi) => (
+                        <span
+                          key={fi}
+                          className="px-2 py-0.5 rounded-full bg-surface border border-border text-[10px] text-foreground-secondary font-mono truncate max-w-[160px]"
+                          title={factor}
+                        >
+                          {factor}
+                        </span>
+                      ))}
+                      {keyFactors.length > 4 && (
+                        <span className="text-[10px] text-foreground-secondary">+{keyFactors.length - 4} more</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          <p className="text-[10px] text-foreground-secondary text-right italic">
+            Assessments shown in reverse-chronological order. All entries are read-only audit records.
+          </p>
+        </Card>
+      )}
+
+      {/* 10. LEGAL & GOVERNANCE SEPARATION NOTICE */}
       <div className="p-4 rounded-2xl bg-surface-highlight/30 border border-border text-xs sm:text-sm text-foreground-secondary flex items-start gap-3">
         <Info className="size-4 text-foreground-secondary shrink-0 mt-0.5" />
         <div className="space-y-0.5">
