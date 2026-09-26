@@ -77,13 +77,14 @@ def audit_subgroup_fairness(
     # Binary prediction: 1 = default predicted, 0 = non-default (favorable) predicted
     y_pred = (y_prob_arr >= threshold).astype(int)
 
-    unique_subgroups = sorted(list(set(subgroups_arr)))
+    unique_subgroups = sorted(list(set(str(s) for s in subgroups_arr)))
     subgroup_metrics_dict: Dict[str, SubgroupFairnessMetrics] = {}
     favorable_rates: List[float] = []
     tpr_rates: List[float] = []
 
     for group_val in unique_subgroups:
-        mask = (subgroups_arr == group_val)
+        group_str = str(group_val)
+        mask = (subgroups_arr == group_str)
         g_true = y_true_arr[mask]
         g_prob = y_prob_arr[mask]
         g_pred = y_pred[mask]
@@ -118,8 +119,8 @@ def audit_subgroup_fairness(
             tp = int(np.sum((g_pred == 1) & (g_true == 1)))
             prec = float(tp / pred_pos_count)
 
-        subgroup_metrics_dict[group_val] = SubgroupFairnessMetrics(
-            subgroup_name=group_val,
+        subgroup_metrics_dict[group_str] = SubgroupFairnessMetrics(
+            subgroup_name=group_str,
             sample_count=g_count,
             positive_actual_count=g_pos,
             negative_actual_count=g_neg,
@@ -160,3 +161,38 @@ def audit_subgroup_fairness(
         limitations_disclaimer=disclaimer,
         audit_notes=notes,
     )
+
+
+class GroupedFairnessAuditor:
+    """Offline grouped fairness auditor for credit risk models.
+
+    Audits demographic parity ratio (DPR) and equal opportunity difference (EOD)
+    across approved operational subgroups without modifying live assessment models.
+    """
+
+    def __init__(
+        self,
+        subgroup_field_name: str = "gig_work_type",
+        threshold: float = 0.5,
+    ) -> None:
+        self.subgroup_field_name = subgroup_field_name
+        self.threshold = threshold
+
+    def audit(
+        self,
+        y_true: Union[Sequence[int], np.ndarray],
+        y_prob: Union[Sequence[float], np.ndarray],
+        subgroups: Sequence[str],
+        subgroup_field_name: Optional[str] = None,
+        threshold: Optional[float] = None,
+    ) -> FairnessAuditReport:
+        """Execute fairness audit on provided arrays."""
+        field_name = subgroup_field_name or self.subgroup_field_name
+        thresh = threshold if threshold is not None else self.threshold
+        return audit_subgroup_fairness(
+            y_true=y_true,
+            y_prob=y_prob,
+            subgroups=subgroups,
+            subgroup_field_name=field_name,
+            threshold=thresh,
+        )

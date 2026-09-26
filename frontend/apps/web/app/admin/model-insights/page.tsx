@@ -25,7 +25,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { PageTransition } from '@/components/motion/PageTransition';
-import { api, type BackendModelVersion } from '@parakh/api';
+import {
+  api,
+  type BackendModelVersion,
+  type BackendFairnessAuditResponse,
+} from '@parakh/api';
 import { canonicalDemoData } from '@/lib/demo/canonicalDemoData';
 
 export default function AdminModelInsightsPage() {
@@ -34,6 +38,10 @@ export default function AdminModelInsightsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedFairnessCategory, setSelectedFairnessCategory] = useState<string>('gig_sectors');
+  const [isActivatingId, setIsActivatingId] = useState<string | null>(null);
+  const [isAuditingFairness, setIsAuditingFairness] = useState(false);
+  const [fairnessAuditResult, setFairnessAuditResult] = useState<BackendFairnessAuditResponse | null>(null);
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
 
   const fetchModelData = async () => {
     setIsLoading(true);
@@ -56,6 +64,45 @@ export default function AdminModelInsightsPage() {
       setError('Failed to load registered model versions from the backend.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleActivateModelVersion = async (id: string) => {
+    setIsActivatingId(id);
+    setActionMessage(null);
+    try {
+      await api.activateModelVersion(id);
+      setActionMessage('Model version activated successfully in PostgreSQL registry.');
+      await fetchModelData();
+    } catch (err: any) {
+      console.error('Failed to activate model version:', err);
+      setActionMessage(err?.message || 'Failed to activate model version.');
+    } finally {
+      setIsActivatingId(null);
+    }
+  };
+
+  const handleRunFairnessAudit = async () => {
+    if (!activeModel) return;
+    setIsAuditingFairness(true);
+    setActionMessage(null);
+    try {
+      const subgroupField =
+        selectedFairnessCategory === 'gig_sectors'
+          ? 'gig_work_type'
+          : selectedFairnessCategory === 'inclusion'
+          ? 'cohort_archetype'
+          : 'loan_purpose';
+      const result = await api.runFairnessAudit(activeModel.id, {
+        subgroup_field: subgroupField,
+        threshold: 0.5,
+      });
+      setFairnessAuditResult(result);
+    } catch (err: any) {
+      console.error('Failed to run fairness audit:', err);
+      setActionMessage(err?.message || 'Fairness audit execution failed.');
+    } finally {
+      setIsAuditingFairness(false);
     }
   };
 
@@ -257,11 +304,45 @@ export default function AdminModelInsightsPage() {
           </div>
 
           <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRunFairnessAudit}
+              disabled={isAuditingFairness || !activeModel}
+              className="rounded-full gap-1.5 text-xs text-foreground-secondary border-border hover:bg-surface-highlight"
+            >
+              <RefreshCw className={`size-3.5 ${isAuditingFairness ? 'animate-spin' : ''}`} />
+              {isAuditingFairness ? 'Auditing...' : 'Run Subgroup Audit'}
+            </Button>
             <span className="text-xs font-mono text-foreground-secondary">
-              N={canonicalDemoData.mlInsights.fairness.sampleEvaluatedCount.toLocaleString()} Evaluated
+              N={fairnessAuditResult ? fairnessAuditResult.sample_count.toLocaleString() : canonicalDemoData.mlInsights.fairness.sampleEvaluatedCount.toLocaleString()} Evaluated
             </span>
           </div>
         </div>
+
+        {/* AUTHORITATIVE BACKEND FAIRNESS AUDIT RESULT BANNER */}
+        {fairnessAuditResult && (
+          <div className="p-3.5 rounded-xl bg-surface-highlight/40 border border-border text-xs sm:text-sm space-y-1">
+            <div className="flex items-center justify-between font-mono">
+              <span className="font-semibold text-foreground flex items-center gap-1.5">
+                <CheckCircle2 className="size-3.5 text-mint" />
+                Backend Audit Report ({fairnessAuditResult.subgroup_field})
+              </span>
+              <span className="text-foreground-secondary text-xs">
+                Evaluated: {new Date(fairnessAuditResult.evaluation_timestamp).toLocaleTimeString()}
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-4 text-xs font-mono text-foreground-secondary pt-1">
+              <span>DPR: <strong className="text-foreground">{fairnessAuditResult.demographic_parity_ratio ?? 'N/A'}</strong></span>
+              <span>EOD: <strong className="text-foreground">{fairnessAuditResult.equal_opportunity_difference ?? 'N/A'}</strong></span>
+              <span>Threshold: {fairnessAuditResult.threshold}</span>
+              <span>Samples: {fairnessAuditResult.sample_count}</span>
+            </div>
+            <p className="text-[11px] text-foreground-secondary italic pt-1 leading-relaxed">
+              {fairnessAuditResult.limitations_disclaimer}
+            </p>
+          </div>
+        )}
 
         {/* TOP LEVEL PARITY KPIS */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -530,6 +611,20 @@ export default function AdminModelInsightsPage() {
           </span>
         </div>
 
+        {actionMessage && (
+          <div className="p-3 rounded-xl bg-surface-highlight/50 border border-border text-xs sm:text-sm text-foreground flex items-center justify-between">
+            <span>{actionMessage}</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setActionMessage(null)}
+              className="text-foreground-secondary hover:text-foreground text-xs h-6 px-2"
+            >
+              Dismiss
+            </Button>
+          </div>
+        )}
+
         <div className="space-y-3 pt-1 text-sm">
           {isLoading ? (
             <div className="p-8 text-center text-sm text-foreground-secondary">
@@ -561,13 +656,36 @@ export default function AdminModelInsightsPage() {
                     {mv.description || `Algorithm: ${mv.algorithm}`}
                   </p>
                 </div>
-                <span className="font-mono text-foreground-secondary text-xs sm:text-sm shrink-0">
-                  {new Date(mv.created_at).toLocaleDateString('en-IN', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric',
-                  })}
-                </span>
+                <div className="flex items-center gap-3 shrink-0">
+                  <span className="font-mono text-foreground-secondary text-xs sm:text-sm">
+                    {new Date(mv.created_at).toLocaleDateString('en-IN', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })}
+                  </span>
+                  {!mv.is_active && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleActivateModelVersion(mv.id)}
+                      disabled={isActivatingId === mv.id}
+                      className="rounded-full gap-1 text-xs text-foreground border-border hover:bg-surface-highlight h-7 px-2.5"
+                    >
+                      {isActivatingId === mv.id ? (
+                        <>
+                          <RefreshCw className="size-3 animate-spin" />
+                          <span>Activating...</span>
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle2 className="size-3 text-mint" />
+                          <span>Activate</span>
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </div>
               </div>
             ))
           ) : (

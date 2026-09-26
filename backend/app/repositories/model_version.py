@@ -93,3 +93,42 @@ class ModelVersionRepository(BaseRepository[ModelVersion]):
             stmt = stmt.where(ModelVersion.model_name == model_name)
         stmt = stmt.order_by(ModelVersion.created_at.desc()).offset(skip).limit(limit)
         return list(session.scalars(stmt).all())
+
+    def activate(
+        self,
+        model_version: ModelVersion,
+        commit: bool = False,
+        db: Optional[Session] = None,
+    ) -> ModelVersion:
+        """Promote and activate a model version, deactivating other versions of the same model family.
+
+        Args:
+            model_version: Target ModelVersion to activate.
+            commit: Whether to commit immediately.
+            db: Optional session override.
+
+        Returns:
+            ModelVersion: Activated model version.
+        """
+        session = self._get_db(db)
+        # Deactivate all other active versions with the same model_name
+        stmt = (
+            select(ModelVersion)
+            .where(ModelVersion.model_name == model_version.model_name)
+            .where(ModelVersion.is_active.is_(True))
+            .where(ModelVersion.id != model_version.id)
+        )
+        for other_active in session.scalars(stmt).all():
+            other_active.is_active = False
+            session.add(other_active)
+
+        model_version.is_active = True
+        session.add(model_version)
+
+        if commit:
+            session.commit()
+            session.refresh(model_version)
+        else:
+            session.flush()
+
+        return model_version

@@ -320,6 +320,45 @@ export interface BackendModelVersionResponse {
   updated_at: string;
 }
 
+export interface BackendFairnessAuditRecord {
+  y_true: number;
+  y_prob: number;
+  subgroup: string;
+}
+
+export interface BackendFairnessAuditRequest {
+  subgroup_field?: string;
+  threshold?: number;
+  records?: BackendFairnessAuditRecord[];
+}
+
+export interface BackendSubgroupFairnessMetrics {
+  subgroup_name: string;
+  sample_count: number;
+  positive_actual_count: number;
+  negative_actual_count: number;
+  empirical_default_rate: number;
+  favorable_prediction_rate: number;
+  true_positive_rate?: number | null;
+  false_positive_rate?: number | null;
+  precision?: number | null;
+}
+
+export interface BackendFairnessAuditResponse {
+  model_version_id: string;
+  model_name: string;
+  version: string;
+  evaluation_timestamp: string;
+  subgroup_field: string;
+  threshold: number;
+  sample_count: number;
+  subgroups: Record<string, BackendSubgroupFairnessMetrics>;
+  demographic_parity_ratio?: number | null;
+  equal_opportunity_difference?: number | null;
+  limitations_disclaimer: string;
+  audit_notes: string[];
+}
+
 // --- Audit Log Transport Models ---
 
 export interface BackendAuditLogResponse {

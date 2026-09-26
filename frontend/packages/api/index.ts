@@ -36,6 +36,8 @@ import type {
   BackendUnderwriterReviewCreate,
   BackendModelVersion,
   BackendModelVersionCreate,
+  BackendFairnessAuditRequest,
+  BackendFairnessAuditResponse,
   BackendAuditLog,
   BackendPortfolioAnalytics,
   BackendSectorRiskItem,
@@ -586,6 +588,26 @@ export class ParakhApiClient {
     return this.request<BackendModelVersion>(`/api/v1/model-versions/${encodeURIComponent(id)}`, {
       method: 'GET',
     });
+  }
+
+  async activateModelVersion(id: string): Promise<BackendModelVersion> {
+    return this.request<BackendModelVersion>(
+      `/api/v1/model-versions/${encodeURIComponent(id)}/activate`,
+      { method: 'POST' }
+    );
+  }
+
+  async runFairnessAudit(
+    id: string,
+    data?: BackendFairnessAuditRequest
+  ): Promise<BackendFairnessAuditResponse> {
+    return this.request<BackendFairnessAuditResponse>(
+      `/api/v1/model-versions/${encodeURIComponent(id)}/fairness-audit`,
+      {
+        method: 'POST',
+        body: JSON.stringify(data || {}),
+      }
+    );
   }
 
   // =========================================================================
