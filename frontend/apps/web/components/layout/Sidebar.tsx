@@ -10,6 +10,7 @@ import {
   BarChart3,
   Sparkles,
   User,
+  History,
   LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -47,6 +48,7 @@ export function Sidebar({ portal }: SidebarProps) {
     { href: '/admin/applications', label: 'Applications', icon: FileText, badge: '4 Pending' },
     { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
     { href: '/admin/model-insights', label: 'Model Insights', icon: Sparkles },
+    { href: '/admin/audit-logs', label: 'Audit Logs', icon: History },
     { href: '/admin/profile', label: 'Profile', icon: User },
   ];
 

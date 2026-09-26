@@ -240,7 +240,7 @@ class TestAuthIntegration(unittest.TestCase):
         app_resp = self.client.get("/api/v1/applications", headers=headers)
         self.assertEqual(app_resp.status_code, 403)
 
-        # Audit endpoint requires ADMIN role -> 403 Forbidden
+        # Audit endpoint requires REVIEWER or ADMIN role -> APPLICANT receives 403 Forbidden
         audit_resp = self.client.get("/api/v1/audit-logs", headers=headers)
         self.assertEqual(audit_resp.status_code, 403)
 
@@ -253,7 +253,7 @@ class TestAuthIntegration(unittest.TestCase):
         self.assertEqual(mv_resp.status_code, 403)
 
     def test_11_reviewer_rbac_permissions(self):
-        """Verify REVIEWER can access applications queue but cannot access admin-only endpoints."""
+        """Verify REVIEWER can access applications queue and audit logs, but cannot access admin-only write endpoints."""
         token = create_access_token(subject=self.reviewer_id, role="REVIEWER")
         headers = {"Authorization": f"Bearer {token}"}
 
@@ -261,9 +261,10 @@ class TestAuthIntegration(unittest.TestCase):
         app_resp = self.client.get("/api/v1/applications", headers=headers)
         self.assertEqual(app_resp.status_code, 200)
 
-        # Admin audit log endpoint is blocked for REVIEWER -> 403 Forbidden
+        # Audit log READ endpoint is now accessible to REVIEWER (Phase 14B change: P2-02)
         audit_resp = self.client.get("/api/v1/audit-logs", headers=headers)
-        self.assertEqual(audit_resp.status_code, 403)
+        self.assertEqual(audit_resp.status_code, 200)
+        self.assertIsInstance(audit_resp.json(), list)
 
         # Model version creation requires ADMIN role -> 403 Forbidden
         mv_resp = self.client.post(
@@ -272,6 +273,7 @@ class TestAuthIntegration(unittest.TestCase):
             json={"model_name": "CreditScorer", "version": "v1.0", "description": "Test", "is_active": True},
         )
         self.assertEqual(mv_resp.status_code, 403)
+
 
     def test_12_admin_rbac_permissions(self):
         """Verify ADMIN can access administrative endpoints."""

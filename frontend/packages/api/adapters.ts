@@ -14,6 +14,7 @@ import type {
   VolatilityProfile,
   ReviewActionType,
   OperationalAlert,
+  AuditLogEntry,
 } from '@parakh/types';
 import type {
   BackendRiskLevel,
@@ -28,6 +29,7 @@ import type {
   BackendPortfolioAnalytics,
   BackendSectorRiskItem,
   BackendOperationalAlertResponse,
+  BackendAuditLogResponse,
 } from './types';
 
 // ==========================================
@@ -608,5 +610,21 @@ export function adaptOperationalAlert(backend: BackendOperationalAlertResponse):
     resolvedAt: backend.resolved_at,
   };
 }
+
+export function adaptAuditLog(backend: BackendAuditLogResponse): AuditLogEntry {
+  return {
+    id: backend.id,
+    userId: backend.user_id || null,
+    applicationId: backend.application_id || null,
+    action: backend.action,
+    entityType: backend.entity_type,
+    entityId: backend.entity_id || null,
+    actorRole: backend.actor_role || (backend.metadata?.actor_role as string | undefined) || null,
+    outcome: backend.outcome || (backend.metadata?.outcome as string | undefined) || null,
+    metadata: backend.metadata || null,
+    createdAt: backend.created_at || backend.timestamp || new Date().toISOString(),
+  };
+}
+
 
 

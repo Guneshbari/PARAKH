@@ -298,15 +298,16 @@ export interface BackendModelVersionResponse {
 
 export interface BackendAuditLogResponse {
   id: string;
-  timestamp: string;
+  created_at?: string;
+  timestamp?: string;
   action: string;
   entity_type: string;
   entity_id?: string | null;
   user_id?: string | null;
   application_id?: string | null;
   actor_role?: string | null;
-  outcome: string;
-  metadata?: Record<string, any>;
+  outcome?: string | null;
+  metadata?: Record<string, any> | null;
 }
 
 // Convenience Type Aliases

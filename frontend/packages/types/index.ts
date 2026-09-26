@@ -246,3 +246,19 @@ export interface OperationalAlert {
   resolvedAt?: string | null;
 }
 
+// --- Audit Trail & Compliance ---
+
+export interface AuditLogEntry {
+  id: string;
+  userId?: string | null;
+  applicationId?: string | null;
+  action: string;
+  entityType: string;
+  entityId?: string | null;
+  actorRole?: string | null;
+  outcome?: string | null;
+  metadata?: Record<string, any> | null;
+  createdAt: string;
+}
+
+

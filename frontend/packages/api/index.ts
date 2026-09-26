@@ -12,6 +12,7 @@ import type {
   UserResponse,
   UserCreateRequest,
   OperationalAlert,
+  AuditLogEntry,
 } from '@parakh/types';
 
 import { ApiError, type ApiErrorCode } from './errors';
@@ -44,6 +45,7 @@ import {
   adaptPortfolioAnalytics,
   adaptSectorRisk,
   adaptOperationalAlert,
+  adaptAuditLog,
   type AdaptedPortfolioAnalytics,
   type AdaptedSectorRisk,
 } from './adapters';
@@ -563,6 +565,7 @@ export class ParakhApiClient {
     entity_type?: string;
     entity_id?: string;
     user_id?: string;
+    application_id?: string;
   }): Promise<BackendAuditLog[]> {
     const query = new URLSearchParams();
     if (params?.skip !== undefined) query.append('skip', String(params.skip));
@@ -571,10 +574,24 @@ export class ParakhApiClient {
     if (params?.entity_type) query.append('entity_type', params.entity_type);
     if (params?.entity_id) query.append('entity_id', params.entity_id);
     if (params?.user_id) query.append('user_id', params.user_id);
+    if (params?.application_id) query.append('application_id', params.application_id);
     const qs = query.toString();
     return this.request<BackendAuditLog[]>(`/api/v1/audit-logs${qs ? `?${qs}` : ''}`, {
       method: 'GET',
     });
+  }
+
+  async getAuditLogsAdapted(params?: {
+    skip?: number;
+    limit?: number;
+    action?: string;
+    entity_type?: string;
+    entity_id?: string;
+    user_id?: string;
+    application_id?: string;
+  }): Promise<AuditLogEntry[]> {
+    const raw = await this.getAuditLogs(params);
+    return raw.map(adaptAuditLog);
   }
 
   async getAuditLogById(auditId: string): Promise<BackendAuditLog> {
