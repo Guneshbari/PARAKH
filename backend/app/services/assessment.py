@@ -1,4 +1,5 @@
 """Assessment service for credit evaluation outcomes and provenance."""
+import logging
 import uuid
 from decimal import Decimal
 from typing import Any, Dict, List, Optional, Union
@@ -11,18 +12,21 @@ from app.assessment.pipeline import (
 )
 from app.assessment.schemas import AssessmentInput, AssessmentResult
 from app.core.audit_events import AuditAction, AuditOutcome
-from app.models.assessment import CreditAssessment
+from app.models.assessment import CreditAssessment, RiskLevel
 from app.repositories.application import ApplicationRepository
 from app.repositories.assessment import AssessmentRepository
 from app.repositories.financial_signal import FinancialSignalRepository
 from app.repositories.model_version import ModelVersionRepository
 from app.schemas.assessment import CreditAssessmentCreate
 from app.services.audit import AuditService
+from app.services.operational_alert import OperationalAlertService
 from app.services.exceptions import (
     ConsentRequiredError,
     EntityNotFoundError,
     ValidationError,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def _extract_dict(obj: Union[Any, Dict[str, Any]]) -> Dict[str, Any]:
@@ -48,6 +52,7 @@ class AssessmentService:
         audit_service: Optional[AuditService] = None,
         consent_service: Optional[Any] = None,
         feature_pipeline: Optional[FeaturePipeline] = None,
+        alert_service: Optional[OperationalAlertService] = None,
     ) -> None:
         """Initialize AssessmentService with required repositories, optional engine, audit service, and feature pipeline."""
         self.db = db
@@ -59,6 +64,7 @@ class AssessmentService:
         self.audit_service = audit_service or AuditService(db=db)
         self.consent_service = consent_service
         self.feature_pipeline = feature_pipeline or TelemetryFeaturePipeline()
+        self.alert_service = alert_service or OperationalAlertService(db=db)
 
     def create_assessment(
         self,
@@ -245,6 +251,14 @@ class AssessmentService:
                 applicant_profile_id=app.applicant_profile_id,
             )
             if not active_consents:
+                if self.alert_service:
+                    try:
+                        self.alert_service.create_consent_blocked_alert(
+                            application_id=app.id,
+                            auto_commit=True,
+                        )
+                    except Exception as err:
+                        logger.warning("Failed to record consent blocked alert: %s", err)
                 raise ConsentRequiredError(
                     f"Active applicant consent is required to execute credit assessment for application '{app.id}'."
                 )
@@ -296,7 +310,20 @@ class AssessmentService:
         )
 
         # Invoke engine
-        result = active_engine.assess(input_data)
+        try:
+            result = active_engine.assess(input_data)
+        except Exception as e:
+            if self.alert_service:
+                try:
+                    self.alert_service.create_assessment_failure_alert(
+                        application_id=app.id,
+                        error_message=str(e),
+                        auto_commit=True,
+                    )
+                except Exception as alert_err:
+                    logger.warning("Failed to record assessment failure alert: %s", alert_err)
+            raise
+
         if not isinstance(result, AssessmentResult):
             raise AssessmentOutputError(
                 f"Assessment engine returned {type(result).__name__}, expected AssessmentResult."
@@ -313,5 +340,25 @@ class AssessmentService:
         setattr(assessment, "_transient_model_version", result.model_version)
         setattr(assessment, "_transient_key_factors", result.key_factors)
         setattr(assessment, "_transient_explanation", result.explanation)
+
+        # Trigger operational alert if assessment lacks sufficient evidence and requires manual review
+        if (
+            assessment.risk_level == RiskLevel.INSUFFICIENT
+            or (hasattr(result, "is_insufficient_evidence") and result.is_insufficient_evidence)
+        ):
+            if self.alert_service:
+                missing_signals = []
+                if isinstance(result.explanation, dict) and "missing_signals" in result.explanation:
+                    missing_signals = result.explanation["missing_signals"]
+                try:
+                    self.alert_service.create_insufficient_data_alert(
+                        application_id=app.id,
+                        assessment_id=assessment.id,
+                        missing_reasons=missing_signals,
+                        auto_commit=auto_commit,
+                    )
+                except Exception as alert_err:
+                    logger.warning("Failed to record insufficient data alert: %s", alert_err)
+
         return assessment
 

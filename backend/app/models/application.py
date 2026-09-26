@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from app.models.audit import AuditLog
     from app.models.consent import Consent
     from app.models.financial_signal import FinancialSignal
+    from app.models.operational_alert import OperationalAlert
     from app.models.review import ReviewOutcome
 
 
@@ -88,4 +89,9 @@ class Application(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     audit_logs: Mapped[List["AuditLog"]] = relationship(
         "AuditLog",
         back_populates="application",
+    )
+    operational_alerts: Mapped[List["OperationalAlert"]] = relationship(
+        "OperationalAlert",
+        back_populates="application",
+        cascade="all, delete-orphan",
     )

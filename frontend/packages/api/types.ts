@@ -363,3 +363,29 @@ export interface BackendPortfolioAnalytics {
   sector_risk: BackendSectorRiskItem[];
 }
 
+// --- Operational Alert Transport Models ---
+
+export type BackendOperationalAlertStatus = 'OPEN' | 'ACKNOWLEDGED' | 'RESOLVED';
+export type BackendOperationalAlertSeverity = 'INFO' | 'WARNING' | 'CRITICAL';
+export type BackendOperationalAlertType =
+  | 'INSUFFICIENT_DATA_REVIEW'
+  | 'ASSESSMENT_FAILURE'
+  | 'CONSENT_BLOCKED'
+  | 'SYSTEM_HEALTH';
+
+export interface BackendOperationalAlertResponse {
+  id: string;
+  alert_type: BackendOperationalAlertType;
+  severity: BackendOperationalAlertSeverity;
+  title: string;
+  message: string;
+  status: BackendOperationalAlertStatus;
+  application_id?: string | null;
+  assessment_id?: string | null;
+  alert_metadata?: Record<string, any> | null;
+  created_at: string;
+  resolved_at?: string | null;
+}
+
+export type BackendOperationalAlert = BackendOperationalAlertResponse;
+

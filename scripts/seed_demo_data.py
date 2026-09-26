@@ -14,6 +14,12 @@ from app.models.assessment import CreditAssessment, RiskLevel
 from app.models.consent import Consent, ConsentDataSource
 from app.models.financial_signal import FinancialSignal, SignalSource
 from app.models.model_version import ModelVersion
+from app.models.operational_alert import (
+    OperationalAlert,
+    OperationalAlertSeverity,
+    OperationalAlertStatus,
+    OperationalAlertType,
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -109,6 +115,23 @@ def create_application_and_assessment(
         assessment.created_at = app_date + timedelta(minutes=5)
         assessment.assessed_at = app_date + timedelta(minutes=5)
         db.add(assessment)
+
+        if risk_level == RiskLevel.INSUFFICIENT:
+            alert = OperationalAlert(
+                alert_type=OperationalAlertType.INSUFFICIENT_DATA_REVIEW,
+                severity=OperationalAlertSeverity.WARNING,
+                title="Insufficient Data: Manual Review Required",
+                message=(
+                    f"Application '{app.id}' lacks sufficient telemetry "
+                    "(refuse-to-score protocol triggered). Diverted to manual underwriter review."
+                ),
+                status=OperationalAlertStatus.OPEN,
+                application_id=app.id,
+                assessment_id=assessment.id,
+                alert_metadata={"missing_reasons": ["observed_days_below_minimum", "insufficient_payout_count"]},
+            )
+            alert.created_at = app_date + timedelta(minutes=6)
+            db.add(alert)
         
     # Consents
     consent1 = Consent(
@@ -264,7 +287,7 @@ def seed():
         }
     ]
     
-    # First, let's delete existing applications for demo users to avoid duplicates if re-run
+    # First, let's delete existing applications and alerts for demo users to avoid duplicates if re-run
     demo_emails = [a["email"] for a in applicants]
     for e in demo_emails:
         u = db.query(User).filter(User.email == e).first()
@@ -273,9 +296,10 @@ def seed():
             if p:
                 apps = db.query(Application).filter(Application.applicant_profile_id == p.id).all()
                 for app in apps:
+                    db.query(OperationalAlert).filter(OperationalAlert.application_id == app.id).delete()
                     db.delete(app)
                 db.commit()
-    
+
     for a in applicants:
         user = get_or_create_user(db, a["email"], a["role"])
         profile = get_or_create_profile(db, user.id, a["gig"], a["years"], a["days"])
@@ -285,7 +309,24 @@ def seed():
             a["util"], a["stability"], a["repayment"],
             created_days_ago=a["days_ago"]
         )
-        
+
+    # Ensure canonical system health operational alert is seeded
+    health_alert = db.query(OperationalAlert).filter(
+        OperationalAlert.alert_type == OperationalAlertType.SYSTEM_HEALTH,
+        OperationalAlert.title == "Telemetry Stream Monitoring Active",
+    ).first()
+    if not health_alert:
+        health_alert = OperationalAlert(
+            alert_type=OperationalAlertType.SYSTEM_HEALTH,
+            severity=OperationalAlertSeverity.INFO,
+            title="Telemetry Stream Monitoring Active",
+            message="Real-time partner ingestion stream operational with zero ingestion queue lag.",
+            status=OperationalAlertStatus.OPEN,
+            alert_metadata={"component": "telemetry_stream", "healthy": True},
+        )
+        db.add(health_alert)
+        db.commit()
+
     logger.info("Demo data seeded successfully.")
     
 if __name__ == "__main__":

@@ -7,6 +7,12 @@ from app.models.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
 from app.models.consent import Consent, ConsentDataSource
 from app.models.financial_signal import FinancialSignal, SignalSource
 from app.models.model_version import ModelVersion
+from app.models.operational_alert import (
+    OperationalAlert,
+    OperationalAlertSeverity,
+    OperationalAlertStatus,
+    OperationalAlertType,
+)
 from app.models.review import ReviewOutcome, ReviewOutcomeType
 from app.models.user import User, UserRole
 
@@ -24,6 +30,10 @@ __all__ = [
     "FinancialSignal",
     "SignalSource",
     "ModelVersion",
+    "OperationalAlert",
+    "OperationalAlertType",
+    "OperationalAlertSeverity",
+    "OperationalAlertStatus",
     "CreditAssessment",
     "RiskLevel",
     "ReviewOutcome",

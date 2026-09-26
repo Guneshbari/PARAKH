@@ -11,6 +11,7 @@ import type {
   TokenResponse,
   UserResponse,
   UserCreateRequest,
+  OperationalAlert,
 } from '@parakh/types';
 
 import { ApiError, type ApiErrorCode } from './errors';
@@ -33,6 +34,7 @@ import type {
   BackendAuditLog,
   BackendPortfolioAnalytics,
   BackendSectorRiskItem,
+  BackendOperationalAlertResponse,
 } from './types';
 import {
   adaptApplication,
@@ -41,6 +43,7 @@ import {
   adaptBorrowerProfile,
   adaptPortfolioAnalytics,
   adaptSectorRisk,
+  adaptOperationalAlert,
   type AdaptedPortfolioAnalytics,
   type AdaptedSectorRisk,
 } from './adapters';
@@ -676,6 +679,38 @@ export class ParakhApiClient {
       }
     }
     return adaptBorrowerProfile(rawProfile, rawUser);
+  }
+
+  // --- Operational Alerts ---
+
+  async getOperationalAlerts(params?: {
+    status?: string;
+    limit?: number;
+    skip?: number;
+  }): Promise<OperationalAlert[]> {
+    const query = new URLSearchParams();
+    if (params?.status) query.set('status', params.status);
+    if (params?.limit) query.set('limit', String(params.limit));
+    if (params?.skip) query.set('skip', String(params.skip));
+    const qs = query.toString();
+    const endpoint = `/api/v1/operational-alerts${qs ? `?${qs}` : ''}`;
+    const data = await this.get<BackendOperationalAlertResponse[]>(endpoint);
+    return (data || []).map(adaptOperationalAlert);
+  }
+
+  async getOperationalAlert(id: string): Promise<OperationalAlert> {
+    const data = await this.get<BackendOperationalAlertResponse>(`/api/v1/operational-alerts/${id}`);
+    return adaptOperationalAlert(data);
+  }
+
+  async acknowledgeOperationalAlert(id: string): Promise<OperationalAlert> {
+    const data = await this.patch<BackendOperationalAlertResponse>(`/api/v1/operational-alerts/${id}/acknowledge`);
+    return adaptOperationalAlert(data);
+  }
+
+  async resolveOperationalAlert(id: string): Promise<OperationalAlert> {
+    const data = await this.patch<BackendOperationalAlertResponse>(`/api/v1/operational-alerts/${id}/resolve`);
+    return adaptOperationalAlert(data);
   }
 }
 

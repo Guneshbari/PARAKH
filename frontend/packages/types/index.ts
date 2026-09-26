@@ -220,3 +220,29 @@ export function toPortalRole(role?: string | null): PortalRole | null {
   return null;
 }
 
+// --- Operational Alerts ---
+
+export type OperationalAlertStatus = 'OPEN' | 'ACKNOWLEDGED' | 'RESOLVED';
+
+export type OperationalAlertSeverity = 'INFO' | 'WARNING' | 'CRITICAL';
+
+export type OperationalAlertType =
+  | 'INSUFFICIENT_DATA_REVIEW'
+  | 'ASSESSMENT_FAILURE'
+  | 'CONSENT_BLOCKED'
+  | 'SYSTEM_HEALTH';
+
+export interface OperationalAlert {
+  id: string;
+  alertType: OperationalAlertType | string;
+  severity: OperationalAlertSeverity | 'SUCCESS' | string;
+  title: string;
+  message: string;
+  status: OperationalAlertStatus | string;
+  applicationId?: string | null;
+  assessmentId?: string | null;
+  metadata?: Record<string, any> | null;
+  createdAt: string;
+  resolvedAt?: string | null;
+}
+

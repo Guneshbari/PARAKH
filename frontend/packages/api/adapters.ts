@@ -13,6 +13,7 @@ import type {
   SHAPContribution,
   VolatilityProfile,
   ReviewActionType,
+  OperationalAlert,
 } from '@parakh/types';
 import type {
   BackendRiskLevel,
@@ -26,6 +27,7 @@ import type {
   BackendUserResponse,
   BackendPortfolioAnalytics,
   BackendSectorRiskItem,
+  BackendOperationalAlertResponse,
 } from './types';
 
 // ==========================================
@@ -588,6 +590,22 @@ export function adaptPortfolioAnalytics(backend: BackendPortfolioAnalytics): Ada
     scoreDistribution,
     monthlyVolume,
     sectorRisk: adaptSectorRisk(backend.sector_risk || []),
+  };
+}
+
+export function adaptOperationalAlert(backend: BackendOperationalAlertResponse): OperationalAlert {
+  return {
+    id: backend.id,
+    alertType: backend.alert_type,
+    severity: backend.severity,
+    title: backend.title,
+    message: backend.message,
+    status: backend.status,
+    applicationId: backend.application_id,
+    assessmentId: backend.assessment_id,
+    metadata: backend.alert_metadata,
+    createdAt: backend.created_at,
+    resolvedAt: backend.resolved_at,
   };
 }
 
