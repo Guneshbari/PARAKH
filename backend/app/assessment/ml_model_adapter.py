@@ -299,13 +299,39 @@ class MLModelAdapter(MLModel):
         f_pay_utility_on_time = float(derived.get("feat_pay_utility_on_time", pay_regularity if pay_regularity is not None else 0.90))
         f_pay_max_bill_delay = float(derived.get("feat_pay_max_bill_delay", 3.0))
         f_pay_repay_reliability = float(derived.get("feat_pay_repay_reliability", repay_reliability if repay_reliability is not None else 0.95))
-        f_bur_loan_to_income = float(derived.get("feat_bur_loan_to_income", req_amount / monthly_income_est))
+        # Authoritative formula: loan principal divided by annualized median income (median * 52)
+        f_bur_loan_to_income = float(
+            derived.get(
+                "feat_bur_loan_to_income",
+                min(max(req_amount / max(1.0, safe_median * 52.0), 0.0), 10.0),
+            )
+        )
 
-        # Interaction terms
-        f_int_vol_x_recovery = float(derived.get("feat_int_vol_x_recovery", f_inc_cv_90d * f_rec_days_to_recover))
-        f_int_vol_x_buffer = float(derived.get("feat_int_vol_x_buffer", f_inc_cv_90d * f_liq_buffer_to_loan))
-        f_int_trend_x_dti = float(derived.get("feat_int_trend_x_dti", f_trend_slope_90d * f_bur_dti_ratio))
-        f_int_resilience_idx = float(derived.get("feat_int_resilience_idx", 50.0))
+        # Interaction terms matching authoritative training formulas
+        f_int_vol_x_recovery = float(
+            derived.get(
+                "feat_int_vol_x_recovery",
+                min(max(f_inc_cv_90d * f_rec_days_to_recover, 0.0), 450.0),
+            )
+        )
+        f_int_vol_x_buffer = float(
+            derived.get(
+                "feat_int_vol_x_buffer",
+                min(max(f_inc_cv_90d / (f_liq_buffer_to_loan + 0.1), 0.0), 50.0),
+            )
+        )
+        f_int_trend_x_dti = float(
+            derived.get(
+                "feat_int_trend_x_dti",
+                min(max(f_trend_slope_90d * (1.0 + f_bur_total_dti), -50000.0), 50000.0),
+            )
+        )
+        f_int_resilience_idx = float(
+            derived.get(
+                "feat_int_resilience_idx",
+                min(max(f_rec_bounceback_ratio / (f_inc_cv_90d + 0.05), 0.0), 100.0),
+            )
+        )
 
         return {
             # 6 raw profile/loan inputs

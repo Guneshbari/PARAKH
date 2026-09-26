@@ -5,7 +5,11 @@ from typing import Any, Dict, List, Optional, Union
 from sqlalchemy.orm import Session
 from app.assessment.base import AssessmentEngine
 from app.assessment.exceptions import AssessmentEngineError, AssessmentOutputError
-from app.assessment.pipeline import FeaturePipeline, PassthroughFeaturePipeline
+from app.assessment.pipeline import (
+    FeaturePipeline,
+    PassthroughFeaturePipeline,
+    TelemetryFeaturePipeline,
+)
 from app.assessment.schemas import AssessmentInput, AssessmentResult
 from app.core.audit_events import AuditAction, AuditOutcome
 from app.models.assessment import CreditAssessment
@@ -55,7 +59,7 @@ class AssessmentService:
         self.engine = engine
         self.audit_service = audit_service or AuditService(db=db)
         self.consent_service = consent_service
-        self.feature_pipeline = feature_pipeline or PassthroughFeaturePipeline()
+        self.feature_pipeline = feature_pipeline or TelemetryFeaturePipeline()
 
     def create_assessment(
         self,
