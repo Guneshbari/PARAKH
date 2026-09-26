@@ -155,6 +155,15 @@ class InputValidator:
                     )
                 continue
 
+            # Allow None on sufficiency telemetry columns so check_data_sufficiency can evaluate them
+            if val is None and col in (
+                "feat_suf_observed_days",
+                "feat_suf_payout_count",
+                "feat_suf_group_count",
+                "feat_suf_missing_ratio",
+            ):
+                continue
+
             # Numeric: must be int or float
             if not isinstance(val, (int, float)) or isinstance(val, bool):
                 errors.append(
@@ -225,18 +234,41 @@ class InputValidator:
         reasons: List[str] = []
 
         observed_days = application.get("feat_suf_observed_days")
-        payout_count = application.get("feat_suf_payout_count")
-        group_count = application.get("feat_suf_group_count")
+        if observed_days is None:
+            observed_days = application.get("observed_days")
 
-        if observed_days is not None and observed_days < 30:
+        payout_count = application.get("feat_suf_payout_count")
+        if payout_count is None:
+            payout_count = application.get("payout_count")
+
+        group_count = application.get("feat_suf_group_count")
+        if group_count is None:
+            group_count = application.get("group_count")
+
+        if observed_days is None:
+            reasons.append(
+                "Observed history telemetry is missing or unavailable (minimum 30 days required)."
+            )
+        elif observed_days < 30:
             reasons.append(
                 f"Observed history ({observed_days:.0f} days) is below the minimum required 30 days."
             )
-        if payout_count is not None and payout_count < 4:
+
+        if payout_count is None:
+            reasons.append(
+                "Payout cycle count telemetry is missing or unavailable (minimum 4 cycles required)."
+            )
+        elif payout_count < 4:
             reasons.append(
                 f"Payout cycle count ({payout_count:.0f}) is below the minimum required 4 cycles."
             )
-        if group_count is not None and group_count < MIN_REQUIRED_CORE_SIGNAL_GROUPS:
+
+        if group_count is None:
+            reasons.append(
+                f"Core signal group count telemetry is missing or unavailable (minimum "
+                f"{MIN_REQUIRED_CORE_SIGNAL_GROUPS} signal groups required)."
+            )
+        elif group_count < MIN_REQUIRED_CORE_SIGNAL_GROUPS:
             reasons.append(
                 f"Core signal group count ({group_count:.0f}) is below the minimum required "
                 f"{MIN_REQUIRED_CORE_SIGNAL_GROUPS} signal groups."

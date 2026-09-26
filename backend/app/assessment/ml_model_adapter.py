@@ -6,6 +6,7 @@ and formatting PredictionResponse into standard MLModelOutput.
 """
 from decimal import Decimal
 import logging
+import math
 import threading
 from typing import Any, Dict, Optional, Tuple
 
@@ -231,10 +232,38 @@ class MLModelAdapter(MLModel):
         installment_dti = est_installment / monthly_income_est
         total_dti = dti_ratio + installment_dti
 
-        # Telemetry sufficiency defaults
-        observed_days = 90.0
-        payout_count = 12.0
-        group_count = 4.0
+        # Telemetry sufficiency metrics: strictly extracted from derived features without fabrication
+        def _extract_suf_metric(primary_key: str, alias_key: str) -> Optional[float]:
+            val = derived.get(primary_key)
+            if val is None:
+                val = derived.get(alias_key)
+            if val is None:
+                return None
+            try:
+                f_val = float(val)
+                return f_val if not (math.isnan(f_val) or math.isinf(f_val)) else None
+            except (ValueError, TypeError):
+                return None
+
+        f_suf_observed_days = _extract_suf_metric("feat_suf_observed_days", "observed_days")
+        f_suf_payout_count = _extract_suf_metric("feat_suf_payout_count", "payout_count")
+        f_suf_group_count = _extract_suf_metric("feat_suf_group_count", "group_count")
+        f_suf_missing_ratio = _extract_suf_metric("feat_suf_missing_ratio", "missing_ratio")
+
+        if f_suf_missing_ratio is None:
+            # If all required telemetry metrics are present and sufficient, default missing ratio to 0.0;
+            # otherwise mark missing ratio as 1.0 reflecting telemetry absence.
+            if (
+                f_suf_observed_days is not None
+                and f_suf_observed_days >= 30.0
+                and f_suf_payout_count is not None
+                and f_suf_payout_count >= 4.0
+                and f_suf_group_count is not None
+                and f_suf_group_count >= 2.0
+            ):
+                f_suf_missing_ratio = 0.0
+            else:
+                f_suf_missing_ratio = 1.0
 
         # --- 2. Mandatory Core Derived Features (19 fields) ---
         f_inc_median_90d = float(derived.get("feat_inc_median_90d", safe_median))
@@ -252,10 +281,6 @@ class MLModelAdapter(MLModel):
         f_bur_dti_ratio = float(derived.get("feat_bur_dti_ratio", dti_ratio))
         f_bur_installment_dti = float(derived.get("feat_bur_installment_dti", installment_dti))
         f_bur_total_dti = float(derived.get("feat_bur_total_dti", total_dti))
-        f_suf_observed_days = float(derived.get("feat_suf_observed_days", observed_days))
-        f_suf_payout_count = float(derived.get("feat_suf_payout_count", payout_count))
-        f_suf_group_count = float(derived.get("feat_suf_group_count", group_count))
-        f_suf_missing_ratio = float(derived.get("feat_suf_missing_ratio", 0.0))
 
         # --- 3. Optional Derived Features (21 fields) ---
         f_inc_mean_90d = float(derived.get("feat_inc_mean_90d", avg_inc if avg_inc is not None else safe_median))

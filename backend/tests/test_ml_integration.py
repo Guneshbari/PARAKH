@@ -136,6 +136,11 @@ class TestMLBackendIntegrationEquivalence(unittest.TestCase):
             existing_obligation=Decimal("3500.00"),
             platform_rating=Decimal("4.85"),
             repayment_reliability=Decimal("0.9800"),
+            signal_metadata={
+                "feat_suf_observed_days": 90.0,
+                "feat_suf_payout_count": 12.0,
+                "feat_suf_group_count": 4.0,
+            },
         )
         self.db.add(self.signal)
 
@@ -177,6 +182,11 @@ class TestMLBackendIntegrationEquivalence(unittest.TestCase):
             existing_obligation=Decimal("3500.00"),
             platform_rating=Decimal("4.85"),
             repayment_reliability=Decimal("0.9800"),
+            derived_features={
+                "feat_suf_observed_days": 90.0,
+                "feat_suf_payout_count": 12.0,
+                "feat_suf_group_count": 4.0,
+            },
         )
 
         # 2. Direct Phase 9 Inference Path (P1)
