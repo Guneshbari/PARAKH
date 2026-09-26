@@ -17,10 +17,15 @@ import {
   Layers,
   AlertCircle,
   RefreshCw,
+  Edit3,
+  Save,
+  X,
+  Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { PageTransition } from '@/components/motion/PageTransition';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { RiskBadge } from '@/components/shared/RiskBadge';
@@ -54,6 +59,16 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailPageP
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [application, setApplication] = useState<CreditApplication | null>(null);
+  const [rawAppRecord, setRawAppRecord] = useState<BackendApplication | null>(null);
+
+  // P3-06: Application term editing state
+  const [isEditingTerms, setIsEditingTerms] = useState<boolean>(false);
+  const [editRequestedAmount, setEditRequestedAmount] = useState<string>('');
+  const [editLoanPurpose, setEditLoanPurpose] = useState<string>('');
+  const [editRepaymentPeriod, setEditRepaymentPeriod] = useState<string>('');
+  const [isSavingTerms, setIsSavingTerms] = useState<boolean>(false);
+  const [termsError, setTermsError] = useState<string | null>(null);
+  const [termsSuccess, setTermsSuccess] = useState<string | null>(null);
 
   const fetchApplicationDetails = useCallback(async () => {
     setIsLoading(true);
@@ -62,6 +77,7 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailPageP
     try {
       // 1. Fetch Application Record
       const rawApp = await api.getApplicationById(id);
+      setRawAppRecord(rawApp);
 
       // 2. Fetch Associated Applicant Profile
       let rawProfile: BackendApplicantProfile | null = null;
@@ -106,6 +122,73 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailPageP
       setIsLoading(false);
     }
   }, [id]);
+
+  const handleStartEditTerms = () => {
+    if (!rawAppRecord && !application) return;
+    setEditRequestedAmount(
+      String(rawAppRecord?.requested_loan_amount ?? application?.requestedAmount ?? '')
+    );
+    setEditLoanPurpose(rawAppRecord?.loan_purpose ?? application?.purpose ?? '');
+    setEditRepaymentPeriod(
+      rawAppRecord?.preferred_repayment_period !== undefined && rawAppRecord?.preferred_repayment_period !== null
+        ? String(rawAppRecord.preferred_repayment_period)
+        : '12'
+    );
+    setTermsError(null);
+    setTermsSuccess(null);
+    setIsEditingTerms(true);
+  };
+
+  const handleCancelEditTerms = () => {
+    setIsEditingTerms(false);
+    setTermsError(null);
+  };
+
+  const handleSaveTerms = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setTermsError(null);
+    setTermsSuccess(null);
+
+    const amountNum = parseFloat(editRequestedAmount);
+    if (isNaN(amountNum) || amountNum <= 0) {
+      setTermsError('Requested loan amount must be a positive number greater than 0.');
+      return;
+    }
+
+    const trimmedPurpose = editLoanPurpose.trim();
+    if (!trimmedPurpose) {
+      setTermsError('Loan purpose is required.');
+      return;
+    }
+    if (trimmedPurpose.length > 255) {
+      setTermsError('Loan purpose cannot exceed 255 characters.');
+      return;
+    }
+
+    const periodNum = parseInt(editRepaymentPeriod, 10);
+    if (isNaN(periodNum) || periodNum <= 0 || periodNum > 120) {
+      setTermsError('Preferred repayment period must be between 1 and 120 months.');
+      return;
+    }
+
+    setIsSavingTerms(true);
+    try {
+      await api.updateApplication(id, {
+        requested_loan_amount: amountNum,
+        loan_purpose: trimmedPurpose,
+        preferred_repayment_period: periodNum,
+      });
+      setIsEditingTerms(false);
+      setTermsSuccess('Application terms updated successfully.');
+      setTimeout(() => setTermsSuccess(null), 4000);
+      await fetchApplicationDetails();
+    } catch (err: unknown) {
+      const msg = err instanceof ApiError ? err.userMessage : 'Failed to update application terms.';
+      setTermsError(msg);
+    } finally {
+      setIsSavingTerms(false);
+    }
+  };
 
   useEffect(() => {
     fetchApplicationDetails();
@@ -176,9 +259,12 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailPageP
             : status === 'MANUAL_REVIEW_REQUIRED'
             ? 'COMPLETED'
             : 'PENDING',
-        timestamp: app.assessment
-          ? `Score: ${app.assessment.score} / 850`
-          : undefined,
+        timestamp:
+          app.assessment?.score !== null && app.assessment?.score !== undefined
+            ? `Score: ${app.assessment.score} / 850`
+            : app.assessment
+            ? 'UNRATED'
+            : undefined,
       },
       {
         id: 's5',
@@ -303,11 +389,21 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailPageP
       <div className="p-6 sm:p-7 rounded-2xl bg-surface dark:bg-surface-elevated border border-border shadow-xs space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs sm:text-sm font-mono text-foreground-secondary uppercase tracking-wider">
                 Credit Evaluation Request
               </span>
               <StatusBadge status={application.status} />
+              {(rawAppRecord ? rawAppRecord.status !== 'COMPLETED' : application.status !== 'REVIEW_COMPLETED') && !isEditingTerms && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleStartEditTerms}
+                  className="rounded-full text-xs h-7 px-2.5 gap-1 text-foreground-secondary hover:text-foreground cursor-pointer"
+                >
+                  <Edit3 className="size-3" /> Edit Terms
+                </Button>
+              )}
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
               {application.purpose}
@@ -322,12 +418,133 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailPageP
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-border">
+        {/* INLINE APPLICATION TERM EDITING FORM */}
+        {isEditingTerms && (
+          <div className="p-4 sm:p-5 rounded-xl border border-primary/30 bg-primary/5 dark:bg-surface-elevated space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-border">
+              <div className="space-y-0.5">
+                <h3 className="text-sm sm:text-base font-bold text-foreground flex items-center gap-2">
+                  <Edit3 className="size-4 text-primary" />
+                  Edit Application Loan Terms
+                </h3>
+                <p className="text-xs text-foreground-secondary">
+                  Update requested financing amount, specific loan purpose, or repayment duration.
+                </p>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleCancelEditTerms}
+                className="rounded-full size-7 cursor-pointer"
+                aria-label="Cancel editing"
+              >
+                <X className="size-4" />
+              </Button>
+            </div>
+
+            {termsError && (
+              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-xs text-rose-600 dark:text-rose-400 flex items-center gap-2">
+                <AlertCircle className="size-4 shrink-0" />
+                <span>{termsError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSaveTerms} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-foreground flex items-center gap-1">
+                    <DollarSign className="size-3 text-foreground-secondary" />
+                    Requested Loan Amount (₹)
+                  </label>
+                  <Input
+                    type="number"
+                    min="1000"
+                    step="500"
+                    value={editRequestedAmount}
+                    onChange={(e) => setEditRequestedAmount(e.target.value)}
+                    placeholder="e.g. 50000"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-1.5 sm:col-span-2">
+                  <label className="text-xs font-semibold text-foreground flex items-center gap-1">
+                    Loan Purpose
+                  </label>
+                  <Input
+                    type="text"
+                    maxLength={255}
+                    value={editLoanPurpose}
+                    onChange={(e) => setEditLoanPurpose(e.target.value)}
+                    placeholder="e.g. EV battery upgrade and delivery gear"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-foreground flex items-center gap-1">
+                    <Calendar className="size-3 text-foreground-secondary" />
+                    Repayment Period (Months)
+                  </label>
+                  <Input
+                    type="number"
+                    min="1"
+                    max="120"
+                    value={editRepaymentPeriod}
+                    onChange={(e) => setEditRepaymentPeriod(e.target.value)}
+                    placeholder="e.g. 12"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCancelEditTerms}
+                  disabled={isSavingTerms}
+                  className="rounded-full text-xs cursor-pointer"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  variant="default"
+                  size="sm"
+                  disabled={isSavingTerms}
+                  className="rounded-full text-xs font-semibold gap-1.5 cursor-pointer"
+                >
+                  {isSavingTerms ? (
+                    <>
+                      <Loader2 className="size-3.5 animate-spin" />
+                      <span>Saving Terms...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save className="size-3.5" />
+                      <span>Save Changes</span>
+                    </>
+                  )}
+                </Button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {termsSuccess && (
+          <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs sm:text-sm text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
+            <CheckCircle2 className="size-4 shrink-0" />
+            <span>{termsSuccess}</span>
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 pt-4 border-t border-border">
           <div className="space-y-1">
             <span className="text-xs text-foreground-secondary flex items-center gap-1">
               <Building2 className="size-3" /> Borrower Profile
             </span>
-            <div className="text-sm font-semibold text-foreground">
+            <div className="text-sm font-semibold text-foreground truncate">
               {application.applicantName}
             </div>
           </div>
@@ -356,10 +573,21 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailPageP
 
           <div className="space-y-1">
             <span className="text-xs text-foreground-secondary flex items-center gap-1">
+              <Clock className="size-3" /> Repayment Term
+            </span>
+            <div className="text-sm font-semibold text-foreground">
+              {rawAppRecord?.preferred_repayment_period
+                ? `${rawAppRecord.preferred_repayment_period} Mo.`
+                : '12 Mo.'}
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <span className="text-xs text-foreground-secondary flex items-center gap-1">
               <Sparkles className="size-3" /> Evaluation Tier
             </span>
             <div>
-              <RiskBadge riskLevel={application.assessment?.riskLevel || 'MODERATE_ESTIMATED RISK'} />
+              <RiskBadge riskLevel={application.assessment?.riskLevel || 'UNRATED'} />
             </div>
           </div>
         </div>

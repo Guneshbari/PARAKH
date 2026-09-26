@@ -17,10 +17,15 @@ import {
   FileCheck,
   Loader2,
   History,
+  Edit3,
+  Save,
+  X,
+  Clock,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { PageTransition } from '@/components/motion/PageTransition';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { RiskBadge } from '@/components/shared/RiskBadge';
@@ -35,6 +40,7 @@ import {
   adaptAssessment,
   adaptReviewOutcome,
   ApiError,
+  type BackendApplication,
   type BackendAssessment,
 } from '@parakh/api';
 import { formatCurrency } from '@/lib/utils';
@@ -69,12 +75,22 @@ export default function AdminApplicationDetailPage({
   const [recordSuccess, setRecordSuccess] = useState(false);
   // P2-11: Historical assessment state
   const [assessmentHistory, setAssessmentHistory] = useState<BackendAssessment[]>([]);
+  // P3-06: Application term editing state
+  const [rawAppRecord, setRawAppRecord] = useState<BackendApplication | null>(null);
+  const [isEditingTerms, setIsEditingTerms] = useState<boolean>(false);
+  const [editRequestedAmount, setEditRequestedAmount] = useState<string>('');
+  const [editLoanPurpose, setEditLoanPurpose] = useState<string>('');
+  const [editRepaymentPeriod, setEditRepaymentPeriod] = useState<string>('');
+  const [isSavingTerms, setIsSavingTerms] = useState<boolean>(false);
+  const [termsError, setTermsError] = useState<string | null>(null);
+  const [termsSuccess, setTermsSuccess] = useState<string | null>(null);
 
   const loadApplicationData = async () => {
     try {
       setIsLoading(true);
       setError(null);
       const rawApp = await api.getApplicationById(id);
+      setRawAppRecord(rawApp);
       let profile = null;
       if (rawApp.applicant_profile_id) {
         try {
@@ -169,6 +185,73 @@ export default function AdminApplicationDetailPage({
   }, [id]);
 
   const assessment = application?.assessment;
+
+  const handleStartEditTerms = () => {
+    if (!rawAppRecord && !application) return;
+    setEditRequestedAmount(
+      String(rawAppRecord?.requested_loan_amount ?? application?.requestedAmount ?? '')
+    );
+    setEditLoanPurpose(rawAppRecord?.loan_purpose ?? application?.purpose ?? '');
+    setEditRepaymentPeriod(
+      rawAppRecord?.preferred_repayment_period !== undefined && rawAppRecord?.preferred_repayment_period !== null
+        ? String(rawAppRecord.preferred_repayment_period)
+        : '12'
+    );
+    setTermsError(null);
+    setTermsSuccess(null);
+    setIsEditingTerms(true);
+  };
+
+  const handleCancelEditTerms = () => {
+    setIsEditingTerms(false);
+    setTermsError(null);
+  };
+
+  const handleSaveTerms = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setTermsError(null);
+    setTermsSuccess(null);
+
+    const amountNum = parseFloat(editRequestedAmount);
+    if (isNaN(amountNum) || amountNum <= 0) {
+      setTermsError('Requested loan amount must be a positive number greater than 0.');
+      return;
+    }
+
+    const trimmedPurpose = editLoanPurpose.trim();
+    if (!trimmedPurpose) {
+      setTermsError('Loan purpose is required.');
+      return;
+    }
+    if (trimmedPurpose.length > 255) {
+      setTermsError('Loan purpose cannot exceed 255 characters.');
+      return;
+    }
+
+    const periodNum = parseInt(editRepaymentPeriod, 10);
+    if (isNaN(periodNum) || periodNum <= 0 || periodNum > 120) {
+      setTermsError('Preferred repayment period must be between 1 and 120 months.');
+      return;
+    }
+
+    setIsSavingTerms(true);
+    try {
+      await api.updateApplication(id, {
+        requested_loan_amount: amountNum,
+        loan_purpose: trimmedPurpose,
+        preferred_repayment_period: periodNum,
+      });
+      setIsEditingTerms(false);
+      setTermsSuccess('Application loan terms updated successfully.');
+      setTimeout(() => setTermsSuccess(null), 4000);
+      await loadApplicationData();
+    } catch (err: unknown) {
+      const msg = err instanceof ApiError ? err.userMessage : 'Failed to update application terms.';
+      setTermsError(msg);
+    } finally {
+      setIsSavingTerms(false);
+    }
+  };
 
   const handleToggleItem = (item: string) => {
     setRequestedItems((prev) =>
@@ -315,6 +398,16 @@ export default function AdminApplicationDetailPage({
                 className="text-xs py-0.5 px-2.5"
               />
             )}
+            {application.status !== 'COMPLETED' && !isEditingTerms && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleStartEditTerms}
+                className="rounded-full text-xs h-7 px-2.5 gap-1 text-foreground-secondary hover:text-foreground cursor-pointer"
+              >
+                <Edit3 className="size-3" /> Edit Terms
+              </Button>
+            )}
           </div>
 
           <div className="flex flex-wrap items-center gap-2 text-sm text-foreground-secondary">
@@ -331,6 +424,11 @@ export default function AdminApplicationDetailPage({
             <span className="flex items-center gap-1.5">
               <DollarSign className="size-3.5 opacity-70" />
               Requested {formatCurrency(application.requestedAmount)}
+            </span>
+            <span>•</span>
+            <span className="flex items-center gap-1.5">
+              <Clock className="size-3.5 opacity-70" />
+              Tenure: {rawAppRecord?.preferred_repayment_period ? `${rawAppRecord.preferred_repayment_period} Mo.` : '12 Mo.'}
             </span>
             <span>•</span>
             <span className="flex items-center gap-1.5">
@@ -388,9 +486,9 @@ export default function AdminApplicationDetailPage({
             )}
             <div className="flex items-center gap-2 text-xs">
               <span className="text-foreground-secondary font-mono font-medium">
-                {assessment.modelConfidence !== null && assessment.modelConfidence > 0
+                {assessment.modelConfidence !== null && assessment.modelConfidence !== undefined && assessment.modelConfidence > 0
                   ? `${assessment.modelConfidence}% Confidence`
-                  : '0% Confidence'}
+                  : 'N/A (Confidence)'}
               </span>
               <span className="text-foreground-secondary">•</span>
               <span className="text-foreground-secondary">
@@ -402,6 +500,127 @@ export default function AdminApplicationDetailPage({
           </div>
         )}
       </div>
+
+      {/* INLINE APPLICATION TERM EDITING FORM */}
+      {isEditingTerms && (
+        <Card className="p-6 bg-surface border-primary/30 dark:border-border space-y-4">
+          <div className="flex items-center justify-between pb-2 border-b border-border">
+            <div className="space-y-0.5">
+              <h3 className="text-sm sm:text-base font-bold text-foreground flex items-center gap-2">
+                <Edit3 className="size-4 text-primary" />
+                Edit Application Loan Terms
+              </h3>
+              <p className="text-xs text-foreground-secondary">
+                Update requested capital amount, specific loan purpose, or repayment duration.
+              </p>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleCancelEditTerms}
+              className="rounded-full size-7 cursor-pointer"
+              aria-label="Cancel editing"
+            >
+              <X className="size-4" />
+            </Button>
+          </div>
+
+          {termsError && (
+            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-xs text-rose-600 dark:text-rose-400 flex items-center gap-2">
+              <AlertCircle className="size-4 shrink-0" />
+              <span>{termsError}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleSaveTerms} className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground flex items-center gap-1">
+                  <DollarSign className="size-3 text-foreground-secondary" />
+                  Requested Loan Amount (₹)
+                </label>
+                <Input
+                  type="number"
+                  min="1000"
+                  step="500"
+                  value={editRequestedAmount}
+                  onChange={(e) => setEditRequestedAmount(e.target.value)}
+                  placeholder="e.g. 50000"
+                  required
+                />
+              </div>
+
+              <div className="space-y-1.5 sm:col-span-2">
+                <label className="text-xs font-semibold text-foreground flex items-center gap-1">
+                  Loan Purpose
+                </label>
+                <Input
+                  type="text"
+                  maxLength={255}
+                  value={editLoanPurpose}
+                  onChange={(e) => setEditLoanPurpose(e.target.value)}
+                  placeholder="e.g. EV battery upgrade and delivery gear"
+                  required
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground flex items-center gap-1">
+                  <Calendar className="size-3 text-foreground-secondary" />
+                  Repayment Period (Months)
+                </label>
+                <Input
+                  type="number"
+                  min="1"
+                  max="120"
+                  value={editRepaymentPeriod}
+                  onChange={(e) => setEditRepaymentPeriod(e.target.value)}
+                  placeholder="e.g. 12"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleCancelEditTerms}
+                disabled={isSavingTerms}
+                className="rounded-full text-xs cursor-pointer"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                variant="default"
+                size="sm"
+                disabled={isSavingTerms}
+                className="rounded-full text-xs font-semibold gap-1.5 cursor-pointer"
+              >
+                {isSavingTerms ? (
+                  <>
+                    <Loader2 className="size-3.5 animate-spin" />
+                    <span>Saving Terms...</span>
+                  </>
+                ) : (
+                  <>
+                    <Save className="size-3.5" />
+                    <span>Save Changes</span>
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+        </Card>
+      )}
+
+      {termsSuccess && (
+        <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs sm:text-sm text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
+          <CheckCircle2 className="size-4 shrink-0" />
+          <span>{termsSuccess}</span>
+        </div>
+      )}
 
       {/* 2.5 INSUFFICIENT EVIDENCE WARNING FOR REVIEWER */}
       {assessment && (assessment.isInsufficientEvidence || (assessment.missingSignals && assessment.missingSignals.length > 0)) && (

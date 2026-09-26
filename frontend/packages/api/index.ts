@@ -19,6 +19,7 @@ import type {
   BackendApplicantProfileUpdate,
   BackendApplication,
   BackendApplicationCreate,
+  BackendApplicationUpdate,
   BackendAssessment,
   BackendFinancialSignal,
   BackendFinancialSignalCreate,
@@ -346,6 +347,23 @@ export class ParakhApiClient {
     return this.request<BackendApplication>(
       `/api/v1/applications/${encodeURIComponent(applicationId)}/status?${query.toString()}`,
       { method: 'PATCH' }
+    );
+  }
+
+  /**
+   * P3-06: Update application loan terms (requested_loan_amount, loan_purpose, preferred_repayment_period)
+   * Dispatches PATCH /api/v1/applications/{application_id}.
+   */
+  async updateApplication(
+    applicationId: string,
+    data: BackendApplicationUpdate
+  ): Promise<BackendApplication> {
+    return this.request<BackendApplication>(
+      `/api/v1/applications/${encodeURIComponent(applicationId)}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }
     );
   }
 

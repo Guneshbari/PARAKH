@@ -232,7 +232,7 @@ export function Header() {
               <div
                 role="dialog"
                 aria-label="Notifications Panel"
-                className="absolute right-0 top-full mt-2 w-80 sm:w-96 rounded-2xl border border-border bg-surface dark:bg-surface-elevated shadow-card-elevated z-50 overflow-hidden text-foreground"
+                className="absolute right-0 top-full mt-2 w-[calc(100vw-2rem)] max-w-sm sm:w-96 rounded-2xl border border-border bg-surface dark:bg-surface-elevated shadow-card-elevated z-50 overflow-hidden text-foreground"
               >
                 <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-surface-highlight/30">
                   <div className="flex items-center gap-2">

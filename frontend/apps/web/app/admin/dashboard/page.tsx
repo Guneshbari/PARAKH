@@ -291,23 +291,23 @@ export default function AdminDashboardPage() {
 
         <MetricCard
           title="Portfolio Average Score"
-          value={avgScore ?? 0}
-          format={(n) => (avgScore !== null ? String(n) : '—')}
+          value={avgScore}
+          emptyText="—"
           suffix={avgScore !== null ? ' / 850' : ''}
-          pillLabel={avgScore !== null ? 'Calibrated' : 'Pending'}
+          pillLabel={avgScore !== null ? 'Calibrated' : 'UNRATED'}
           pillVariant="secondary"
-          subtext={avgScore !== null ? 'Alternative volatility scoring engine' : 'No assessments completed yet'}
+          subtext={avgScore !== null ? 'Alternative volatility scoring engine' : 'No assessed applications in portfolio'}
           icon={TrendingUp}
         />
 
         <MetricCard
           title="Avg. Repayment Difficulty"
-          value={avgRiskDifficulty ?? 0}
-          format={(n) => (avgRiskDifficulty !== null ? String(n) : '—')}
+          value={avgRiskDifficulty}
+          emptyText="—"
           suffix={avgRiskDifficulty !== null ? '%' : ''}
-          pillLabel={avgRiskDifficulty !== null ? 'Risk Rate' : 'Pending'}
+          pillLabel={avgRiskDifficulty !== null ? 'Risk Rate' : 'UNRATED'}
           pillVariant="secondary"
-          subtext={avgRiskDifficulty !== null ? 'Estimated repayment stress indicator' : 'No assessments completed yet'}
+          subtext={avgRiskDifficulty !== null ? 'Estimated repayment stress indicator' : 'No assessed applications in portfolio'}
           icon={Activity}
         />
 
@@ -632,7 +632,7 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        <div className="h-64 w-full pt-2">
+        <div className="h-64 w-full min-w-0 pt-2">
           {monthlyVolume.length === 0 || monthlyVolume.every((m) => m.count === 0) ? (
             <div className="h-full flex items-center justify-center text-sm text-foreground-secondary">
               No application intake recorded in recent months.
@@ -838,7 +838,7 @@ export default function AdminDashboardPage() {
 
         {/* Queue Table */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs sm:text-sm">
+          <table className="w-full min-w-[700px] text-left text-xs sm:text-sm">
             <thead className="bg-surface-highlight/40 border-b border-border text-foreground-secondary font-semibold uppercase tracking-wider text-xs">
               <tr>
                 <th className="py-3 px-4">Application ID</th>

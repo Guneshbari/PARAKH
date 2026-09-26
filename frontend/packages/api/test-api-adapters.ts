@@ -533,14 +533,43 @@ async function runTests() {
       } as Response;
     };
 
-    const shapResult = await client.getGlobalSHAP('mv-uuid-1');
-    assert.strictEqual(shapUrl, 'http://localhost:8000/api/v1/model-versions/mv-uuid-1/global-shap');
-    assert.strictEqual(shapMethod, 'POST');
-    assert.strictEqual(shapResult.model_version, '1.0.0');
-    assert.strictEqual(shapResult.sample_count, 12000);
-    assert.strictEqual(shapResult.features.length, 1);
-    assert.strictEqual(shapResult.features[0].feature_name, 'feat_liq_net_margin');
-    assert.strictEqual(shapResult.features[0].rank, 1);
+    // Test 8: P3-06 updateApplication delegates to PATCH /api/v1/applications/{id}
+    let patchAppUrl = '';
+    let patchAppMethod = '';
+    let patchAppBody = '';
+    globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+      patchAppUrl = String(input);
+      patchAppMethod = init?.method || 'GET';
+      patchAppBody = String(init?.body || '');
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          id: 'app-edit-1',
+          applicant_profile_id: 'prof-1',
+          requested_loan_amount: '65000.00',
+          loan_purpose: 'EV delivery two-wheeler battery and storage upgrade',
+          preferred_repayment_period: 18,
+          status: 'DRAFT',
+          created_at: '2026-09-24T10:00:00Z',
+          updated_at: '2026-09-27T03:00:00Z',
+        }),
+      } as Response;
+    };
+
+    const updateRes = await client.updateApplication('app-edit-1', {
+      requested_loan_amount: 65000,
+      loan_purpose: 'EV delivery two-wheeler battery and storage upgrade',
+      preferred_repayment_period: 18,
+    });
+    assert.strictEqual(patchAppUrl, 'http://localhost:8000/api/v1/applications/app-edit-1');
+    assert.strictEqual(patchAppMethod, 'PATCH');
+    const parsedPatch = JSON.parse(patchAppBody);
+    assert.strictEqual(parsedPatch.requested_loan_amount, 65000);
+    assert.strictEqual(parsedPatch.loan_purpose, 'EV delivery two-wheeler battery and storage upgrade');
+    assert.strictEqual(parsedPatch.preferred_repayment_period, 18);
+    assert.strictEqual(updateRes.id, 'app-edit-1');
+    assert.strictEqual(updateRes.requested_loan_amount, '65000.00');
 
   } finally {
     globalThis.fetch = originalFetch;

@@ -350,23 +350,23 @@ export default function AdminAnalyticsPage() {
 
         <MetricCard
           title="Portfolio Average Score"
-          value={avgScore ?? 0}
-          format={(n) => (avgScore !== null && avgScore !== undefined ? String(n) : '—')}
+          value={avgScore}
+          emptyText="—"
           suffix={avgScore !== null && avgScore !== undefined ? ' / 850' : ''}
-          pillLabel={avgScore !== null && avgScore !== undefined ? 'Calibrated' : 'Pending'}
+          pillLabel={avgScore !== null && avgScore !== undefined ? 'Calibrated' : 'UNRATED'}
           pillVariant="secondary"
-          subtext={avgScore !== null && avgScore !== undefined ? 'Alternative volatility scoring engine' : 'No assessments completed yet'}
+          subtext={avgScore !== null && avgScore !== undefined ? 'Alternative volatility scoring engine' : 'No assessed applications in portfolio'}
           icon={TrendingUp}
         />
 
         <MetricCard
           title="Avg. Repayment Difficulty"
-          value={avgRiskDifficulty ?? 0}
-          format={(n) => (avgRiskDifficulty !== null && avgRiskDifficulty !== undefined ? String(n) : '—')}
+          value={avgRiskDifficulty}
+          emptyText="—"
           suffix={avgRiskDifficulty !== null && avgRiskDifficulty !== undefined ? '%' : ''}
-          pillLabel={avgRiskDifficulty !== null && avgRiskDifficulty !== undefined ? 'Risk Rate' : 'Pending'}
+          pillLabel={avgRiskDifficulty !== null && avgRiskDifficulty !== undefined ? 'Risk Rate' : 'UNRATED'}
           pillVariant="secondary"
-          subtext={avgRiskDifficulty !== null && avgRiskDifficulty !== undefined ? 'Estimated repayment stress indicator' : 'No assessments completed yet'}
+          subtext={avgRiskDifficulty !== null && avgRiskDifficulty !== undefined ? 'Estimated repayment stress indicator' : 'No assessed applications in portfolio'}
           icon={ShieldCheck}
         />
 
@@ -416,7 +416,7 @@ export default function AdminAnalyticsPage() {
             <p>Risk distribution across gig sectors will populate as applicants with profiles submit applications and complete assessments.</p>
           </div>
         ) : (
-          <div className="h-72 w-full pt-2">
+          <div className="h-72 w-full min-w-0 pt-2">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={sectorRiskData}

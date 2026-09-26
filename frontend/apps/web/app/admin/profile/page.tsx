@@ -68,7 +68,7 @@ export default function AdminProfilePage() {
         role: `${officerRole} — Alternative Credit Officer`,
         desk: 'Station 04 — Informal & Gig Economy Credit Desk',
         institution: 'PARAKH Partner Lending Consortium',
-        certification: 'RBI Fair Practice Code & Statutory Algorithmic Audit Certified',
+        auditFramework: 'RBI Fair Practice Code & Algorithmic Audit Guidelines',
       },
       authorityLimits: {
         singleApplicationCap: 200000,
@@ -224,11 +224,11 @@ export default function AdminProfilePage() {
           </div>
 
           <div className="p-4 rounded-2xl bg-surface-highlight/30 border border-border space-y-1.5">
-            <span className="text-xs sm:text-sm text-foreground-secondary block">Fair Lending Certification</span>
+            <span className="text-xs sm:text-sm text-foreground-secondary block">Fair Lending Protocol</span>
             <span className="text-sm sm:text-base font-semibold text-foreground flex items-center gap-1.5">
               <CheckCircle2 className="size-3.5 text-foreground" /> Validated
             </span>
-            <span className="text-xs text-foreground-secondary block">Annual Audit Certified</span>
+            <span className="text-xs text-foreground-secondary block">Annual Review Protocol</span>
           </div>
         </div>
       </Card>

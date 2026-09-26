@@ -7,14 +7,15 @@ console.log('=============================================================');
 
 const client = new ParakhApiClient();
 
-// 1. Verify all 16 removed/redundant methods remain NO LONGER EXPOSED
+// 1. Verify removed/redundant methods remain NO LONGER EXPOSED
 // Note: getAssessmentsByApplication was deliberately restored in Batch D (P2-11)
 // for historical assessment auditing in the reviewer/admin application dossier.
+// Note: updateApplication was deliberately restored in Final P3 (P3-06)
+// for application term editing on PATCH /api/v1/applications/{application_id}.
 const removedMethods = [
   'getUserById',
   'getUserByEmail',
   'updateUser',
-  'updateApplication',
   'getLatestFinancialSignals',
   'getConsentsByApplication',
   'createModelVersion',
@@ -60,12 +61,13 @@ const retainedMethods = [
   'getApplicantProfile',
   'getApplicantByUserId',
   'updateApplicantProfile',
-  // Applications
+  // Applications (including restored P3-06 updateApplication)
   'getApplications',
   'createApplication',
   'getApplicationById',
   'getApplicationsByApplicant',
   'updateApplicationStatus',
+  'updateApplication',
   // Assessments (including restored P2-11 getAssessmentsByApplication)
   'triggerAssessment',
   'getAssessmentById',

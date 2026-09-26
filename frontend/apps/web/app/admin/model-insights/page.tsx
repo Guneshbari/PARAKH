@@ -139,17 +139,45 @@ export default function AdminModelInsightsPage() {
       modelVersion: activeModel ? `v${activeModel.version}` : 'v1.0.0',
       algorithm: activeModel?.algorithm || 'LightGBM + RobustScaler + TreeSHAP',
       status: activeModel?.is_active ? 'ACTIVE_PROTOTYPE' : 'STANDBY',
+      exportedAt: new Date().toISOString(),
       createdAt: activeModel?.created_at || new Date().toISOString(),
-      fairnessAudit: {
-        framework: 'Fairlearn Demographic Parity & Equalized Odds',
-        status: 'EVALUATION_DATA_REQUIRED',
-        targetStandards: 'Digital Personal Data Protection Act 2023 & RBI Fair Practice Code guidelines',
-        note: 'Demographic parity and equalized-odds metrics require a defined protected-group evaluation dataset and computed audit results.',
-      },
+      fairnessAudit: fairnessAuditResult
+        ? {
+            framework: 'Fairlearn Diagnostic Evaluation',
+            status: 'COMPUTED',
+            subgroupField: fairnessAuditResult.subgroup_field,
+            demographicParityRatio: fairnessAuditResult.demographic_parity_ratio,
+            equalOpportunityDifference: fairnessAuditResult.equal_opportunity_difference,
+            sampleCount: fairnessAuditResult.sample_count,
+            threshold: fairnessAuditResult.threshold,
+            evaluationTimestamp: fairnessAuditResult.evaluation_timestamp,
+            limitationsDisclaimer: fairnessAuditResult.limitations_disclaimer,
+          }
+        : {
+            framework: 'Fairlearn Diagnostic Evaluation',
+            status: 'EVALUATION_DATA_REQUIRED',
+            targetStandards: 'Digital Personal Data Protection Act 2023 & RBI Fair Practice Code guidelines',
+            note: 'Demographic parity and equalized-odds metrics require a defined protected-group evaluation dataset and computed audit results.',
+          },
       explainability: {
         framework: 'TreeSHAP',
-        status: 'LOCAL_TREESHAP_ACTIVE',
-        note: 'Local TreeSHAP feature attributions are available for scored assessments. Persisted global feature-importance aggregation is not currently available unless sourced from an existing authoritative artifact.',
+        status: globalSHAP ? 'GLOBAL_AND_LOCAL_TREESHAP_ACTIVE' : 'LOCAL_TREESHAP_ACTIVE',
+        note: globalSHAP
+          ? 'TreeSHAP feature attributions generated for individual scored assessments and aggregated globally across offline evaluation dataset.'
+          : 'Local TreeSHAP feature attributions are generated for individual scored assessments.',
+        globalSHAPSummary: globalSHAP
+          ? {
+              sampleCount: globalSHAP.sample_count,
+              evaluatedAt: globalSHAP.evaluated_at,
+              datasetSource: globalSHAP.dataset_source,
+              topFeatures: globalSHAP.features.slice(0, 20).map((f) => ({
+                rank: f.rank,
+                featureName: f.feature_name,
+                meanAbsShap: f.mean_abs_shap,
+                signedMeanShap: f.mean_shap,
+              })),
+            }
+          : null,
       },
       registeredVersions: modelVersions.map((v) => ({
         version: v.version,
@@ -190,7 +218,7 @@ export default function AdminModelInsightsPage() {
             )}
           </div>
           <p className="text-sm sm:text-base text-foreground-secondary">
-            Model version lineage, Fairlearn statutory alignment protocols, and SHAP explainability governance.
+            Model version lineage, Fairlearn diagnostic fairness evaluation, and SHAP explainability governance.
           </p>
         </div>
 
@@ -411,7 +439,7 @@ export default function AdminModelInsightsPage() {
               {canonicalDemoData.mlInsights.fairness.evaluationStandard}
             </span>
             <span className="text-xs text-foreground-secondary block">
-              RBI Fair Lending Code aligned
+              Fair Lending diagnostic protocol
             </span>
           </div>
         </div>
@@ -502,7 +530,7 @@ export default function AdminModelInsightsPage() {
 
                 {/* SUBGROUP COMPARISON TABLE */}
                 <div className="overflow-x-auto rounded-xl border border-border bg-surface">
-                  <table className="w-full text-left text-xs sm:text-sm">
+                  <table className="w-full min-w-[650px] text-left text-xs sm:text-sm">
                     <thead className="bg-surface-highlight/50 border-b border-border text-xs font-semibold uppercase tracking-wider text-foreground-secondary">
                       <tr>
                         <th className="py-3 px-4">Subgroup Cohort</th>
@@ -669,7 +697,7 @@ export default function AdminModelInsightsPage() {
 
               {/* Feature importance table */}
               <div className="overflow-x-auto rounded-xl border border-border bg-surface">
-                <table className="w-full text-left text-xs sm:text-sm">
+                <table className="w-full min-w-[620px] text-left text-xs sm:text-sm">
                   <thead className="bg-surface-highlight/50 border-b border-border text-xs font-semibold uppercase tracking-wider text-foreground-secondary">
                     <tr>
                       <th className="py-3 px-4">Rank</th>

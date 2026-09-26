@@ -323,7 +323,7 @@ export default function AdminApplicationsPage() {
       ) : (
         <Card className="overflow-hidden p-0">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs sm:text-sm">
+            <table className="w-full min-w-[750px] text-left text-xs sm:text-sm">
               <thead className="bg-surface-highlight/40 border-b border-border text-foreground-secondary font-semibold uppercase tracking-wider text-xs">
                 <tr>
                   <th className="py-3.5 px-5">Application ID</th>
@@ -396,7 +396,9 @@ export default function AdminApplicationsPage() {
                         {app.assessment ? (
                           <div className="space-y-1">
                             <span className="font-mono font-semibold text-foreground block">
-                              {app.assessment.score} / 850
+                              {app.assessment.score !== null && app.assessment.score !== undefined
+                                ? `${app.assessment.score} / 850`
+                                : 'UNRATED'}
                             </span>
                             <RiskBadge
                               riskLevel={app.assessment.riskLevel}
@@ -406,7 +408,7 @@ export default function AdminApplicationsPage() {
                           </div>
                         ) : (
                           <span className="text-foreground-secondary font-mono text-xs">
-                            Evaluating...
+                            UNRATED
                           </span>
                         )}
                       </td>
