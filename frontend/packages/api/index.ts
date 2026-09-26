@@ -3,10 +3,7 @@
 // Single communication layer between Next.js frontend and FastAPI backend
 
 import type {
-  CreditApplication,
   CreditAssessmentResult,
-  BorrowerProfile,
-  UnderwriterReviewOutcome,
   LoginRequest,
   TokenResponse,
   UserResponse,
@@ -17,8 +14,6 @@ import type {
 
 import { ApiError, type ApiErrorCode } from './errors';
 import type {
-  BackendUser,
-  BackendUserCreate,
   BackendApplicantProfile,
   BackendApplicantProfileCreate,
   BackendApplicantProfileUpdate,
@@ -35,7 +30,6 @@ import type {
   BackendUnderwriterReview,
   BackendUnderwriterReviewCreate,
   BackendModelVersion,
-  BackendModelVersionCreate,
   BackendFairnessAuditRequest,
   BackendFairnessAuditResponse,
   BackendAuditLog,
@@ -45,10 +39,7 @@ import type {
   PortfolioAnalyticsQueryParams,
 } from './types';
 import {
-  adaptApplication,
   adaptAssessment,
-  adaptReviewOutcome,
-  adaptBorrowerProfile,
   adaptPortfolioAnalytics,
   adaptSectorRisk,
   adaptOperationalAlert,
@@ -60,6 +51,7 @@ import {
 export * from './errors';
 export * from './types';
 export * from './adapters';
+export type { AuditLogEntry } from '@parakh/types';
 
 export interface ApiClientConfig {
   baseUrl?: string;
@@ -251,25 +243,6 @@ export class ParakhApiClient {
     });
   }
 
-  async getUserById(id: string): Promise<BackendUser> {
-    return this.request<BackendUser>(`/api/v1/users/${encodeURIComponent(id)}`, {
-      method: 'GET',
-    });
-  }
-
-  async getUserByEmail(email: string): Promise<BackendUser> {
-    return this.request<BackendUser>(`/api/v1/users/by-email/${encodeURIComponent(email)}`, {
-      method: 'GET',
-    });
-  }
-
-  async updateUser(id: string, data: Partial<BackendUserCreate>): Promise<BackendUser> {
-    return this.request<BackendUser>(`/api/v1/users/${encodeURIComponent(id)}`, {
-      method: 'PATCH',
-      body: JSON.stringify(data),
-    });
-  }
-
   // =========================================================================
   // 2. APPLICANT PROFILES
   // =========================================================================
@@ -362,16 +335,6 @@ export class ParakhApiClient {
     );
   }
 
-  async updateApplication(
-    applicationId: string,
-    data: Partial<BackendApplicationCreate>
-  ): Promise<BackendApplication> {
-    return this.request<BackendApplication>(`/api/v1/applications/${encodeURIComponent(applicationId)}`, {
-      method: 'PATCH',
-      body: JSON.stringify(data),
-    });
-  }
-
   async updateApplicationStatus(
     applicationId: string,
     status: string,
@@ -411,13 +374,6 @@ export class ParakhApiClient {
     });
   }
 
-  async getAssessmentsByApplication(applicationId: string): Promise<BackendAssessment[]> {
-    return this.request<BackendAssessment[]>(
-      `/api/v1/applications/${encodeURIComponent(applicationId)}/assessments`,
-      { method: 'GET' }
-    );
-  }
-
   async getLatestAssessmentByApplication(applicationId: string): Promise<BackendAssessment> {
     return this.request<BackendAssessment>(
       `/api/v1/applications/${encodeURIComponent(applicationId)}/assessments/latest`,
@@ -449,13 +405,6 @@ export class ParakhApiClient {
     );
   }
 
-  async getLatestFinancialSignals(applicationId: string): Promise<BackendFinancialSignal> {
-    return this.request<BackendFinancialSignal>(
-      `/api/v1/applications/${encodeURIComponent(applicationId)}/financial-signals/latest`,
-      { method: 'GET' }
-    );
-  }
-
   // =========================================================================
   // 6. CONSENTS
   // =========================================================================
@@ -465,13 +414,6 @@ export class ParakhApiClient {
       method: 'POST',
       body: JSON.stringify(data),
     });
-  }
-
-  async getConsentsByApplication(applicationId: string): Promise<BackendConsent[]> {
-    return this.request<BackendConsent[]>(
-      `/api/v1/applications/${encodeURIComponent(applicationId)}/consents`,
-      { method: 'GET' }
-    );
   }
 
   async getActiveConsentsByApplication(applicationId: string): Promise<BackendConsent[]> {
@@ -555,13 +497,6 @@ export class ParakhApiClient {
   // 8. MODEL VERSIONS
   // =========================================================================
 
-  async createModelVersion(data: BackendModelVersionCreate): Promise<BackendModelVersion> {
-    return this.request<BackendModelVersion>('/api/v1/model-versions', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  }
-
   async getModelVersions(params?: {
     skip?: number;
     limit?: number;
@@ -573,19 +508,6 @@ export class ParakhApiClient {
     if (params?.is_active !== undefined) query.append('is_active', String(params.is_active));
     const qs = query.toString();
     return this.request<BackendModelVersion[]>(`/api/v1/model-versions${qs ? `?${qs}` : ''}`, {
-      method: 'GET',
-    });
-  }
-
-  async getActiveModelVersion(modelName: string): Promise<BackendModelVersion> {
-    return this.request<BackendModelVersion>(
-      `/api/v1/model-versions/active/${encodeURIComponent(modelName)}`,
-      { method: 'GET' }
-    );
-  }
-
-  async getModelVersionById(id: string): Promise<BackendModelVersion> {
-    return this.request<BackendModelVersion>(`/api/v1/model-versions/${encodeURIComponent(id)}`, {
       method: 'GET',
     });
   }
@@ -650,12 +572,6 @@ export class ParakhApiClient {
     return raw.map(adaptAuditLog);
   }
 
-  async getAuditLogById(auditId: string): Promise<BackendAuditLog> {
-    return this.request<BackendAuditLog>(`/api/v1/audit-logs/${encodeURIComponent(auditId)}`, {
-      method: 'GET',
-    });
-  }
-
   // =========================================================================
   // 10. PORTFOLIO ANALYTICS
   // =========================================================================
@@ -690,72 +606,12 @@ export class ParakhApiClient {
   // 11. ADAPTER-BACKED CONVENIENCE METHODS (Frontend Domain Models)
   // =========================================================================
 
-  async getApplicationAdapted(
-    applicationId: string,
-    applicantProfile?: BackendApplicantProfile | null
-  ): Promise<CreditApplication> {
-    const rawApp = await this.getApplicationById(applicationId);
-    let profile = applicantProfile;
-    if (!profile && rawApp.applicant_profile_id) {
-      try {
-        profile = await this.getApplicantProfile(rawApp.applicant_profile_id);
-      } catch {
-        profile = null;
-      }
-    }
-    return adaptApplication(rawApp, profile);
-  }
-
-  async getApplicationsAdapted(params?: {
-    skip?: number;
-    limit?: number;
-    status?: string;
-    applicant_profile_id?: string;
-  }): Promise<CreditApplication[]> {
-    const rawApps = await this.getApplications(params);
-    return rawApps.map((raw) => adaptApplication(raw));
-  }
-
-  async getLatestAssessmentAdapted(applicationId: string): Promise<CreditAssessmentResult> {
-    const raw = await this.getLatestAssessmentByApplication(applicationId);
-    return adaptAssessment(raw);
-  }
-
-  async getAssessmentAdapted(assessmentId: string): Promise<CreditAssessmentResult> {
-    const raw = await this.getAssessmentById(assessmentId);
-    return adaptAssessment(raw);
-  }
-
   async triggerAssessmentAdapted(
     applicationId: string,
     modelVersionId?: string
   ): Promise<CreditAssessmentResult> {
     const raw = await this.triggerAssessment(applicationId, modelVersionId);
     return adaptAssessment(raw);
-  }
-
-  async recordReviewOutcomeAdapted(
-    applicationId: string,
-    review: BackendUnderwriterReviewCreate
-  ): Promise<UnderwriterReviewOutcome> {
-    const raw = await this.createReview(applicationId, review);
-    return adaptReviewOutcome(raw);
-  }
-
-  async getBorrowerProfileAdapted(
-    applicantProfileId: string,
-    user?: BackendUser | null
-  ): Promise<BorrowerProfile> {
-    const rawProfile = await this.getApplicantProfile(applicantProfileId);
-    let rawUser = user;
-    if (!rawUser && rawProfile.user_id) {
-      try {
-        rawUser = await this.getUserById(rawProfile.user_id);
-      } catch {
-        rawUser = null;
-      }
-    }
-    return adaptBorrowerProfile(rawProfile, rawUser);
   }
 
   // --- Operational Alerts ---

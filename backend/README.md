@@ -548,7 +548,6 @@ CreditAssessmentResponse (score, risk_level, confidence, key_factors, explanatio
 | | `POST` | `/api/v1/consents/{consent_id}/revoke` | Revoke a previously granted consent |
 | **Financial Signals** | `POST` | `/api/v1/applications/{application_id}/financial-signals` | Ingest aggregated financial indicators (data-minimized) |
 | | `GET` | `/api/v1/applications/{application_id}/financial-signals` | List recorded financial signals |
-| | `GET` | `/api/v1/applications/{application_id}/financial-signals/latest` | Retrieve latest recorded financial signal |
 | **Assessments** | `POST` | `/api/v1/applications/{application_id}/assess` | Execute credit assessment engine & persist result |
 | | `GET` | `/api/v1/assessments/{assessment_id}` | Retrieve credit assessment by UUID |
 | | `GET` | `/api/v1/applications/{application_id}/assessments` | List assessments for application |

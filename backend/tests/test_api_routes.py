@@ -531,10 +531,12 @@ class TestApiRoutesWithLivePostgres(unittest.TestCase):
         self.assertEqual(list_sig.status_code, 200)
         self.assertEqual(len(list_sig.json()), 1)
 
-        # GET latest signal
+        # Verify obsolete financial-signals/latest route is no longer exposed (P2-09 cleanup)
         latest_sig = self.client.get(f"/api/v1/applications/{app_id}/financial-signals/latest", headers=headers)
-        self.assertEqual(latest_sig.status_code, 200)
-        self.assertEqual(latest_sig.json()["id"], sig_id)
+        self.assertEqual(latest_sig.status_code, 404)
+
+        # Authoritative signal retrieval is via GET /api/v1/applications/{app_id}/financial-signals
+        self.assertEqual(list_sig.json()[0]["id"], sig_id)
 
     # --- 6. MODEL VERSION ROUTES ---
     def test_model_version_routes(self):

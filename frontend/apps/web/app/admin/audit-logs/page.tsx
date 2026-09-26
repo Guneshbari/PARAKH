@@ -195,7 +195,7 @@ export default function AdminAuditLogsPage() {
   };
 
   const formatTimestamp = (isoString?: string) => {
-    if (!isoString) return '—';
+    if (!isoString) return { formatted: '—', iso: '—' };
     try {
       const date = new Date(isoString);
       return {

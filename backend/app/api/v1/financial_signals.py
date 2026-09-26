@@ -12,7 +12,6 @@ from app.schemas.financial_signal import (
     FinancialSignalCreate,
     FinancialSignalResponse,
 )
-from app.services.exceptions import EntityNotFoundError
 from app.services.financial_signal import FinancialSignalService
 
 router = APIRouter(tags=["financial-signals"])
@@ -74,31 +73,4 @@ def get_application_signals(
     )
     signals = signal_service.get_application_signals(application_id)
     return [FinancialSignalResponse.model_validate(s) for s in signals]
-
-
-@router.get(
-    "/applications/{application_id}/financial-signals/latest",
-    response_model=FinancialSignalResponse,
-    status_code=status.HTTP_200_OK,
-    summary="Get Latest Financial Signal",
-    description="Fetch the most recently recorded financial signal for an application.",
-)
-def get_latest_financial_signal(
-    application_id: UUID,
-    current_user: User = Depends(get_current_active_user),
-    signal_service: FinancialSignalService = Depends(get_financial_signal_service),
-) -> FinancialSignalResponse:
-    """Retrieve the latest financial signal for an application with role/ownership enforcement."""
-    check_application_ownership(
-        signal_service.db,
-        application_id,
-        current_user,
-        allow_reviewers=True,
-    )
-    signal = signal_service.get_latest_signal(application_id)
-    if not signal:
-        raise EntityNotFoundError(
-            f"No financial signals found for application '{application_id}'."
-        )
-    return FinancialSignalResponse.model_validate(signal)
 
