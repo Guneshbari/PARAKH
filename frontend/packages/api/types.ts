@@ -364,6 +364,11 @@ export interface BackendPortfolioAnalytics {
   sector_risk: BackendSectorRiskItem[];
 }
 
+export interface PortfolioAnalyticsQueryParams {
+  start_date?: string;
+  end_date?: string;
+}
+
 // --- Operational Alert Transport Models ---
 
 export type BackendOperationalAlertStatus = 'OPEN' | 'ACKNOWLEDGED' | 'RESOLVED';

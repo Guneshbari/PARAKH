@@ -149,6 +149,11 @@ export interface PortfolioAnalytics {
   }[];
 }
 
+export interface PortfolioAnalyticsQueryParams {
+  start_date?: string;
+  end_date?: string;
+}
+
 export interface ModelInsights {
   modelVersion: string;
   lastTrainedAt: string;

@@ -36,6 +36,7 @@ import type {
   BackendPortfolioAnalytics,
   BackendSectorRiskItem,
   BackendOperationalAlertResponse,
+  PortfolioAnalyticsQueryParams,
 } from './types';
 import {
   adaptApplication,
@@ -604,8 +605,12 @@ export class ParakhApiClient {
   // 10. PORTFOLIO ANALYTICS
   // =========================================================================
 
-  async getPortfolioAnalytics(): Promise<BackendPortfolioAnalytics> {
-    return this.request<BackendPortfolioAnalytics>('/api/v1/analytics/portfolio', {
+  async getPortfolioAnalytics(params?: PortfolioAnalyticsQueryParams): Promise<BackendPortfolioAnalytics> {
+    const query = new URLSearchParams();
+    if (params?.start_date) query.append('start_date', params.start_date);
+    if (params?.end_date) query.append('end_date', params.end_date);
+    const qs = query.toString();
+    return this.request<BackendPortfolioAnalytics>(`/api/v1/analytics/portfolio${qs ? `?${qs}` : ''}`, {
       method: 'GET',
     });
   }
@@ -616,8 +621,8 @@ export class ParakhApiClient {
     });
   }
 
-  async getPortfolioAnalyticsAdapted(): Promise<AdaptedPortfolioAnalytics> {
-    const raw = await this.getPortfolioAnalytics();
+  async getPortfolioAnalyticsAdapted(params?: PortfolioAnalyticsQueryParams): Promise<AdaptedPortfolioAnalytics> {
+    const raw = await this.getPortfolioAnalytics(params);
     return adaptPortfolioAnalytics(raw);
   }
 
@@ -711,22 +716,33 @@ export class ParakhApiClient {
     if (params?.skip) query.set('skip', String(params.skip));
     const qs = query.toString();
     const endpoint = `/api/v1/operational-alerts${qs ? `?${qs}` : ''}`;
-    const data = await this.get<BackendOperationalAlertResponse[]>(endpoint);
+    const data = await this.request<BackendOperationalAlertResponse[]>(endpoint, {
+      method: 'GET',
+    });
     return (data || []).map(adaptOperationalAlert);
   }
 
   async getOperationalAlert(id: string): Promise<OperationalAlert> {
-    const data = await this.get<BackendOperationalAlertResponse>(`/api/v1/operational-alerts/${id}`);
+    const data = await this.request<BackendOperationalAlertResponse>(
+      `/api/v1/operational-alerts/${encodeURIComponent(id)}`,
+      { method: 'GET' }
+    );
     return adaptOperationalAlert(data);
   }
 
   async acknowledgeOperationalAlert(id: string): Promise<OperationalAlert> {
-    const data = await this.patch<BackendOperationalAlertResponse>(`/api/v1/operational-alerts/${id}/acknowledge`);
+    const data = await this.request<BackendOperationalAlertResponse>(
+      `/api/v1/operational-alerts/${encodeURIComponent(id)}/acknowledge`,
+      { method: 'PATCH' }
+    );
     return adaptOperationalAlert(data);
   }
 
   async resolveOperationalAlert(id: string): Promise<OperationalAlert> {
-    const data = await this.patch<BackendOperationalAlertResponse>(`/api/v1/operational-alerts/${id}/resolve`);
+    const data = await this.request<BackendOperationalAlertResponse>(
+      `/api/v1/operational-alerts/${encodeURIComponent(id)}/resolve`,
+      { method: 'PATCH' }
+    );
     return adaptOperationalAlert(data);
   }
 }

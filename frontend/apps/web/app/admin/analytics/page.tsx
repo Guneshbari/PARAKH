@@ -12,6 +12,7 @@ import {
   Sparkles,
   AlertTriangle,
   Loader2,
+  RotateCcw,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -33,24 +34,38 @@ import {
   type AdaptedPortfolioAnalytics,
 } from '@parakh/api';
 
+function toDateInputValue(d: Date): string {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 export default function AdminAnalyticsPage() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
-  const [timeRange, setTimeRange] = useState<string>('90D');
+  const [timeRange, setTimeRange] = useState<string>('ALL');
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
+  const [appliedStartDate, setAppliedStartDate] = useState<string>('');
+  const [appliedEndDate, setAppliedEndDate] = useState<string>('');
   const [portfolio, setPortfolio] = useState<AdaptedPortfolioAnalytics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = async (params?: { start_date?: string; end_date?: string }) => {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await api.getPortfolioAnalyticsAdapted();
+      const data = await api.getPortfolioAnalyticsAdapted(params);
       setPortfolio(data);
+      setAppliedStartDate(params?.start_date || '');
+      setAppliedEndDate(params?.end_date || '');
     } catch (err: any) {
       console.warn('Analytics page fetch error:', err);
-      setError(err?.message || 'Failed to load portfolio analytics from backend.');
+      const msg = err?.detail || err?.userMessage || err?.message || 'Failed to load portfolio analytics from backend.';
+      setError(typeof msg === 'string' ? msg : JSON.stringify(msg));
     } finally {
       setIsLoading(false);
     }
@@ -59,6 +74,62 @@ export default function AdminAnalyticsPage() {
   useEffect(() => {
     fetchAnalytics();
   }, []);
+
+  const handleApply = (overrideStart?: string, overrideEnd?: string) => {
+    const s = overrideStart !== undefined ? overrideStart : startDate;
+    const e = overrideEnd !== undefined ? overrideEnd : endDate;
+
+    if (s && e && s > e) {
+      setError('start_date must not be after end_date.');
+      return;
+    }
+
+    const params: { start_date?: string; end_date?: string } = {};
+    if (s.trim()) params.start_date = s.trim();
+    if (e.trim()) params.end_date = e.trim();
+
+    fetchAnalytics(Object.keys(params).length > 0 ? params : undefined);
+  };
+
+  const handlePreset = (presetId: string) => {
+    setTimeRange(presetId);
+    if (presetId === 'ALL') {
+      setStartDate('');
+      setEndDate('');
+      fetchAnalytics();
+    } else {
+      const end = new Date();
+      const start = new Date();
+      if (presetId === '30D') {
+        start.setDate(start.getDate() - 30);
+      } else if (presetId === '90D') {
+        start.setDate(start.getDate() - 90);
+      } else if (presetId === '6M') {
+        start.setMonth(start.getMonth() - 6);
+      }
+      const s = toDateInputValue(start);
+      const e = toDateInputValue(end);
+      setStartDate(s);
+      setEndDate(e);
+      handleApply(s, e);
+    }
+  };
+
+  const handleReset = () => {
+    setStartDate('');
+    setEndDate('');
+    setTimeRange('ALL');
+    fetchAnalytics();
+  };
+
+  const hasActiveDateFilter = Boolean(appliedStartDate || appliedEndDate);
+  const appliedRangeLabel = appliedStartDate && appliedEndDate
+    ? `${appliedStartDate} to ${appliedEndDate}`
+    : appliedStartDate
+    ? `From ${appliedStartDate}`
+    : appliedEndDate
+    ? `Until ${appliedEndDate}`
+    : null;
 
   const totalEvaluated = portfolio?.totalEvaluated ?? 0;
   const avgScore = portfolio?.averageScore;
@@ -101,33 +172,51 @@ export default function AdminAnalyticsPage() {
   return (
     <PageTransition className="space-y-6 sm:space-y-8 w-full pb-16">
       {/* 1. TOP HEADER & FILTER STRIP */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-border">
-        <div className="space-y-1">
-          <div className="flex flex-wrap items-center gap-2.5">
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
-              Portfolio Risk & Volatility Analytics
-            </h1>
-            <Badge variant="mint" className="text-xs py-0.5 px-2">
-              Cohort Telemetry Live
-            </Badge>
+      <div className="flex flex-col gap-4 pb-4 border-b border-border">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
+                Portfolio Risk & Volatility Analytics
+              </h1>
+              <Badge variant="mint" className="text-xs py-0.5 px-2">
+                Cohort Telemetry Live
+              </Badge>
+              {hasActiveDateFilter && (
+                <Badge variant="secondary" className="text-xs py-0.5 px-2 font-mono">
+                  {appliedRangeLabel}
+                </Badge>
+              )}
+            </div>
+            <p className="text-xs sm:text-sm text-foreground-secondary">
+              Deep-dive cohort telemetry, recovery velocity dynamics, sector-wise risk segmentation, and long-term assessment stability.
+            </p>
           </div>
-          <p className="text-xs sm:text-sm text-foreground-secondary">
-            Deep-dive cohort telemetry, recovery velocity dynamics, sector-wise risk segmentation, and long-term assessment stability.
-          </p>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => window.print()}
+            className="rounded-full gap-1.5 text-xs text-foreground-secondary hover:text-foreground shrink-0 self-start md:self-center"
+          >
+            <Printer className="size-3.5" /> Print Analytics
+          </Button>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Time Range Selector */}
+        {/* Date Filter Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+          {/* Presets */}
           <div className="flex items-center bg-surface-highlight p-1 rounded-full border border-border">
             {[
+              { id: 'ALL', label: 'All Time' },
               { id: '30D', label: '30D' },
               { id: '90D', label: '90D' },
               { id: '6M', label: '6M' },
-              { id: 'ALL', label: 'All Time' },
             ].map((t) => (
               <button
                 key={t.id}
-                onClick={() => setTimeRange(t.id)}
+                type="button"
+                onClick={() => handlePreset(t.id)}
                 className={`px-3 py-1 rounded-full text-xs font-medium transition-all cursor-pointer ${
                   timeRange === t.id
                     ? 'bg-[#472393] text-white font-semibold shadow-xs dark:bg-foreground dark:text-background'
@@ -139,14 +228,70 @@ export default function AdminAnalyticsPage() {
             ))}
           </div>
 
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => window.print()}
-            className="rounded-full gap-1.5 text-xs text-foreground-secondary hover:text-foreground"
-          >
-            <Printer className="size-3.5" /> Print Analytics
-          </Button>
+          {/* Explicit Date Controls */}
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-1.5 bg-surface-highlight border border-border rounded-xl px-2.5 py-1">
+              <span className="text-[11px] font-semibold text-foreground-secondary uppercase tracking-wider">Start</span>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => {
+                  setStartDate(e.target.value);
+                  setTimeRange('CUSTOM');
+                }}
+                className="bg-transparent text-xs text-foreground focus:outline-none cursor-pointer"
+                aria-label="Start Date"
+                data-testid="analytics-start-date"
+              />
+            </div>
+
+            <div className="flex items-center gap-1.5 bg-surface-highlight border border-border rounded-xl px-2.5 py-1">
+              <span className="text-[11px] font-semibold text-foreground-secondary uppercase tracking-wider">End</span>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => {
+                  setEndDate(e.target.value);
+                  setTimeRange('CUSTOM');
+                }}
+                className="bg-transparent text-xs text-foreground focus:outline-none cursor-pointer"
+                aria-label="End Date"
+                data-testid="analytics-end-date"
+              />
+            </div>
+
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => handleApply()}
+              disabled={isLoading}
+              className="h-8 rounded-xl text-xs px-3.5 bg-[#472393] hover:bg-[#3b1c7c] text-white dark:bg-foreground dark:text-background cursor-pointer gap-1.5"
+              data-testid="analytics-apply-button"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="size-3.5 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                'Apply'
+              )}
+            </Button>
+
+            {(startDate || endDate || hasActiveDateFilter) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleReset}
+                disabled={isLoading}
+                className="h-8 rounded-xl text-xs px-2.5 text-foreground-secondary hover:text-foreground cursor-pointer gap-1"
+                data-testid="analytics-reset-button"
+              >
+                <RotateCcw className="size-3.5" />
+                Reset
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -157,12 +302,39 @@ export default function AdminAnalyticsPage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={fetchAnalytics}
+            onClick={() => handleApply()}
             className="text-xs h-7 rounded-full shrink-0"
           >
             Retry
           </Button>
         </div>
+      )}
+
+      {/* FILTER-SPECIFIC EMPTY STATE */}
+      {portfolio && portfolio.totalEvaluated === 0 && !isLoading && (
+        <Card className="p-8 text-center bg-surface border-border space-y-3">
+          <div className="size-12 rounded-2xl bg-surface-highlight border border-border mx-auto flex items-center justify-center text-foreground-secondary">
+            <Activity className="size-6" />
+          </div>
+          <div className="space-y-1 max-w-md mx-auto">
+            <h3 className="text-base font-semibold text-foreground">No Records in Selected Date Range</h3>
+            <p className="text-xs sm:text-sm text-foreground-secondary">
+              {appliedRangeLabel
+                ? `No credit applications or assessments match the filtered date range (${appliedRangeLabel}).`
+                : 'No credit applications or assessments have been registered yet.'}
+            </p>
+          </div>
+          {hasActiveDateFilter && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleReset}
+              className="rounded-full text-xs"
+            >
+              Reset Date Filter
+            </Button>
+          )}
+        </Card>
       )}
 
       {/* 2. PORTFOLIO RESILIENCE KPIS */}

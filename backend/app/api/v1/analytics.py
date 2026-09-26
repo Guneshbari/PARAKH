@@ -3,11 +3,19 @@
 Provides server-side SQL aggregations over Application, ApplicantProfile,
 and CreditAssessment tables for the admin/reviewer dashboard.
 All queries use GROUP BY and aggregate functions for efficiency — strictly no N+1.
+
+Date-range filtering (P2-03):
+  - start_date / end_date are optional YYYY-MM-DD query parameters.
+  - Semantics: inclusive on both bounds, applied against Application.created_at (UTC)
+    for application-level metrics and CreditAssessment.created_at (UTC) for
+    assessment-level metrics so every returned aggregate uses the same population.
+  - start_date > end_date → HTTP 422 (Unprocessable Entity).
+  - Omitting both parameters preserves existing unfiltered behaviour exactly.
 """
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from typing import Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import extract, func
 from sqlalchemy.orm import Session
 
@@ -41,8 +49,42 @@ MONTH_NAMES = [
 ]
 
 
-def _build_sector_risk(db: Session) -> List[SectorRiskItem]:
-    """Aggregate risk tier distribution by gig work type from persisted data."""
+
+def _app_date_filters(start_date: Optional[date], end_date: Optional[date]) -> list:
+    """Return SQLAlchemy filter expressions for Application.created_at within [start_date, end_date].
+
+    Dates are treated as UTC calendar days:
+      start_date → start-of-day midnight UTC (inclusive)
+      end_date   → end-of-day midnight UTC of the *next* day (exclusive upper bound)
+    This guarantees full-day inclusion regardless of the sub-second created_at value.
+    """
+    filters = []
+    if start_date is not None:
+        filters.append(Application.created_at >= datetime(start_date.year, start_date.month, start_date.day, 0, 0, 0, tzinfo=timezone.utc))
+    if end_date is not None:
+        # Exclusive upper bound: < start of next day = inclusive end of end_date
+        next_day = datetime(end_date.year, end_date.month, end_date.day, 0, 0, 0, tzinfo=timezone.utc) + timedelta(days=1)
+        filters.append(Application.created_at < next_day)
+    return filters
+
+
+def _assess_date_filters(start_date: Optional[date], end_date: Optional[date]) -> list:
+    """Return SQLAlchemy filter expressions for CreditAssessment.created_at within [start_date, end_date]."""
+    filters = []
+    if start_date is not None:
+        filters.append(CreditAssessment.created_at >= datetime(start_date.year, start_date.month, start_date.day, 0, 0, 0, tzinfo=timezone.utc))
+    if end_date is not None:
+        next_day = datetime(end_date.year, end_date.month, end_date.day, 0, 0, 0, tzinfo=timezone.utc) + timedelta(days=1)
+        filters.append(CreditAssessment.created_at < next_day)
+    return filters
+
+
+def _build_sector_risk(db: Session, start_date: Optional[date] = None, end_date: Optional[date] = None) -> List[SectorRiskItem]:
+    """Aggregate risk tier distribution by gig work type from persisted data.
+
+    Optionally restricted to assessments whose created_at falls within [start_date, end_date].
+    """
+    assess_filters = _assess_date_filters(start_date, end_date)
     sector_risk_rows = (
         db.query(
             ApplicantProfile.gig_work_type,
@@ -51,6 +93,7 @@ def _build_sector_risk(db: Session) -> List[SectorRiskItem]:
         )
         .join(Application, Application.id == CreditAssessment.application_id)
         .join(ApplicantProfile, ApplicantProfile.id == Application.applicant_profile_id)
+        .filter(*assess_filters)
         .group_by(ApplicantProfile.gig_work_type, CreditAssessment.risk_level)
         .all()
     )
@@ -100,14 +143,34 @@ def _build_sector_risk(db: Session) -> List[SectorRiskItem]:
         "Returns aggregated portfolio KPIs computed from Application, ApplicantProfile, "
         "and CreditAssessment tables. Includes status distribution, risk distribution, "
         "score histogram, monthly volume trend, and sector risk breakdown. "
+        "Optional start_date / end_date (YYYY-MM-DD) filter all metrics to the "
+        "inclusive date window applied against Application.created_at and "
+        "CreditAssessment.created_at (UTC). "
         "Restricted to REVIEWER and ADMIN roles."
     ),
 )
 def get_portfolio_analytics(
+    start_date: Optional[date] = Query(
+        None,
+        description="Inclusive start of date range (YYYY-MM-DD, UTC calendar day). "
+                    "Records created on or after this date are included.",
+        examples=["2026-01-01"],
+    ),
+    end_date: Optional[date] = Query(
+        None,
+        description="Inclusive end of date range (YYYY-MM-DD, UTC calendar day). "
+                    "Records created on or before this date are included.",
+        examples=["2026-12-31"],
+    ),
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ) -> PortfolioAnalyticsResponse:
-    """Compute and return portfolio-level analytics from the database."""
+    """Compute and return portfolio-level analytics from the database.
+
+    If start_date and/or end_date are provided every aggregate is filtered to that
+    inclusive date window.  Omitting both parameters preserves the original
+    unfiltered behaviour exactly.
+    """
     # RBAC enforcement
     if current_user.role not in (UserRole.REVIEWER, UserRole.ADMIN):
         raise HTTPException(
@@ -115,13 +178,36 @@ def get_portfolio_analytics(
             detail="Access denied: only reviewers and administrators can access portfolio analytics.",
         )
 
+    # Date-range validation: reversed range is a client error
+    if start_date is not None and end_date is not None and start_date > end_date:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="start_date must not be after end_date.",
+        )
+
+    # Build reusable filter clause lists for Application- and Assessment-based queries
+    app_filters = _app_date_filters(start_date, end_date)
+    assess_filters = _assess_date_filters(start_date, end_date)
+
     # 1. Total applications and total applicants count
-    total_applications: int = db.query(func.count(Application.id)).scalar() or 0
-    total_applicants: int = db.query(func.count(ApplicantProfile.id)).scalar() or 0
+    total_applications: int = (
+        db.query(func.count(Application.id)).filter(*app_filters).scalar() or 0
+    )
+    # Total unique applicants: if dates provided, count distinct profiles from filtered applications
+    if start_date is not None or end_date is not None:
+        total_applicants: int = (
+            db.query(func.count(func.distinct(Application.applicant_profile_id)))
+            .filter(*app_filters)
+            .scalar()
+            or 0
+        )
+    else:
+        total_applicants: int = db.query(func.count(ApplicantProfile.id)).scalar() or 0
 
     # 2. Status distribution: COUNT GROUP BY status
     status_rows = (
         db.query(Application.status, func.count(Application.id))
+        .filter(*app_filters)
         .group_by(Application.status)
         .all()
     )
@@ -138,6 +224,7 @@ def get_portfolio_analytics(
     # 3. Risk distribution: COUNT GROUP BY risk_level from CreditAssessment
     risk_rows = (
         db.query(CreditAssessment.risk_level, func.count(CreditAssessment.id))
+        .filter(*assess_filters)
         .group_by(CreditAssessment.risk_level)
         .all()
     )
@@ -156,7 +243,7 @@ def get_portfolio_analytics(
         func.avg(CreditAssessment.credit_score),
         func.avg(CreditAssessment.risk_probability),
         func.count(CreditAssessment.id),
-    ).first()
+    ).filter(*assess_filters).first()
 
     average_credit_score: Optional[float] = None
     average_risk_probability: Optional[float] = None
@@ -188,7 +275,7 @@ def get_portfolio_analytics(
     if total_assessments > 0:
         scored_total = (
             db.query(func.count(CreditAssessment.id))
-            .filter(CreditAssessment.credit_score.isnot(None))
+            .filter(CreditAssessment.credit_score.isnot(None), *assess_filters)
             .scalar()
         ) or 1
 
@@ -199,6 +286,7 @@ def get_portfolio_analytics(
                     CreditAssessment.credit_score.isnot(None),
                     CreditAssessment.credit_score >= bucket["min"],
                     CreditAssessment.credit_score <= bucket["max"],
+                    *assess_filters,
                 )
                 .scalar()
             ) or 0
@@ -215,7 +303,7 @@ def get_portfolio_analytics(
 
     # 7. Monthly volume trend (last 6 months)
     monthly_volume: List[MonthlyVolumePoint] = []
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
 
     for i in range(5, -1, -1):
         target_date = now - timedelta(days=i * 30)
@@ -227,6 +315,7 @@ def get_portfolio_analytics(
             .filter(
                 extract("year", Application.created_at) == target_year,
                 extract("month", Application.created_at) == target_month,
+                *app_filters,
             )
             .scalar()
         ) or 0
@@ -237,6 +326,7 @@ def get_portfolio_analytics(
                 CreditAssessment.credit_score.isnot(None),
                 extract("year", CreditAssessment.created_at) == target_year,
                 extract("month", CreditAssessment.created_at) == target_month,
+                *assess_filters,
             )
             .scalar()
         )
@@ -250,8 +340,9 @@ def get_portfolio_analytics(
             )
         )
 
-    # 8. Sector risk breakdown
-    sector_risk = _build_sector_risk(db)
+    # 8. Sector risk breakdown (respects same date window via CreditAssessment.created_at)
+    sector_risk = _build_sector_risk(db, start_date=start_date, end_date=end_date)
+
 
     return PortfolioAnalyticsResponse(
         total_applications=total_applications,
