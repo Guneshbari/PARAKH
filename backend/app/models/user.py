@@ -7,6 +7,7 @@ from app.models.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
 
 if TYPE_CHECKING:
     from app.models.applicant import ApplicantProfile
+    from app.models.consent import ConsentPreference
     from app.models.review import ReviewOutcome
     from app.models.audit import AuditLog
 
@@ -59,4 +60,9 @@ class User(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     audit_logs: Mapped[List["AuditLog"]] = relationship(
         "AuditLog",
         back_populates="user",
+    )
+    consent_preferences: Mapped[List["ConsentPreference"]] = relationship(
+        "ConsentPreference",
+        back_populates="user",
+        cascade="all, delete-orphan",
     )

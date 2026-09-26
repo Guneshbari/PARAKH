@@ -28,6 +28,9 @@ import type {
   BackendFinancialSignalCreate,
   BackendConsent,
   BackendConsentCreate,
+  BackendConsentPreferences,
+  BackendConsentPreferencesUpdate,
+  BackendConsentPreferenceItem,
   BackendUnderwriterReview,
   BackendUnderwriterReviewCreate,
   BackendModelVersion,
@@ -479,6 +482,35 @@ export class ParakhApiClient {
     return this.request<BackendConsent>(`/api/v1/consents/${encodeURIComponent(consentId)}/revoke`, {
       method: 'POST',
     });
+  }
+
+  async getConsentPreferences(userId?: string): Promise<BackendConsentPreferences> {
+    const query = userId ? `?user_id=${encodeURIComponent(userId)}` : '';
+    return this.request<BackendConsentPreferences>(`/api/v1/consents/preferences${query}`, {
+      method: 'GET',
+    });
+  }
+
+  async updateConsentPreferences(
+    preferences: BackendConsentPreferencesUpdate,
+    userId?: string
+  ): Promise<BackendConsentPreferences> {
+    const query = userId ? `?user_id=${encodeURIComponent(userId)}` : '';
+    return this.request<BackendConsentPreferences>(`/api/v1/consents/preferences${query}`, {
+      method: 'PATCH',
+      body: JSON.stringify(preferences),
+    });
+  }
+
+  async revokeConsentPreference(
+    preferenceKey: string,
+    userId?: string
+  ): Promise<BackendConsentPreferences> {
+    const query = userId ? `?user_id=${encodeURIComponent(userId)}` : '';
+    return this.request<BackendConsentPreferences>(
+      `/api/v1/consents/preferences/${encodeURIComponent(preferenceKey)}/revoke${query}`,
+      { method: 'POST' }
+    );
   }
 
   // =========================================================================

@@ -31,3 +31,63 @@ class ConsentResponse(BaseModel):
     revoked_at: Optional[datetime]
     created_at: datetime
     updated_at: datetime
+
+
+class ConsentPreferenceItem(BaseModel):
+    """Detailed individual DPDP consent preference."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    key: str
+    granted: bool
+    consented_at: Optional[datetime] = None
+    revoked_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+
+class ConsentPreferencesUpdate(BaseModel):
+    """Schema for updating applicant DPDP consent preferences."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    consent_benchmark: Optional[bool] = Field(
+        None,
+        alias="consentBenchmark",
+        description="Allow anonymized rebound speeds to train local gig economy resilience baselines.",
+    )
+    consent_realtime: Optional[bool] = Field(
+        None,
+        alias="consentRealtime",
+        description="Periodically update weekly inflow stability indicators as new platform payouts settle.",
+    )
+    consent_alerts: Optional[bool] = Field(
+        None,
+        alias="consentAlerts",
+        description="Receive proactive notifications when 10-day recovery velocity qualifies for better credit limits.",
+    )
+
+
+class ConsentPreferencesResponse(BaseModel):
+    """Authoritative applicant DPDP consent preferences response."""
+
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+    user_id: UUID
+    consent_benchmark: bool = Field(
+        default=False,
+        description="Anonymized Industry Volatility Benchmarking",
+    )
+    consent_realtime: bool = Field(
+        default=False,
+        description="Continuous Telemetry Refresh / Real-Time Telemetry Ingestion",
+    )
+    consent_alerts: bool = Field(
+        default=False,
+        description="Volatile Shock Rebound Alerts / Automated Downside Shock Alerts",
+    )
+    preferences: list[ConsentPreferenceItem] = Field(
+        default_factory=list,
+        description="Granular preference audit records",
+    )
+    updated_at: Optional[datetime] = None
+

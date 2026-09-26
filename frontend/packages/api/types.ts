@@ -254,6 +254,32 @@ export interface BackendConsentResponse {
   updated_at: string;
 }
 
+export interface BackendConsentPreferenceItem {
+  key: string;
+  granted: boolean;
+  consented_at?: string | null;
+  revoked_at?: string | null;
+  updated_at?: string | null;
+}
+
+export interface BackendConsentPreferences {
+  user_id: string;
+  consent_benchmark: boolean;
+  consent_realtime: boolean;
+  consent_alerts: boolean;
+  preferences?: BackendConsentPreferenceItem[];
+  updated_at?: string | null;
+}
+
+export interface BackendConsentPreferencesUpdate {
+  consent_benchmark?: boolean;
+  consent_realtime?: boolean;
+  consent_alerts?: boolean;
+  consentBenchmark?: boolean;
+  consentRealtime?: boolean;
+  consentAlerts?: boolean;
+}
+
 // --- Review Transport Models ---
 
 export interface BackendReviewOutcomeCreate {

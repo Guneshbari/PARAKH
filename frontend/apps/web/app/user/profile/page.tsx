@@ -49,10 +49,14 @@ export default function UserProfilePage() {
   const [syncSuccess, setSyncSuccess] = useState<string | null>(null);
   const [revokingId, setRevokingId] = useState<string | null>(null);
 
-  // Consent toggles state
-  const [consentBenchmark, setConsentBenchmark] = useState(true);
-  const [consentRealtime, setConsentRealtime] = useState(true);
-  const [consentAlerts, setConsentAlerts] = useState(true);
+  // DPDP Consent preferences state (persistent PostgreSQL backed)
+  const [consentBenchmark, setConsentBenchmark] = useState<boolean>(false);
+  const [consentRealtime, setConsentRealtime] = useState<boolean>(false);
+  const [consentAlerts, setConsentAlerts] = useState<boolean>(false);
+  const [loadingPreferences, setLoadingPreferences] = useState<boolean>(false);
+  const [savingPreferenceKey, setSavingPreferenceKey] = useState<string | null>(null);
+  const [preferenceSuccess, setPreferenceSuccess] = useState<string | null>(null);
+  const [preferenceError, setPreferenceError] = useState<string | null>(null);
 
   const fetchProfileData = useCallback(async () => {
     if (!user) return;
@@ -73,6 +77,19 @@ export default function UserProfilePage() {
       }
       setProfile(rawProfile);
 
+      // 2. Fetch DPDP Consent Preferences
+      try {
+        setLoadingPreferences(true);
+        const prefs = await api.getConsentPreferences();
+        setConsentBenchmark(Boolean(prefs.consent_benchmark));
+        setConsentRealtime(Boolean(prefs.consent_realtime));
+        setConsentAlerts(Boolean(prefs.consent_alerts));
+      } catch (prefErr: unknown) {
+        console.warn('Could not load consent preferences:', prefErr);
+      } finally {
+        setLoadingPreferences(false);
+      }
+
       if (!rawProfile) {
         setApplications([]);
         setConsents([]);
@@ -81,7 +98,7 @@ export default function UserProfilePage() {
         return;
       }
 
-      // 2. Fetch Applications for this profile
+      // 3. Fetch Applications for this profile
       let rawApps: BackendApplication[] = [];
       try {
         rawApps = await api.getApplicationsByApplicant(rawProfile.id);
@@ -94,7 +111,7 @@ export default function UserProfilePage() {
       }
       setApplications(rawApps);
 
-      // 3. If applications exist, fetch consents and financial signals for latest application
+      // 4. If applications exist, fetch consents and financial signals for latest application
       if (rawApps.length > 0) {
         const latestApp = rawApps[0];
         try {
@@ -157,6 +174,57 @@ export default function UserProfilePage() {
       setError(msg);
     } finally {
       setRevokingId(null);
+    }
+  };
+
+  const handleTogglePreference = async (
+    key: 'consent_benchmark' | 'consent_realtime' | 'consent_alerts',
+    nextValue: boolean
+  ) => {
+    setSavingPreferenceKey(key);
+    setPreferenceError(null);
+    setPreferenceSuccess(null);
+
+    const prevValue =
+      key === 'consent_benchmark'
+        ? consentBenchmark
+        : key === 'consent_realtime'
+        ? consentRealtime
+        : consentAlerts;
+
+    // Optimistically update local state
+    if (key === 'consent_benchmark') setConsentBenchmark(nextValue);
+    if (key === 'consent_realtime') setConsentRealtime(nextValue);
+    if (key === 'consent_alerts') setConsentAlerts(nextValue);
+
+    try {
+      const updated = await api.updateConsentPreferences({ [key]: nextValue });
+      setConsentBenchmark(Boolean(updated.consent_benchmark));
+      setConsentRealtime(Boolean(updated.consent_realtime));
+      setConsentAlerts(Boolean(updated.consent_alerts));
+
+      const label =
+        key === 'consent_benchmark'
+          ? 'Anonymized Volatility Benchmarking'
+          : key === 'consent_realtime'
+          ? 'Continuous Telemetry Refresh'
+          : 'Volatile Shock Rebound Alerts';
+      setPreferenceSuccess(
+        `${label} ${nextValue ? 'granted and persisted' : 'revoked and saved'} to database.`
+      );
+      setTimeout(() => setPreferenceSuccess(null), 3500);
+    } catch (err: unknown) {
+      // Revert on error
+      if (key === 'consent_benchmark') setConsentBenchmark(prevValue);
+      if (key === 'consent_realtime') setConsentRealtime(prevValue);
+      if (key === 'consent_alerts') setConsentAlerts(prevValue);
+
+      const msg =
+        err instanceof ApiError ? err.userMessage : 'Failed to update consent preference. Changes reverted.';
+      setPreferenceError(msg);
+      setTimeout(() => setPreferenceError(null), 5000);
+    } finally {
+      setSavingPreferenceKey(null);
     }
   };
 
@@ -447,59 +515,122 @@ export default function UserProfilePage() {
 
       {/* 5. PRIVACY PREFERENCES & RIGHTS */}
       <section className="space-y-4">
-        <h2 className="text-base sm:text-lg font-bold text-foreground">
-          Privacy Safeguards & DPDP Consent Preferences
-        </h2>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h2 className="text-base sm:text-lg font-bold text-foreground">
+              Privacy Safeguards & DPDP Consent Preferences
+            </h2>
+            <p className="text-xs text-foreground-secondary">
+              Authoritative persistent consent preferences backed by PostgreSQL audit records.
+            </p>
+          </div>
+          {loadingPreferences && (
+            <div className="flex items-center gap-1.5 text-xs text-foreground-secondary">
+              <RefreshCw className="size-3.5 animate-spin text-primary" />
+              <span>Syncing preferences...</span>
+            </div>
+          )}
+        </div>
+
+        {preferenceSuccess && (
+          <div
+            data-testid="consent-preference-success"
+            className="flex items-center gap-2 p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-md text-xs sm:text-sm"
+          >
+            <CheckCircle2 className="size-4 shrink-0 text-emerald-400" />
+            <span>{preferenceSuccess}</span>
+          </div>
+        )}
+
+        {preferenceError && (
+          <div
+            data-testid="consent-preference-error"
+            className="flex items-center gap-2 p-3 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-md text-xs sm:text-sm"
+          >
+            <AlertCircle className="size-4 shrink-0 text-rose-400" />
+            <span>{preferenceError}</span>
+          </div>
+        )}
 
         <Card className="p-6 space-y-5 bg-surface border-border">
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-0.5">
-              <h3 className="text-xs sm:text-sm font-semibold text-foreground">
-                Anonymized Industry Volatility Benchmarking
-              </h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-xs sm:text-sm font-semibold text-foreground">
+                  Anonymized Industry Volatility Benchmarking
+                </h3>
+                {savingPreferenceKey === 'consent_benchmark' && (
+                  <span className="text-[11px] text-primary flex items-center gap-1">
+                    <RefreshCw className="size-3 animate-spin" /> Saving...
+                  </span>
+                )}
+              </div>
               <p className="text-xs sm:text-sm text-foreground-secondary">
                 Allow your anonymized rebound speeds to train local gig economy resilience baselines.
               </p>
             </div>
             <input
               type="checkbox"
+              id="consent-benchmark-toggle"
+              data-testid="consent-benchmark-toggle"
               checked={consentBenchmark}
-              onChange={(e) => setConsentBenchmark(e.target.checked)}
-              className="size-4 accent-primary rounded cursor-pointer mt-1"
+              disabled={loadingPreferences || savingPreferenceKey === 'consent_benchmark'}
+              onChange={(e) => handleTogglePreference('consent_benchmark', e.target.checked)}
+              className="size-4 accent-primary rounded cursor-pointer mt-1 disabled:opacity-50"
             />
           </div>
 
           <div className="flex items-start justify-between gap-4 pt-4 border-t border-border">
             <div className="space-y-0.5">
-              <h3 className="text-xs sm:text-sm font-semibold text-foreground">
-                Continuous Telemetry Refresh
-              </h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-xs sm:text-sm font-semibold text-foreground">
+                  Continuous Telemetry Refresh
+                </h3>
+                {savingPreferenceKey === 'consent_realtime' && (
+                  <span className="text-[11px] text-primary flex items-center gap-1">
+                    <RefreshCw className="size-3 animate-spin" /> Saving...
+                  </span>
+                )}
+              </div>
               <p className="text-xs sm:text-sm text-foreground-secondary">
                 Periodically update weekly inflow stability indicators as new platform payouts settle.
               </p>
             </div>
             <input
               type="checkbox"
+              id="consent-realtime-toggle"
+              data-testid="consent-realtime-toggle"
               checked={consentRealtime}
-              onChange={(e) => setConsentRealtime(e.target.checked)}
-              className="size-4 accent-primary rounded cursor-pointer mt-1"
+              disabled={loadingPreferences || savingPreferenceKey === 'consent_realtime'}
+              onChange={(e) => handleTogglePreference('consent_realtime', e.target.checked)}
+              className="size-4 accent-primary rounded cursor-pointer mt-1 disabled:opacity-50"
             />
           </div>
 
           <div className="flex items-start justify-between gap-4 pt-4 border-t border-border">
             <div className="space-y-0.5">
-              <h3 className="text-xs sm:text-sm font-semibold text-foreground">
-                Volatile Shock Rebound Alerts
-              </h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-xs sm:text-sm font-semibold text-foreground">
+                  Volatile Shock Rebound Alerts
+                </h3>
+                {savingPreferenceKey === 'consent_alerts' && (
+                  <span className="text-[11px] text-primary flex items-center gap-1">
+                    <RefreshCw className="size-3 animate-spin" /> Saving...
+                  </span>
+                )}
+              </div>
               <p className="text-xs sm:text-sm text-foreground-secondary">
                 Receive proactive notifications when your 10-day recovery velocity qualifies you for better credit limits.
               </p>
             </div>
             <input
               type="checkbox"
+              id="consent-alerts-toggle"
+              data-testid="consent-alerts-toggle"
               checked={consentAlerts}
-              onChange={(e) => setConsentAlerts(e.target.checked)}
-              className="size-4 accent-primary rounded cursor-pointer mt-1"
+              disabled={loadingPreferences || savingPreferenceKey === 'consent_alerts'}
+              onChange={(e) => handleTogglePreference('consent_alerts', e.target.checked)}
+              className="size-4 accent-primary rounded cursor-pointer mt-1 disabled:opacity-50"
             />
           </div>
         </Card>

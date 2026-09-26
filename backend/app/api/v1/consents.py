@@ -10,7 +10,12 @@ from app.api.deps import (
 )
 from app.models.consent import ConsentDataSource
 from app.models.user import User, UserRole
-from app.schemas.consent import ConsentCreate, ConsentResponse
+from app.schemas.consent import (
+    ConsentCreate,
+    ConsentPreferencesResponse,
+    ConsentPreferencesUpdate,
+    ConsentResponse,
+)
 from app.services.applicant import ApplicantService
 from app.services.application import ApplicationService
 from app.services.consent import ConsentService
@@ -121,4 +126,104 @@ def revoke_consent(
     )
     revoked = consent_service.revoke_consent(consent_id)
     return ConsentResponse.model_validate(revoked)
+
+
+# =============================================================================
+# DPDP Consent Preferences Endpoints (P2-04)
+# =============================================================================
+
+
+@router.get(
+    "/consents/preferences",
+    response_model=ConsentPreferencesResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get DPDP Consent Preferences",
+    description="Retrieve persistent DPDP consent preferences for the authenticated applicant.",
+)
+def get_consent_preferences(
+    user_id: Optional[UUID] = Query(
+        None,
+        description="Optional User ID override (Admin/Reviewer only)",
+    ),
+    current_user: User = Depends(get_current_active_user),
+    consent_service: ConsentService = Depends(get_consent_service),
+) -> ConsentPreferencesResponse:
+    """Fetch consent preferences with strict ownership enforcement."""
+    target_user_id = user_id or current_user.id
+    if current_user.role == UserRole.APPLICANT and target_user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied: cannot view another applicant's preferences.",
+        )
+    return consent_service.get_consent_preferences(target_user_id)
+
+
+@router.patch(
+    "/consents/preferences",
+    response_model=ConsentPreferencesResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Update DPDP Consent Preferences",
+    description="Persist updated DPDP consent preferences for the authenticated applicant.",
+)
+@router.put(
+    "/consents/preferences",
+    response_model=ConsentPreferencesResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Replace DPDP Consent Preferences",
+    description="Persist updated DPDP consent preferences for the authenticated applicant.",
+)
+def update_consent_preferences(
+    preferences_in: ConsentPreferencesUpdate,
+    user_id: Optional[UUID] = Query(
+        None,
+        description="Optional User ID override (Admin only)",
+    ),
+    current_user: User = Depends(get_current_active_user),
+    consent_service: ConsentService = Depends(get_consent_service),
+) -> ConsentPreferencesResponse:
+    """Update consent preferences with ownership enforcement."""
+    target_user_id = user_id or current_user.id
+    if current_user.role == UserRole.APPLICANT and target_user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied: cannot modify another applicant's preferences.",
+        )
+    if current_user.role == UserRole.REVIEWER:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied: reviewers cannot modify applicant consent preferences.",
+        )
+    return consent_service.update_consent_preferences(target_user_id, preferences_in)
+
+
+@router.post(
+    "/consents/preferences/{preference_key}/revoke",
+    response_model=ConsentPreferencesResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Revoke DPDP Consent Preference",
+    description="Explicitly revoke a single DPDP consent preference.",
+)
+def revoke_consent_preference(
+    preference_key: str,
+    user_id: Optional[UUID] = Query(
+        None,
+        description="Optional User ID override (Admin only)",
+    ),
+    current_user: User = Depends(get_current_active_user),
+    consent_service: ConsentService = Depends(get_consent_service),
+) -> ConsentPreferencesResponse:
+    """Revoke a specific consent preference with ownership enforcement."""
+    target_user_id = user_id or current_user.id
+    if current_user.role == UserRole.APPLICANT and target_user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied: cannot modify another applicant's preferences.",
+        )
+    if current_user.role == UserRole.REVIEWER:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied: reviewers cannot modify applicant consent preferences.",
+        )
+    return consent_service.revoke_consent_preference(target_user_id, preference_key)
+
 
