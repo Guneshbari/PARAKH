@@ -18,15 +18,14 @@ Pipeline steps (for a scored application):
 For INSUFFICIENT applications, steps 3-8 are skipped; OutputFormatter.format_insufficient
 is called directly.
 
-Preprocessor construction strategy (prototype):
-  The fitted preprocessor cannot be re-fitted on inference data (leakage).
-  No serialised preprocessor artifact exists from Phase 3/6 training runs.
-  At predictor initialisation, this module deterministically re-runs the same
-  split + fit pipeline used in Phase 6 training:
-    1. GroupedDatasetSplitter.split(df, seed=42, scored_only=False)  ← matches Phase 6
-    2. build_model_ready_matrices(train_df, scored_only=True)        ← fits on 8,012 scored rows
-  This is bit-for-bit identical to the training preprocessing state.
-  A production system would serialise the fitted preprocessor once and load it directly.
+Preprocessor loading strategy (Phase 13A-4):
+  The fitted CreditRiskPreprocessor is persisted as a dedicated serialized artifact
+  (models/artifacts/credit_risk_preprocessor.joblib). At RiskPredictor initialisation,
+  this artifact is loaded directly and validated for fitted state, model version (1.0.0),
+  feature variant (VOLATILITY_AWARE), and exact 64-feature alignment with the model.
+  Runtime inference never fits, refits, or reconstructs preprocessing from training data.
+  The reconstruct_fitted_pipeline() classmethod is retained strictly for test/audit
+  comparison harnesses and is not used in production inference.
 """
 import json
 import logging

@@ -2,6 +2,9 @@
 
 This document serves as the formal project handoff guide for the **PARAKH** platform, detailing system architecture, data models, workflows, testing suites, and instructions for integrating Person 2's feature engineering and Person 3's machine learning pipelines.
 
+> [!NOTE]
+> **Integration Complete (Phases 2 through 13A)**: Person 2 and Person 3 pipelines have been fully integrated and hardened. The system operates in production under `ASSESSMENT_ENGINE=ml` with `TelemetryFeaturePipeline`, persisted `CreditRiskPreprocessor` (`credit_risk_preprocessor.joblib`), frozen LightGBM model (`volatility-aware-risk-model` v1.0.0), and persisted TreeSHAP explanations (`credit_assessments.explanation`). Sections 11 and 12 below are preserved for historical handoff reference.
+
 ---
 
 ## 1. Architecture
@@ -243,7 +246,7 @@ npm run build
 
 ## 11. Known Limitations
 
-- **Assessment Engine**: Currently executes `MockAssessmentEngine`. Person 2's feature engineering pipeline and Person 3's ML models (XGBoost/LightGBM/SHAP/Fairlearn) are designated for future integration.
+- **Assessment Engine (Completed in Phase 10/13A)**: Powered by the frozen `volatility-aware-risk-model` v1.0.0 with `TelemetryFeaturePipeline`, persisted `CreditRiskPreprocessor` artifact, and persisted TreeSHAP explanations. `MockAssessmentEngine` is retained as a testing fallback.
 - **Aggregator Sandboxes**: Local demonstration uses simulated gig platform payloads rather than live production OAuth account aggregator connectors.
 - **Database Exposure**: PostgreSQL is intentionally not exposed externally to host ports.
 

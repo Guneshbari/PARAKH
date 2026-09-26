@@ -59,7 +59,7 @@ HTTP Response
 7. **Repositories (`app/repositories/`)**:
    Data access abstraction isolating database queries and persistence mechanisms from business logic.
 
-> **Note**: Both the repository and service layers are fully implemented and tested. Authentication (JWT), ML scoring algorithms, and domain API routers will be introduced in subsequent tasks.
+> **Note**: Repositories, domain services, stateless JWT authentication, the complete ML inference pipeline (frozen LightGBM model with persisted TreeSHAP explanations), and all domain API routers are fully implemented and verified.
 
 ---
 
@@ -326,34 +326,30 @@ assessment = service.assess_application(application_id=app_id)
 ```
 - Decoupled execution: `AssessmentService` builds `AssessmentInput`, invokes `engine.assess()`, validates output types, and persists the resulting `CreditAssessment` record through standard transactional unit-of-work semantics.
 
+### ML Assessment Engine (`app/assessment/ml_model_adapter.py`)
+The production scoring engine is `MLModelAdapter`, which wraps the frozen `RiskPredictor` (`src/ml/inference/predictor.py`) and executes within `MLAssessmentEngine`.
+
+#### Production ML Pipeline
+1. **Telemetry Feature Derivation**: `TelemetryFeaturePipeline` extracts 40 base financial features directly from `FinancialSignal.telemetry_series` JSONB without synthetic fabrication.
+2. **Data Sufficiency Gate (Phase 13A-2)**: Evaluates observed days ($\ge 30$), payout count ($\ge 4$), and signal groups ($\ge 2$). Missing telemetry is never fabricated with fallback defaults; unobserved applications route strictly to `INSUFFICIENT` evidence (`score = None`, `risk_probability = None`).
+3. **Persisted Preprocessor (Phase 13A-4)**: Deserializes the exact fitted `CreditRiskPreprocessor` from `models/artifacts/credit_risk_preprocessor.joblib` without runtime dataset splitting or refitting.
+4. **Frozen Model Scoring**: Runs inference on the frozen `volatility-aware-risk-model` v1.0.0 (`models/artifacts/volatility_aware_risk_model.joblib`), outputting calibrated default probability $P(\text{Default})$.
+5. **Score & Risk Tiering**:
+   - `score = clamp(300 + round((1.0 - p) * 550), 300, 850)`
+   - `LOWER` ($p < 0.20$), `MODERATE` ($0.20 \le p < 0.45$), `HIGHER` ($p \ge 0.45$).
+6. **Persisted TreeSHAP Explanations (Phase 13A-1)**: Generates quantitative SHAP attribution values and plain-language protective/risk factors, permanently persisted in `credit_assessments.explanation` JSONB.
+
 ### Mock Assessment Engine (`app/assessment/mock.py`)
-Introduced in **TASK 10**, `MockAssessmentEngine` is a concrete, deterministic implementation of `AssessmentEngine`. It provides a predictable rule-based scoring engine for development, integration testing, and UI validation before real machine learning models (TASK 14) are deployed.
+`MockAssessmentEngine` is a deterministic, rule-based testing implementation of `AssessmentEngine`. It is retained strictly for local development and offline unit test isolation (configurable via `ASSESSMENT_ENGINE=mock`).
 
-> [!WARNING]
-> **DEVELOPMENT / DEMO ENGINE ONLY**: The scores and risk probabilities computed by `MockAssessmentEngine` are deterministic rule-based heuristics designed for system verification. They do **NOT** represent actual creditworthiness evaluations or statistical model predictions.
-
-#### Deterministic Scoring Formula & Weights
-The engine constructs six normalized component indices `[0.0, 1.0]` using explicit, transparent weights:
-- **Income Stability (25%)**: Evaluates monthly income benchmark (40,000 INR baseline), deducted for earnings volatility, and adjusted for income trajectory (growing/stable/declining).
-- **Payment Reliability (25%)**: Evaluates gig platform payout regularity and historical platform repayment consistency.
-- **Work Stability (15%)**: Evaluates gig economy tenure (4-year benchmark) and active working days per month (26-day benchmark).
+#### Mock Scoring Formula & Weights
+The mock engine constructs six normalized component indices `[0.0, 1.0]` using explicit heuristic weights:
+- **Income Stability (25%)**: Evaluates monthly income benchmark (40,000 INR baseline), deducted for earnings volatility, and adjusted for income trajectory.
+- **Payment Reliability (25%)**: Evaluates gig platform payout regularity and repayment consistency.
+- **Work Stability (15%)**: Evaluates tenure and active working days per month.
 - **Cashflow Strength (15%)**: Evaluates cash buffer reserves relative to requested loan principal.
-- **Obligation Burden (10%)**: Evaluates debt-to-income (DTI) ratio; lower existing debt yields higher score.
-- **Platform Reliability (10%)**: Evaluates composite customer service rating (scaled above 3.0 stars).
-
-#### Score & Risk Mappings
-- **Composite Score**: `score = int(300 + composite_index * 550)`, bounded strictly within `[300, 850]` (or `None` if evidence is insufficient).
-- **Risk Probability**: Deterministically derived as `1.0 - (composite_index * 0.90 + 0.05)`, bounded within `[0.01, 0.99]`.
-- **Risk Level**:
-  - `score >= 700`: `RiskLevel.LOWER`
-  - `550 <= score < 700`: `RiskLevel.MODERATE`
-  - `score < 550`: `RiskLevel.HIGHER`
-  - Insufficient data: `RiskLevel.INSUFFICIENT`
-- **Confidence**: Evidence completeness metric `[0.20, 0.95]` based on the proportion of populated approved signals.
-- **Insufficient Evidence Handling**: If fewer than 2 independent signal categories are populated, the engine returns `score = None`, `risk_level = RiskLevel.INSUFFICIENT`, a baseline neutral probability (`0.5000`), and explanatory factors requesting additional data connections.
-- **Explainability Output**:
-  - `key_factors`: Deterministic human-readable bullet points highlighting driving indicators (e.g. *"Strong platform payout regularity"*, *"Elevated debt-to-income ratio"*).
-  - `explanation`: Detailed dictionary containing raw components, weights, and engine metadata.
+- **Obligation Burden (10%)**: Evaluates debt-to-income (DTI) ratio.
+- **Platform Reliability (10%)**: Evaluates composite customer service rating.
 
 ---
 
@@ -510,13 +506,17 @@ Assessment Router (app/api/v1/assessments.py)
     ↓
 AssessmentService.assess_application()
     ↓
-AssessmentInput Adapter
+TelemetryFeaturePipeline.extract_features() (from telemetry_series)
     ↓
-MockAssessmentEngine.assess()
+AssessmentInput (app/assessment/schemas.py)
+    ↓
+MLModelAdapter.predict() (app/assessment/ml_model_adapter.py)
+    ↓ [Data Sufficiency Gate -> Persisted Preprocessor -> Frozen LightGBM]
+PredictionResponse (with TreeSHAP explanation factors)
     ↓
 AssessmentResult
     ↓
-CreditAssessment ORM Entity Persisted to PostgreSQL
+CreditAssessment ORM Entity Persisted to PostgreSQL (with explanation JSONB)
     ↓
 CreditAssessmentResponse (score, risk_level, confidence, key_factors, explanation)
 ```

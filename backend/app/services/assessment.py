@@ -7,7 +7,6 @@ from app.assessment.base import AssessmentEngine
 from app.assessment.exceptions import AssessmentEngineError, AssessmentOutputError
 from app.assessment.pipeline import (
     FeaturePipeline,
-    PassthroughFeaturePipeline,
     TelemetryFeaturePipeline,
 )
 from app.assessment.schemas import AssessmentInput, AssessmentResult

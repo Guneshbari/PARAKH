@@ -118,10 +118,10 @@ class FeaturePipeline(ABC):
 
 
 class PassthroughFeaturePipeline(FeaturePipeline):
-    """Default fallback feature pipeline used prior to ML feature engineering integration.
+    """Legacy fallback feature pipeline retained for backwards compatibility and test suites.
 
-    Preserves any existing signal_metadata without fabricating synthetic numbers or
-    violating data-minimization policies.
+    Preserves existing non-sensitive signal_metadata without feature derivation.
+    Active runtime credit assessments use TelemetryFeaturePipeline.
     """
 
     def extract_features(

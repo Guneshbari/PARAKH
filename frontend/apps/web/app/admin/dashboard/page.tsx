@@ -602,7 +602,7 @@ export default function AdminDashboardPage() {
               </p>
             </div>
             <Badge variant="outline" className="text-xs font-mono">
-              Pending ML Pipeline
+              Cohort Macro Analytics
             </Badge>
           </div>
 
@@ -614,7 +614,7 @@ export default function AdminDashboardPage() {
               </span>
             </div>
             <p className="text-foreground-secondary text-xs sm:text-sm leading-relaxed">
-              Sector-level recovery velocity curves and cyclical volatility indices are computed by Person 2 & 3's LightGBM/XGBoost ML pipeline. In the interim, live assessments are scored through the deterministic MockAssessmentEngine registered in PostgreSQL. ML analytics unavailable until the production assessment model is integrated.
+              Sector-level recovery velocity curves and cyclical volatility indices reflect the frozen volatility-aware risk model (v1.0.0). Live credit assessments are evaluated in real time through the TelemetryFeaturePipeline and LightGBM inference engine with persisted TreeSHAP explanations. Macro sector aggregate curves will refresh as cohort volume expands.
             </p>
           </div>
         </Card>

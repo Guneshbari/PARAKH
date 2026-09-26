@@ -1,27 +1,33 @@
-# PARAKH ML-Ready Boundary Integration Guide
+# PARAKH ML Boundary Integration Guide
 
-This document defines the technical integration contracts for **Person 2 (Feature Engineering)** and **Person 3 (ML Models)** to plug their implementations into PARAKH without altering frontend code, REST API endpoints, or PostgreSQL database tables.
+This document defines the technical integration contracts between the PARAKH FastAPI backend and the Machine Learning scoring subsystem. As of Phase 13A, the active production pipeline is fully operational with `ASSESSMENT_ENGINE=ml`.
 
 ---
 
 ## Architecture Overview
 
 ```
-Raw Financial Signals (persisted in DB)
+Financial Telemetry Series (JSONB in financial_signals)
         ↓
-Person 2: FeaturePipeline (app.assessment.pipeline.FeaturePipeline)
-        ↓
+TelemetryFeaturePipeline (app.assessment.pipeline.TelemetryFeaturePipeline)
+        ↓ 40 base features derived without synthetic fabrication
 AssessmentInput (app.assessment.schemas.AssessmentInput)
         ↓
-Person 3: MLModel (app.assessment.ml_engine.MLModel)
-        ↓
-MLAssessmentEngine (app.assessment.ml_engine.MLAssessmentEngine)
+MLModelAdapter (app.assessment.ml_model_adapter.MLModelAdapter)
+        ↓ Data Sufficiency Gate (Phase 13A-2)
+RiskPredictor (src.ml.inference.predictor.RiskPredictor)
+        ↓ FeatureEngineer (9 interaction features)
+Persisted CreditRiskPreprocessor (models/artifacts/credit_risk_preprocessor.joblib)
+        ↓ 64 model-ready columns
+Frozen Volatility-Aware LightGBM (models/artifacts/volatility_aware_risk_model.joblib v1.0.0)
+        ↓ TreeShapExplainer
+MLModelOutput (app.assessment.ml_engine.MLModelOutput)
         ↓
 AssessmentResult (app.assessment.schemas.AssessmentResult)
         ↓
 AssessmentService.create_assessment()
         ↓
-CreditAssessment (SQLAlchemy model -> PostgreSQL table: credit_assessments)
+CreditAssessment (SQLAlchemy model -> PostgreSQL table: credit_assessments with explanation JSONB)
         ↓
 POST /api/v1/applications/{application_id}/assess (unchanged)
         ↓
@@ -36,12 +42,13 @@ Assessment engine selection is driven by environment configuration (`Settings.AS
 
 ```bash
 # In .env or production environment:
-ASSESSMENT_ENGINE=mock   # Active default (MockAssessmentEngine)
+ASSESSMENT_ENGINE=ml     # Active production mode (MLModelAdapter via MLAssessmentEngine)
 # or
-ASSESSMENT_ENGINE=ml     # Production ML mode (MLAssessmentEngine)
+ASSESSMENT_ENGINE=mock   # Testing/offline fallback (MockAssessmentEngine)
 ```
 
-- **Default**: `"mock"` points to `MockAssessmentEngine`.
+- **Production Mode**: `"ml"` points to `MLModelAdapter` backed by the frozen `RiskPredictor`.
+- **Testing Fallback**: `"mock"` points to `MockAssessmentEngine`.
 - **Factory**: `app.assessment.factory.create_assessment_engine()` resolves the engine based on configuration.
 - **Dependency**: FastAPI `get_assessment_engine()` dependency automatically injects the configured engine.
 
@@ -165,8 +172,8 @@ If `MLAssessmentEngine` is invoked without a registered model, it raises `Assess
 | `utilization` | `utilization` | `utilization` (Numeric 6,4) | `utilization` |
 | `income_stability` | `income_stability` | `income_stability` (Numeric 5,4) | `income_stability` |
 | `repayment_reliability` | `repayment_reliability` | `repayment_reliability` (Numeric 5,4) | `repayment_reliability` |
-| `key_factors` | `key_factors` | Transient / Model Version metadata | `key_factors` (List[str]) |
-| `explanation` | `explanation` | Transient / Model Version metadata | `explanation` (Dict[str, Any]) |
+| `key_factors` | `key_factors` | Model Version / transient metadata | `key_factors` (List[str]) |
+| `explanation` | `explanation` | `explanation` (JSONB) — Persisted in PostgreSQL (Phase 13A-1) | `explanation` (Dict[str, Any]) |
 | `model_name` | `model_name` | Linked via `model_versions` FK | `model_name` (String) |
 | `model_version` | `model_version` | Linked via `model_versions` FK | `model_version` (String) |
 

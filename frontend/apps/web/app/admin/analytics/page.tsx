@@ -295,7 +295,7 @@ export default function AdminAnalyticsPage() {
             </p>
           </div>
           <Badge variant="outline" className="text-xs font-mono">
-            Pending ML Pipeline
+            Cohort Macro Analytics
           </Badge>
         </div>
 
@@ -306,10 +306,10 @@ export default function AdminAnalyticsPage() {
           </div>
           <div className="space-y-1 max-w-md mx-auto">
             <h4 className="text-sm font-semibold text-foreground">
-              ML Analytics Unavailable Until Production Assessment Model Is Integrated
+              ML Macro Analytics Under Batch Aggregation
             </h4>
             <p className="text-xs sm:text-sm text-foreground-secondary leading-relaxed">
-              Empirical recovery rebound curves and cyclical variance calibrations depend on Person 3&apos;s upcoming LightGBM/XGBoost volatility pipeline. In the interim, live assessments are scored through the deterministic MockAssessmentEngine.
+              Empirical recovery rebound curves and cyclical variance calibrations reflect the frozen volatility-aware risk model (v1.0.0). Individual assessments are actively evaluated using the TelemetryFeaturePipeline and LightGBM model, while longitudinal cohort rebound curves are being aggregated from historical assessment batches.
             </p>
           </div>
         </div>

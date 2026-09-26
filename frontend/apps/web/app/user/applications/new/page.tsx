@@ -269,7 +269,7 @@ export default function NewApplicationPage() {
         },
       });
 
-      // Step 5: Execute MockAssessmentEngine Evaluation
+      // Step 5: Execute Credit Assessment Evaluation
       setSubmissionPhase('5/5: Executing alternative credit assessment...');
       await api.triggerAssessment(activeApp.id);
 

@@ -14,7 +14,7 @@ Person 3 is responsible for:
 - Model-input data validation and leakage prevention boundaries.
 - Explainability interfaces (SHAP integration in Phase 7).
 - Subgroup fairness auditing across approved operational dimensions.
-- Future model training and selection: Phase 5 (Baseline), Phase 6 (Volatility-Aware Model), Phase 8 (Model Selection), and Phase 9 (Inference Packaging).
+- Model training, selection, and inference packaging: Phase 5 (Baseline), Phase 6 (Volatility-Aware Model), Phase 8 (Model Selection), Phase 9 (Inference Packaging), and Phase 13A (Telemetry Derivation & Preprocessor Persistence).
 
 ---
 
@@ -138,15 +138,16 @@ Person 2 Processed Dataset (CSV / Parquet in data/processed/)
 
 ---
 
-## 5. What Is Intentionally Not Implemented in this Preparation Phase
+## 5. Current Frozen System Status (Phases 13A-1 through 13A-4)
 
-In strict adherence to project phase boundaries:
-- **No Data Generation:** No synthetic datasets were generated (belongs to Person 2 in Phase 2).
-- **No Feature Engineering Implementation:** No feature calculation scripts were implemented (belongs to Person 2 in Phase 4).
-- **No Model Training:** No estimators (Logistic Regression, LightGBM, XGBoost) were fitted or trained.
-- **No Hyperparameter Optimization:** No grid search, random search, or tuning was executed.
-- **No Arbitrary Thresholds:** Operational underwriting cutoffs are not hard-coded; prototype thresholds are documented as provisional and will be calibrated on validation ROC/PR curves in Phase 8.
-- **No Backend/Frontend Modifications:** Backend and frontend source code remains completely untouched.
+The machine learning subsystem is frozen and fully integrated into production inference:
+- **Frozen Model**: `volatility-aware-risk-model` v1.0.0 (`models/artifacts/volatility_aware_risk_model.joblib`), trained and validated in Phases 6 & 8.
+- **Model Manifest**: `models/artifacts/FINAL_MODEL.json`.
+- **Persisted Preprocessor**: `models/artifacts/credit_risk_preprocessor.joblib` (Phase 13A-4), fitted on 8,012 scored rows from the 70% training split with RobustScaler, OneHotEncoder, and median imputers. Runtime inference loads this artifact directly with zero training data dependencies.
+- **Feature Pipeline**: `TelemetryFeaturePipeline` derives 40 base features from runtime telemetry (`telemetry_series`), extended with 9 interaction features by `FeatureEngineer`, yielding 64 model-ready columns.
+- **Data Sufficiency Governance (Phase 13A-2)**: Enforces strict data sufficiency gates (`observed_days >= 30`, `payout_count >= 4`, `group_count >= 2`). Missing telemetry is never fabricated with synthetic defaults; insufficient records are routed directly to `INSUFFICIENT` with `None` scores.
+- **TreeSHAP Explainability (Phase 13A-1)**: Computes local feature attributions via `TreeShapExplainer` and plain-language summaries, permanently persisted in PostgreSQL JSONB.
+- **Inference Packaging**: Encapsulated in `RiskPredictor` (`src/ml/inference/predictor.py`), invoked via `MLModelAdapter` in the FastAPI backend.
 
 ---
 
