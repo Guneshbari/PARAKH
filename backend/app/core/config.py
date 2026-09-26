@@ -33,6 +33,7 @@ class Settings(BaseSettings):
     # ML Inference Pipeline Configuration
     ML_MANIFEST_PATH: Optional[str] = None
     ML_DATASET_PATH: Optional[str] = None
+    ML_PREPROCESSOR_PATH: Optional[str] = None
 
 
 settings = Settings()

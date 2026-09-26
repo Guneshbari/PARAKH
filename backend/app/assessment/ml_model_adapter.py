@@ -33,6 +33,7 @@ _SHARED_PREDICTOR: Optional[RiskPredictor] = None
 def get_shared_risk_predictor(
     manifest_path: Optional[str] = None,
     dataset_path: Optional[str] = None,
+    preprocessor_path: Optional[str] = None,
 ) -> RiskPredictor:
     """Retrieve or lazily initialize the shared singleton RiskPredictor instance.
 
@@ -42,6 +43,7 @@ def get_shared_risk_predictor(
     Args:
         manifest_path: Optional explicit manifest path. Defaults to settings.ML_MANIFEST_PATH.
         dataset_path: Optional explicit dataset path. Defaults to settings.ML_DATASET_PATH.
+        preprocessor_path: Optional explicit preprocessor path. Defaults to settings.ML_PREPROCESSOR_PATH.
 
     Returns:
         RiskPredictor: Shared thread-safe inference predictor instance.
@@ -54,15 +56,17 @@ def get_shared_risk_predictor(
         if _SHARED_PREDICTOR is None:
             resolved_manifest = manifest_path or settings.ML_MANIFEST_PATH
             resolved_dataset = dataset_path or settings.ML_DATASET_PATH
+            resolved_preprocessor = preprocessor_path or settings.ML_PREPROCESSOR_PATH
             logger.info(
-                "Initializing shared RiskPredictor singleton (manifest=%s, dataset=%s)",
+                "Initializing shared RiskPredictor singleton (manifest=%s, preprocessor=%s)",
                 resolved_manifest,
-                resolved_dataset,
+                resolved_preprocessor,
             )
             try:
                 _SHARED_PREDICTOR = RiskPredictor(
                     manifest_path=resolved_manifest,
                     dataset_path=resolved_dataset,
+                    preprocessor_path=resolved_preprocessor,
                 )
             except FileNotFoundError as exc:
                 raise AssessmentEngineError(

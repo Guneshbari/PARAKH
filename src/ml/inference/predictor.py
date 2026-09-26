@@ -51,6 +51,7 @@ logger = logging.getLogger(__name__)
 # Default paths resolved relative to the project root (one level above src/)
 _PROJECT_ROOT = Path(__file__).resolve().parents[3]
 _DEFAULT_MANIFEST_PATH = _PROJECT_ROOT / "models" / "artifacts" / "FINAL_MODEL.json"
+_DEFAULT_PREPROCESSOR_PATH = _PROJECT_ROOT / "models" / "artifacts" / "credit_risk_preprocessor.joblib"
 _DEFAULT_DATASET_PATH = (
     _PROJECT_ROOT / "data" / "synthetic" / "synthetic_credit_applications.parquet"
 )
@@ -60,24 +61,26 @@ class RiskPredictor:
     """Deterministic credit risk predictor for a single PARAKH application assessment.
 
     Usage:
-        predictor = RiskPredictor()           # loads frozen model + builds preprocessor
+        predictor = RiskPredictor()           # loads frozen model + persisted preprocessor
         response = predictor.predict(app_dict)
         print(response.to_dict())
 
     Args:
-        manifest_path: Path to FINAL_MODEL.json.  Defaults to the project-root location.
-        dataset_path: Path to the canonical Phase 2 Parquet dataset used only for fitting
-                      the preprocessor on the training partition.  Defaults to the canonical
-                      synthetic dataset.
+        manifest_path: Path to FINAL_MODEL.json. Defaults to the project-root location.
+        preprocessor_path: Path to the persisted fitted CreditRiskPreprocessor artifact.
+                           Defaults to models/artifacts/credit_risk_preprocessor.joblib.
+        dataset_path: Optional path to synthetic dataset (retained for comparison harnesses).
     """
 
     def __init__(
         self,
         manifest_path: Optional[Path] = None,
         dataset_path: Optional[Path] = None,
+        preprocessor_path: Optional[Path] = None,
     ) -> None:
         self._manifest_path = Path(manifest_path) if manifest_path else _DEFAULT_MANIFEST_PATH
         self._dataset_path = Path(dataset_path) if dataset_path else _DEFAULT_DATASET_PATH
+        self._preprocessor_path = Path(preprocessor_path) if preprocessor_path else _DEFAULT_PREPROCESSOR_PATH
 
         logger.info("Initialising RiskPredictor from manifest: %s", self._manifest_path)
 
@@ -104,8 +107,11 @@ class RiskPredictor:
             len(self._model.feature_names_in_),
         )
 
-        # --- Build fitted preprocessor and feature engineer ---
-        self._engineer, self._preprocessor = self._build_fitted_pipeline()
+        # --- Load persisted preprocessor artifact (Phase 13A-4) ---
+        self._preprocessor = self._load_preprocessor()
+
+        # --- Initialize feature engineer ---
+        self._engineer = FeatureEngineer(include_engineered_interactions=True)
 
         # --- Initialise TreeSHAP explainer ---
         logger.info("Initialising TreeSHAP explainer...")
@@ -204,54 +210,108 @@ class RiskPredictor:
         with open(self._manifest_path, "r", encoding="utf-8") as fh:
             return json.load(fh)
 
-    def _build_fitted_pipeline(
-        self,
+    def _load_preprocessor(self) -> Any:
+        """Load and validate the persisted CreditRiskPreprocessor artifact (Phase 13A-4).
+
+        Guarantees runtime inference consumes the exact fitted preprocessing state
+        from the serialized artifact without coupling to training datasets.
+
+        Raises:
+            FileNotFoundError: If the preprocessor artifact is missing.
+            RuntimeError: If the artifact is corrupt or not fitted.
+            TypeError: If the loaded artifact is not a CreditRiskPreprocessor.
+            ValueError: If artifact metadata does not match model version/variant.
+        """
+        logger.info("Loading preprocessor artifact: %s", self._preprocessor_path)
+        if not self._preprocessor_path.exists():
+            raise FileNotFoundError(
+                f"Fitted preprocessor artifact not found at '{self._preprocessor_path}'. "
+                "Ensure Phase 13A-4 preprocessor artifact is present."
+            )
+
+        try:
+            loaded = joblib.load(self._preprocessor_path)
+        except Exception as exc:
+            raise RuntimeError(
+                f"Failed to load preprocessor artifact from '{self._preprocessor_path}': {exc}"
+            ) from exc
+
+        if isinstance(loaded, dict) and "preprocessor" in loaded:
+            preprocessor = loaded["preprocessor"]
+            metadata = loaded.get("metadata", {})
+        else:
+            preprocessor = loaded
+            metadata = getattr(loaded, "metadata_", {})
+
+        from src.ml.data.preprocessing import CreditRiskPreprocessor
+        if not isinstance(preprocessor, CreditRiskPreprocessor):
+            raise TypeError(
+                f"Loaded preprocessor from '{self._preprocessor_path}' is of unexpected type "
+                f"'{type(preprocessor).__name__}'. Expected CreditRiskPreprocessor."
+            )
+
+        if not getattr(preprocessor, "is_fitted_", False):
+            raise RuntimeError(
+                f"Loaded preprocessor artifact at '{self._preprocessor_path}' reports is_fitted_=False."
+            )
+
+        # Validate model version compatibility
+        p_version = getattr(preprocessor, "model_version_", None) or metadata.get("model_version")
+        if p_version and p_version != self._model_version:
+            raise ValueError(
+                f"Preprocessor model_version '{p_version}' does not match model '{self._model_version}'."
+            )
+
+        # Validate feature variant compatibility
+        p_variant = getattr(preprocessor, "feature_variant_", None) or metadata.get("feature_variant")
+        if p_variant and p_variant != self._feature_variant:
+            raise ValueError(
+                f"Preprocessor feature_variant '{p_variant}' does not match model '{self._feature_variant}'."
+            )
+
+        # Validate output feature names against model input features
+        if len(preprocessor.feature_names_out_) != len(self._model.feature_names_in_):
+            raise ValueError(
+                f"Preprocessor output features count ({len(preprocessor.feature_names_out_)}) "
+                f"does not match model input features count ({len(self._model.feature_names_in_)})."
+            )
+
+        if set(preprocessor.feature_names_out_) != set(self._model.feature_names_in_):
+            diff = set(preprocessor.feature_names_out_) ^ set(self._model.feature_names_in_)
+            raise ValueError(
+                f"Preprocessor output features do not match model input features. Mismatch: {diff}"
+            )
+
+        logger.info(
+            "Preprocessor loaded successfully: version=%s variant=%s features=%d",
+            p_version,
+            p_variant,
+            len(preprocessor.feature_names_out_),
+        )
+        return preprocessor
+
+    @classmethod
+    def reconstruct_fitted_pipeline(
+        cls,
+        dataset_path: Path,
     ) -> Tuple[FeatureEngineer, Any]:
-        """Build a fitted FeatureEngineer + CreditRiskPreprocessor from the canonical dataset.
+        """Reconstruct fitted FeatureEngineer + CreditRiskPreprocessor from canonical dataset.
 
-        Deterministically reproduces the exact preprocessing pipeline used during Phase 6
-        training (train_volatility_aware.py) so that fitted medians, RobustScaler parameters,
-        and OHE category lists are bit-for-bit identical to those seen by the frozen model.
-
-        Protocol (mirrors Phase 6 exactly):
-          1. GroupedDatasetSplitter.split(df, seed=42, scored_only=False)
-             → 8,412 training rows (includes Insufficient-Data records)
-          2. build_model_ready_matrices(train_df, scored_only=True)
-             → FeatureEngineer.fit_transform on all 8,412 rows
-             → filter to 8,012 scored rows
-             → CreditRiskPreprocessor.fit on those 8,012 rows
-
-        Returns:
-            Tuple[FeatureEngineer, CreditRiskPreprocessor]: Both fitted equivalently to training.
+        ISOLATED / TEST-ONLY: Retained strictly for test-harness verification and parity audits.
+        Production inference does NOT call this method.
         """
         logger.info(
-            "Building fitted preprocessing pipeline from dataset: %s", self._dataset_path
+            "Reconstructing fitted preprocessing pipeline from dataset: %s", dataset_path
         )
-        if not self._dataset_path.exists():
+        if not dataset_path.exists():
             raise FileNotFoundError(
-                f"Canonical dataset not found at '{self._dataset_path}'. "
+                f"Canonical dataset not found at '{dataset_path}'. "
                 "Ensure Phase 2 synthetic data is present."
             )
 
-        df = pd.read_parquet(self._dataset_path)
-
-        # Deterministic 70/15/15 grouped split — seed=42, scored_only=False.
-        #
-        # IMPORTANT: scored_only must be False here, matching the Phase 6 training protocol
-        # exactly (train_volatility_aware.py line 94).  Phase 6 calls:
-        #   GroupedDatasetSplitter.split(dataset_df, seed=42)          # scored_only=False
-        #   build_model_ready_matrices(train_df=splits.train_df, ..., scored_only=True)
-        #
-        # build_model_ready_matrices then runs FeatureEngineer.fit_transform on ALL 8,412
-        # training rows (including Insufficient-Data records), filters to the 8,012 scored
-        # rows, and fits the CreditRiskPreprocessor on those 8,012 rows.
-        #
-        # Passing scored_only=True to the splitter instead would feed only 7,965 rows into
-        # build_model_ready_matrices, yielding different medians and scaler parameters —
-        # up to ~1e-3 probability delta on individual applications (verified by audit).
+        df = pd.read_parquet(dataset_path)
         split = GroupedDatasetSplitter.split(df, seed=DEFAULT_RANDOM_SEED, scored_only=False)
 
-        # Suppress any sklearn/pandas warnings during fitting
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             pipeline_result = build_model_ready_matrices(
@@ -266,11 +326,17 @@ class RiskPredictor:
         preprocessor = pipeline_result["preprocessor"]
 
         logger.info(
-            "Pipeline built: %d training rows, %d output features.",
+            "Reconstructed pipeline: %d training rows, %d output features.",
             len(split.train_df),
             len(preprocessor.feature_names_out_),
         )
         return engineer, preprocessor
+
+    def _build_fitted_pipeline(
+        self,
+    ) -> Tuple[FeatureEngineer, Any]:
+        """Legacy helper for backward compatibility in test suites. Delegates to reconstruct_fitted_pipeline."""
+        return self.reconstruct_fitted_pipeline(self._dataset_path)
 
     def _build_explanation(
         self,
