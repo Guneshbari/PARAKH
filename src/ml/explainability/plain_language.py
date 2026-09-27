@@ -21,6 +21,7 @@ class PlainLanguageFactor:
     feature_value_display: str
     borrower_explanation: str
     underwriting_context: str
+    attribution_value: float = 0.0
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert factor to dictionary."""
@@ -361,6 +362,7 @@ class PlainLanguageExplainer:
             feature_value_display=val_disp,
             borrower_explanation=explanation,
             underwriting_context=context_note,
+            attribution_value=float(attribution_value),
         )
 
     @classmethod

@@ -125,20 +125,25 @@ class CreditAssessmentResponse(CreditAssessmentBase):
         raw_key_factors = getattr(data, "_transient_key_factors", None) or getattr(data, "key_factors", None)
         if not raw_key_factors and isinstance(raw_explanation, dict):
             factors = []
-            for factor in raw_explanation.get("key_protective_factors", []):
+            risk_tier = getattr(data, "risk_level", None)
+            risk_str = risk_tier.value if hasattr(risk_tier, "value") else str(risk_tier or "")
+            is_higher = "HIGHER" in risk_str
+            order = (
+                raw_explanation.get("key_risk_factors", []) + raw_explanation.get("key_protective_factors", [])
+                if is_higher
+                else raw_explanation.get("key_protective_factors", []) + raw_explanation.get("key_risk_factors", [])
+            )
+            for factor in order:
                 if isinstance(factor, dict):
-                    name = factor.get("factor_name", "Protective Factor")
+                    name = factor.get("factor_name", "Factor")
                     borrower_exp = factor.get("borrower_explanation", "")
                     factors.append(f"{name}: {borrower_exp}" if borrower_exp else name)
-            for factor in raw_explanation.get("key_risk_factors", []):
-                if isinstance(factor, dict):
-                    name = factor.get("factor_name", "Risk Factor")
-                    borrower_exp = factor.get("borrower_explanation", "")
-                    factors.append(f"{name}: {borrower_exp}" if borrower_exp else name)
+                elif isinstance(factor, str):
+                    factors.append(factor)
             if not factors and raw_explanation.get("is_insufficient_evidence") and raw_explanation.get("missing_signals"):
                 factors = list(raw_explanation["missing_signals"])
             if factors:
-                raw_key_factors = factors[:4]
+                raw_key_factors = factors[:8]
 
         if not raw_key_factors:
             raw_key_factors = []

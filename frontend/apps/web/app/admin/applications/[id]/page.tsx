@@ -10,6 +10,7 @@ import {
   DollarSign,
   UserCheck,
   AlertCircle,
+  AlertTriangle,
   TrendingUp,
   Layers,
   Info,
@@ -48,6 +49,7 @@ import type {
   ReviewActionType,
   UnderwriterReviewOutcome,
   RiskLevel,
+  FactorSummary,
 } from '@parakh/types';
 
 interface AdminApplicationDetailPageProps {
@@ -772,9 +774,75 @@ export default function AdminApplicationDetailPage({
 
       {/* 6. ML EXPLAINABILITY & SHAP FEATURE CONTRIBUTIONS */}
       {assessment && (
-        <FeatureContributionCard
-          contributions={assessment.featureContributions}
-        />
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Positive Factors */}
+            <Card className="space-y-4 p-6 bg-surface border border-border">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="size-4.5 text-foreground" />
+                  <h3 className="text-sm sm:text-base font-semibold text-foreground uppercase tracking-wider">
+                    Key Positive Factors (Strengths)
+                  </h3>
+                </div>
+                <Badge variant="riskLower" className="text-xs">High Impact</Badge>
+              </div>
+
+              <ul className="space-y-3.5 text-sm text-foreground-secondary">
+                {assessment.keyPositiveFactors && assessment.keyPositiveFactors.length > 0 ? (
+                  assessment.keyPositiveFactors.map((f: FactorSummary) => (
+                    <li key={f.id} className="space-y-1">
+                      <div className="font-semibold text-foreground flex items-center gap-1.5">
+                        <span className="size-1.5 rounded-full bg-foreground" />
+                        <span>{f.title}</span>
+                      </div>
+                      <p className="text-foreground-secondary leading-relaxed pl-3 text-xs sm:text-sm">
+                        {f.description}
+                      </p>
+                    </li>
+                  ))
+                ) : (
+                  <li className="text-foreground-secondary italic text-sm">No positive factors flagged.</li>
+                )}
+              </ul>
+            </Card>
+
+            {/* Attention Factors */}
+            <Card className="space-y-4 p-6 bg-surface border border-border">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="size-4.5 text-foreground" />
+                  <h3 className="text-sm sm:text-base font-semibold text-foreground uppercase tracking-wider">
+                    Attention Areas (To Improve)
+                  </h3>
+                </div>
+                <Badge variant="outline" className="text-xs">Monitored</Badge>
+              </div>
+
+              <ul className="space-y-3.5 text-sm text-foreground-secondary">
+                {assessment.keyAttentionFactors && assessment.keyAttentionFactors.length > 0 ? (
+                  assessment.keyAttentionFactors.map((f: FactorSummary) => (
+                    <li key={f.id} className="space-y-1">
+                      <div className="font-semibold text-foreground flex items-center gap-1.5">
+                        <span className="size-1.5 rounded-full bg-foreground-secondary" />
+                        <span>{f.title}</span>
+                      </div>
+                      <p className="text-foreground-secondary leading-relaxed pl-3 text-xs sm:text-sm">
+                        {f.description}
+                      </p>
+                    </li>
+                  ))
+                ) : (
+                  <li className="text-foreground-secondary italic text-sm">No critical attention factors identified.</li>
+                )}
+              </ul>
+            </Card>
+          </div>
+
+          <FeatureContributionCard
+            contributions={assessment.featureContributions}
+          />
+        </div>
       )}
 
       {/* 7. HUMAN-IN-THE-LOOP UNDERWRITER CONTROL CONSOLE */}

@@ -403,13 +403,16 @@ class MLModelAdapter(MLModel):
         protective = expl.get("key_protective_factors", [])
         risk_factors = expl.get("key_risk_factors", [])
 
-        for factor in protective:
-            name = factor.get("factor_name", "Protective Factor")
-            borrower_exp = factor.get("borrower_explanation", "")
-            key_factors.append(f"{name}: {borrower_exp}" if borrower_exp else name)
+        # For HIGHER risk, prioritize risk factors so primary attention drivers are prominent.
+        # For LOWER / MODERATE risk, prioritize protective strengths first.
+        primary_factors = (
+            risk_factors + protective
+            if pred.risk_tier == "HIGHER"
+            else protective + risk_factors
+        )
 
-        for factor in risk_factors:
-            name = factor.get("factor_name", "Risk Factor")
+        for factor in primary_factors:
+            name = factor.get("factor_name", "Factor")
             borrower_exp = factor.get("borrower_explanation", "")
             key_factors.append(f"{name}: {borrower_exp}" if borrower_exp else name)
 
@@ -432,6 +435,8 @@ class MLModelAdapter(MLModel):
                 "value": float(val),
                 "contributionValue": float(val),
                 "explanation": factor.get("borrower_explanation", ""),
+                "direction": "POSITIVE",
+                "impact_direction": factor.get("impact_direction", "associated with lower predicted risk"),
             })
         for factor in risk_factors:
             val = factor.get("attribution_value", 0.15)
@@ -441,6 +446,8 @@ class MLModelAdapter(MLModel):
                 "value": float(val),
                 "contributionValue": float(val),
                 "explanation": factor.get("borrower_explanation", ""),
+                "direction": "NEGATIVE",
+                "impact_direction": factor.get("impact_direction", "associated with higher predicted risk"),
             })
 
         # Volatility profile for application-specific rebound & recovery analytics (Phase 17)
@@ -495,7 +502,7 @@ class MLModelAdapter(MLModel):
             confidence=conf,
             credit_score=score,
             risk_level=risk_level,
-            key_factors=key_factors[:4],
+            key_factors=key_factors[:8],
             explanation=structured_explanation,
             debt_to_income=dti,
             utilization=utilization,

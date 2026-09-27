@@ -192,6 +192,69 @@ export function adaptApplication(
 }
 
 /**
+ * Helper to classify factor into visual domain category for UI grouping and badges.
+ * Does NOT decide risk direction (strengths vs attention areas).
+ */
+function determineFactorCategory(
+  technicalFeature?: string,
+  factorName?: string
+): FactorSummary['category'] {
+  const feat = (technicalFeature || '').toLowerCase();
+  const name = (factorName || '').toLowerCase();
+  const combined = `${feat} ${name}`;
+
+  if (
+    feat.startsWith('feat_inc_') ||
+    feat.startsWith('feat_vol_') ||
+    combined.includes('inflow') ||
+    combined.includes('income') ||
+    combined.includes('earnings') ||
+    combined.includes('cashflow') ||
+    combined.includes('volat')
+  ) {
+    return 'INCOME_VOLATILITY';
+  }
+  if (
+    feat.startsWith('feat_pay_') ||
+    combined.includes('repay') ||
+    combined.includes('bill') ||
+    combined.includes('utility') ||
+    combined.includes('settlement')
+  ) {
+    return 'REPAYMENT';
+  }
+  if (
+    feat.startsWith('feat_bur_') ||
+    feat.startsWith('feat_liq_') ||
+    combined.includes('debt') ||
+    combined.includes('dti') ||
+    combined.includes('obligation') ||
+    combined.includes('loan') ||
+    combined.includes('principal') ||
+    combined.includes('margin') ||
+    combined.includes('reserve') ||
+    combined.includes('runway') ||
+    combined.includes('installment')
+  ) {
+    return 'OBLIGATION';
+  }
+  if (
+    feat.startsWith('feat_act_') ||
+    feat.startsWith('feat_ten_') ||
+    combined.includes('tenure') ||
+    combined.includes('active') ||
+    combined.includes('working') ||
+    combined.includes('days') ||
+    combined.includes('engagement') ||
+    combined.includes('trip') ||
+    combined.includes('order')
+  ) {
+    return 'TENURE';
+  }
+  return 'DATA_QUALITY';
+}
+
+/**
  * Adapts FastAPI BackendCreditAssessmentResponse into frontend CreditAssessmentResult domain model.
  */
 export function adaptAssessment(
@@ -214,6 +277,8 @@ export function adaptAssessment(
     confidence !== null
       ? Math.round(confidence > 1 ? confidence : confidence * 100)
       : null;
+
+  const riskLevel = adaptRiskLevel(backendAssessment.risk_level);
 
   // Parse explanation metadata
   const explanation = backendAssessment.explanation || {};
@@ -240,11 +305,20 @@ export function adaptAssessment(
   if (Array.isArray(explanation.shap_values)) {
     for (const item of explanation.shap_values) {
       if (item && typeof item === 'object') {
+        const val = Number(item.contributionValue ?? item.value ?? item.attribution_value ?? 0);
+        const explicitDir = String(item.direction || '').toUpperCase();
+        const dir: 'POSITIVE' | 'NEGATIVE' =
+          explicitDir === 'POSITIVE' || explicitDir === 'NEGATIVE'
+            ? explicitDir
+            : val >= 0
+            ? 'POSITIVE'
+            : 'NEGATIVE';
+
         featureContributions.push({
           featureName: item.feature || item.featureName || 'signal',
           displayName: item.displayName || item.name || item.feature || 'Indicator',
-          contributionValue: Number(item.value || item.contributionValue || 0),
-          direction: Number(item.value || item.contributionValue || 0) >= 0 ? 'POSITIVE' : 'NEGATIVE',
+          contributionValue: val,
+          direction: dir,
           explanationText: item.explanation || item.explanationText || '',
         });
       }
@@ -252,41 +326,173 @@ export function adaptAssessment(
   }
 
   // Parse factor summaries
-  const keyFactors = Array.isArray(backendAssessment.key_factors)
-    ? backendAssessment.key_factors
-    : [];
-
   const keyPositiveFactors: FactorSummary[] = [];
   const keyAttentionFactors: FactorSummary[] = [];
 
-  keyFactors.forEach((factorStr, idx) => {
-    const isNegative =
-      factorStr.toLowerCase().includes('volat') ||
-      factorStr.toLowerCase().includes('debt') ||
-      factorStr.toLowerCase().includes('irregular') ||
-      factorStr.toLowerCase().includes('dip') ||
-      factorStr.toLowerCase().includes('insufficient');
+  const rawProtective = Array.isArray(explanation.key_protective_factors)
+    ? explanation.key_protective_factors
+    : [];
+  const rawRisk = Array.isArray(explanation.key_risk_factors)
+    ? explanation.key_risk_factors
+    : [];
 
-    const factorItem: FactorSummary = {
-      id: `factor-${idx + 1}`,
-      title: factorStr,
-      category: factorStr.toLowerCase().includes('volat')
-        ? 'INCOME_VOLATILITY'
-        : factorStr.toLowerCase().includes('debt')
-        ? 'OBLIGATION'
-        : factorStr.toLowerCase().includes('repay')
-        ? 'REPAYMENT'
-        : 'DATA_QUALITY',
-      impact: idx === 0 ? 'HIGH' : 'MEDIUM',
-      description: factorStr,
-    };
+  if (rawProtective.length > 0 || rawRisk.length > 0) {
+    // 1. Authoritative: Use TreeSHAP explanation factors
+    rawProtective.forEach((factor: any, idx: number) => {
+      const isObj = factor && typeof factor === 'object';
+      const title = isObj
+        ? (factor.factor_name || factor.title || factor.factorName || `Protective Factor ${idx + 1}`)
+        : (typeof factor === 'string' && factor.includes(': ') ? factor.split(': ')[0] : String(factor));
+      const description = isObj
+        ? (factor.borrower_explanation || factor.description || factor.underwriting_context || title)
+        : (typeof factor === 'string' && factor.includes(': ') ? factor.split(': ').slice(1).join(': ') : String(factor));
+      const techFeature = isObj ? (factor.technical_feature || factor.technicalFeature) : undefined;
+      const impactDirection = isObj
+        ? (factor.impact_direction || factor.impactDirection || 'associated with lower predicted risk')
+        : 'associated with lower predicted risk';
+      const attributionValue = isObj && typeof factor.attribution_value === 'number' ? factor.attribution_value : undefined;
 
-    if (isNegative) {
-      keyAttentionFactors.push(factorItem);
-    } else {
-      keyPositiveFactors.push(factorItem);
-    }
-  });
+      keyPositiveFactors.push({
+        id: `prot-factor-${idx + 1}`,
+        title,
+        category: determineFactorCategory(techFeature, title),
+        impact: idx === 0 ? 'HIGH' : 'MEDIUM',
+        description,
+        technicalFeature: techFeature,
+        impactDirection,
+        attributionValue,
+        factorName: isObj ? (factor.factor_name || factor.factorName) : undefined,
+      });
+    });
+
+    rawRisk.forEach((factor: any, idx: number) => {
+      const isObj = factor && typeof factor === 'object';
+      const title = isObj
+        ? (factor.factor_name || factor.title || factor.factorName || `Risk Factor ${idx + 1}`)
+        : (typeof factor === 'string' && factor.includes(': ') ? factor.split(': ')[0] : String(factor));
+      const description = isObj
+        ? (factor.borrower_explanation || factor.description || factor.underwriting_context || title)
+        : (typeof factor === 'string' && factor.includes(': ') ? factor.split(': ').slice(1).join(': ') : String(factor));
+      const techFeature = isObj ? (factor.technical_feature || factor.technicalFeature) : undefined;
+      const impactDirection = isObj
+        ? (factor.impact_direction || factor.impactDirection || 'associated with higher predicted risk')
+        : 'associated with higher predicted risk';
+      const attributionValue = isObj && typeof factor.attribution_value === 'number' ? factor.attribution_value : undefined;
+
+      keyAttentionFactors.push({
+        id: `risk-factor-${idx + 1}`,
+        title,
+        category: determineFactorCategory(techFeature, title),
+        impact: idx === 0 ? 'HIGH' : 'MEDIUM',
+        description,
+        technicalFeature: techFeature,
+        impactDirection,
+        attributionValue,
+        factorName: isObj ? (factor.factor_name || factor.factorName) : undefined,
+      });
+    });
+  } else if (Array.isArray(backendAssessment.key_factors) && backendAssessment.key_factors.length > 0) {
+    // 2. Fallback: Parse human-readable key_factors without keyword heuristics
+    const keyFactors = backendAssessment.key_factors;
+
+    keyFactors.forEach((factorStr, idx) => {
+      const lower = factorStr.toLowerCase();
+      const hasRiskPrefix =
+        lower.startsWith('risk factor:') ||
+        lower.startsWith('[risk]') ||
+        lower.startsWith('attention:') ||
+        lower.startsWith('[attention]') ||
+        lower.startsWith('risk:');
+      const hasProtPrefix =
+        lower.startsWith('protective factor:') ||
+        lower.startsWith('[strength]') ||
+        lower.startsWith('[protective]') ||
+        lower.startsWith('strength:') ||
+        lower.startsWith('protective:');
+
+      let isRiskFactor = false;
+      if (hasRiskPrefix) {
+        isRiskFactor = true;
+      } else if (hasProtPrefix) {
+        isRiskFactor = false;
+      } else {
+        if (riskLevel === 'HIGHER_ESTIMATED RISK') {
+          isRiskFactor = true;
+        } else if (riskLevel === 'LOWER_ESTIMATED RISK') {
+          isRiskFactor = false;
+        } else if (riskLevel === 'MODERATE_ESTIMATED RISK') {
+          isRiskFactor = idx >= Math.ceil(keyFactors.length / 2);
+        } else {
+          isRiskFactor = false;
+        }
+      }
+
+      let title = factorStr;
+      let description = factorStr;
+      if (factorStr.includes(': ')) {
+        const parts = factorStr.split(': ');
+        title = parts[0].replace(/^\[(risk|attention|strength|protective)\]\s*/i, '').trim();
+        description = parts.slice(1).join(': ').trim();
+      }
+
+      const factorItem: FactorSummary = {
+        id: `factor-${idx + 1}`,
+        title,
+        category: determineFactorCategory(undefined, title),
+        impact: idx === 0 ? 'HIGH' : 'MEDIUM',
+        description,
+        impactDirection: isRiskFactor ? 'associated with higher predicted risk' : 'associated with lower predicted risk',
+      };
+
+      if (isRiskFactor) {
+        keyAttentionFactors.push(factorItem);
+      } else {
+        keyPositiveFactors.push(factorItem);
+      }
+    });
+  } else if (Array.isArray(explanation.shap_values) && explanation.shap_values.length > 0) {
+    // 3. Fallback: Categorize based on shap_values directional attributions
+    explanation.shap_values.forEach((item: any, idx: number) => {
+      if (!item || typeof item !== 'object') return;
+      const val = Number(item.contributionValue ?? item.value ?? item.attribution_value ?? 0);
+      const impactDir = String(item.impact_direction || item.impactDirection || '').toLowerCase();
+      const explicitDir = String(item.direction || '').toUpperCase();
+
+      let isProtective = false;
+      if (impactDir.includes('lower') || impactDir.includes('protective') || impactDir.includes('decrease')) {
+        isProtective = true;
+      } else if (impactDir.includes('higher') || impactDir.includes('risk') || impactDir.includes('increase')) {
+        isProtective = false;
+      } else if (explicitDir === 'NEGATIVE') {
+        isProtective = false;
+      } else if (explicitDir === 'POSITIVE' && val <= 0) {
+        isProtective = true;
+      } else {
+        isProtective = val < 0;
+      }
+
+      const title = item.displayName || item.name || item.feature || `Factor ${idx + 1}`;
+      const description = item.explanation || item.explanationText || title;
+      const techFeature = item.feature || item.featureName;
+      const factorItem: FactorSummary = {
+        id: `shap-factor-${idx + 1}`,
+        title,
+        category: determineFactorCategory(techFeature, title),
+        impact: idx === 0 ? 'HIGH' : 'MEDIUM',
+        description,
+        technicalFeature: techFeature,
+        impactDirection: isProtective ? 'associated with lower predicted risk' : 'associated with higher predicted risk',
+        attributionValue: val,
+        factorName: item.displayName || item.name,
+      };
+
+      if (isProtective) {
+        keyPositiveFactors.push(factorItem);
+      } else {
+        keyAttentionFactors.push(factorItem);
+      }
+    });
+  }
 
   // Extract or synthesize VolatilityProfile safely from available metrics
   const backendVolProfile =
@@ -377,7 +583,7 @@ export function adaptAssessment(
     applicantName: applicantName || 'Applicant',
     score,
     maxScore: 850,
-    riskLevel: adaptRiskLevel(backendAssessment.risk_level),
+    riskLevel,
     estimatedRepaymentDifficulty,
     modelConfidence,
     isInsufficientEvidence,

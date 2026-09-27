@@ -39,6 +39,10 @@ export interface FactorSummary {
   category: 'INCOME_VOLATILITY' | 'REPAYMENT' | 'OBLIGATION' | 'TENURE' | 'DATA_QUALITY';
   impact: 'HIGH' | 'MEDIUM' | 'LOW';
   description: string;
+  technicalFeature?: string;
+  impactDirection?: 'LOWER_RISK' | 'HIGHER_RISK' | string;
+  attributionValue?: number;
+  factorName?: string;
 }
 
 export interface SHAPContribution {
