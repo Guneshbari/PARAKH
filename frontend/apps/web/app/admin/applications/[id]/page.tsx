@@ -15,7 +15,11 @@ import {
   Info,
   Send,
   FileCheck,
+  FileText,
+  Clock,
   Loader2,
+  Eye,
+  Download,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -33,6 +37,7 @@ import {
   adaptApplication,
   adaptAssessment,
   adaptReviewOutcome,
+  adaptDocumentRequest,
   ApiError,
 } from '@parakh/api';
 import { formatCurrency } from '@/lib/utils';
@@ -40,7 +45,18 @@ import type {
   ReviewActionType,
   UnderwriterReviewOutcome,
   RiskLevel,
+  DocumentRequest,
+  DocumentType,
+  AllowedFileType,
 } from '@parakh/types';
+
+const DOCUMENT_TYPE_LABELS: Record<DocumentType, string> = {
+  BANK_STATEMENT: 'Bank Statement',
+  INCOME_PROOF: 'Income Proof',
+  TRANSACTION_STATEMENT: 'Transaction Statement',
+  BUSINESS_RECORD: 'Business Record',
+  OTHER: 'Other',
+};
 
 interface AdminApplicationDetailPageProps {
   params: Promise<{ id: string }>;
@@ -65,6 +81,124 @@ export default function AdminApplicationDetailPage({
   ]);
   const [customItem, setCustomItem] = useState('');
   const [recordSuccess, setRecordSuccess] = useState(false);
+
+  // Structured Document Request Form State (Phase 1)
+  const [documentRequests, setDocumentRequests] = useState<DocumentRequest[]>([]);
+  const [docType, setDocType] = useState<DocumentType>('BANK_STATEMENT');
+  const [allowedFormats, setAllowedFormats] = useState<{ pdf: boolean; excel: boolean }>({
+    pdf: true,
+    excel: true,
+  });
+  const [docDescription, setDocDescription] = useState('Please upload your latest 3-month bank statement.');
+
+  // Document Review and File Download State (Phase 4)
+  const [downloadingDocId, setDownloadingDocId] = useState<string | null>(null);
+  const [reviewDecisions, setReviewDecisions] = useState<
+    Record<string, { decision: 'ACCEPT' | 'REJECT'; notes: string }>
+  >({});
+  const [reviewSubmittingId, setReviewSubmittingId] = useState<string | null>(null);
+  const [reviewErrors, setReviewErrors] = useState<Record<string, string>>({});
+
+  const formatFileSize = (bytes: number): string => {
+    if (!bytes) return '0 B';
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  const handleDecisionChange = (requestId: string, decision: 'ACCEPT' | 'REJECT') => {
+    setReviewDecisions((prev) => ({
+      ...prev,
+      [requestId]: {
+        decision,
+        notes: prev[requestId]?.notes || '',
+      },
+    }));
+  };
+
+  const handleNotesChange = (requestId: string, notes: string) => {
+    setReviewDecisions((prev) => ({
+      ...prev,
+      [requestId]: {
+        decision: prev[requestId]?.decision || 'ACCEPT',
+        notes,
+      },
+    }));
+  };
+
+  const handleViewDocument = async (requestId: string) => {
+    try {
+      setDownloadingDocId(requestId);
+      const { blob } = await api.downloadSubmittedDocumentFile(id, requestId, false);
+      const fileUrl = URL.createObjectURL(blob);
+      window.open(fileUrl, '_blank');
+    } catch (err: any) {
+      alert(err?.message || 'Failed to open document.');
+    } finally {
+      setDownloadingDocId(null);
+    }
+  };
+
+  const handleDownloadDocument = async (requestId: string) => {
+    try {
+      setDownloadingDocId(requestId);
+      const { blob, filename } = await api.downloadSubmittedDocumentFile(id, requestId, true);
+      const fileUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = fileUrl;
+      a.download = filename || 'document';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(fileUrl);
+    } catch (err: any) {
+      alert(err?.message || 'Failed to download document.');
+    } finally {
+      setDownloadingDocId(null);
+    }
+  };
+
+  const [requestingReplacementId, setRequestingReplacementId] = useState<string | null>(null);
+
+  const handleRequestReplacement = async (requestId: string) => {
+    try {
+      setRequestingReplacementId(requestId);
+      await api.requestDocumentReplacementAdapted(id, requestId);
+      await loadApplicationData();
+    } catch (err: any) {
+      alert(err?.message || 'Failed to request document replacement.');
+    } finally {
+      setRequestingReplacementId(null);
+    }
+  };
+
+  const handleSubmitDocReview = async (requestId: string) => {
+    const current = reviewDecisions[requestId] || { decision: 'ACCEPT', notes: '' };
+    if (current.decision === 'REJECT' && (!current.notes || current.notes.trim().length < 5)) {
+      setReviewErrors((prev) => ({
+        ...prev,
+        [requestId]: 'Reviewer notes of at least 5 characters are required when requesting replacement.',
+      }));
+      return;
+    }
+
+    try {
+      setReviewSubmittingId(requestId);
+      setReviewErrors((prev) => ({ ...prev, [requestId]: '' }));
+      await api.reviewDocumentRequest(id, requestId, {
+        decision: current.decision,
+        notes: current.notes.trim() || undefined,
+      });
+      await loadApplicationData();
+    } catch (err: any) {
+      setReviewErrors((prev) => ({
+        ...prev,
+        [requestId]: err?.message || 'Failed to submit document review.',
+      }));
+    } finally {
+      setReviewSubmittingId(null);
+    }
+  };
 
   const loadApplicationData = async () => {
     try {
@@ -139,6 +273,15 @@ export default function AdminApplicationDetailPage({
           setDecisionNotes(latestReview.notes);
         }
       }
+
+      let docReqs: DocumentRequest[] = [];
+      try {
+        const rawDocs = await api.getDocumentRequests(id);
+        docReqs = rawDocs.map(adaptDocumentRequest);
+      } catch (err) {
+        console.warn('Failed to fetch document requests:', err);
+      }
+      setDocumentRequests(docReqs);
     } catch (err: any) {
       if (err instanceof ApiError && err.status === 404) {
         setError('Application not found');
@@ -177,25 +320,47 @@ export default function AdminApplicationDetailPage({
       setIsSubmitting(true);
       setReviewError(null);
       const outcome = reverseAdaptReviewAction(reviewAction);
-      const reviewerId = user?.id || '00000000-0000-0000-0000-000000000000';
 
-      await api.createReview(id, {
-        reviewer_id: reviewerId,
+      const reviewPayload: any = {
         outcome: outcome,
         notes:
           decisionNotes ||
-          'Credit review performed in accordance with PARAKH explainability policy.',
-      });
-
-      if (reviewAction === 'RECORD_OUTCOME') {
-        try {
-          await api.updateApplicationStatus(id, 'COMPLETED');
-        } catch {}
-      } else if (reviewAction === 'REQUEST_VERIFICATION') {
-        try {
-          await api.updateApplicationStatus(id, 'UNDER_REVIEW');
-        } catch {}
+          (reviewAction === 'REQUEST_VERIFICATION'
+            ? `Verification evidence requested: ${DOCUMENT_TYPE_LABELS[docType]} - ${docDescription.trim()}`
+            : 'Credit review performed in accordance with PARAKH explainability policy.'),
+      };
+      if (user?.id) {
+        reviewPayload.reviewer_id = user.id;
       }
+
+      if (reviewAction === 'REQUEST_VERIFICATION') {
+        const fileTypes: AllowedFileType[] = [];
+        if (allowedFormats.pdf) fileTypes.push('PDF');
+        if (allowedFormats.excel) {
+          fileTypes.push('XLS');
+          fileTypes.push('XLSX');
+        }
+
+        if (fileTypes.length === 0) {
+          setReviewError('Please select at least one allowed format (PDF or Excel).');
+          setIsSubmitting(false);
+          return;
+        }
+
+        if (!docDescription.trim() || docDescription.trim().length < 5) {
+          setReviewError('Request details must contain at least 5 characters.');
+          setIsSubmitting(false);
+          return;
+        }
+
+        reviewPayload.document_request = {
+          document_type: docType,
+          description: docDescription.trim(),
+          allowed_file_types: fileTypes,
+        };
+      }
+
+      await api.createReview(id, reviewPayload);
 
       await loadApplicationData();
 
@@ -612,57 +777,80 @@ export default function AdminApplicationDetailPage({
             </div>
           </div>
 
-          {/* Verification Items (shown for REQUEST_VERIFICATION) */}
+          {/* Structured Document Request Form (shown for REQUEST_VERIFICATION) */}
           {reviewAction === 'REQUEST_VERIFICATION' && (
-            <div className="space-y-3 p-4 rounded-2xl bg-surface-highlight border border-border">
-              <label className="text-xs sm:text-sm font-semibold text-foreground block">
-                Select or Specify Required Verification Evidence
-              </label>
-
-              <div className="flex flex-wrap gap-2">
-                {[
-                  'Latest 30-day UPI QR settlement report',
-                  'Urban Company partner rating certificate',
-                  'DigiLocker Re-attestation',
-                  'Bank Account Aggregator live consent refresh',
-                  'Manual passbook scan of cash deposits',
-                ].map((item) => {
-                  const isChecked = requestedItems.includes(item);
-                  return (
-                    <button
-                      key={item}
-                      type="button"
-                      onClick={() => handleToggleItem(item)}
-                      className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium border transition-all cursor-pointer ${
-                        isChecked
-                          ? 'bg-[#472393] text-white border-[#472393] font-semibold shadow-xs dark:bg-foreground dark:text-background dark:border-foreground'
-                          : 'bg-surface text-foreground-secondary border-border hover:text-[#472393] hover:border-[rgba(71,35,147,0.3)] dark:hover:text-foreground dark:hover:border-border'
-                      }`}
-                    >
-                      {isChecked ? '✓ ' : '+ '}
-                      {item}
-                    </button>
-                  );
-                })}
+            <div className="space-y-4 p-5 rounded-2xl bg-surface-highlight/40 border border-border">
+              <div className="flex items-center gap-2">
+                <FileText className="size-4 text-[#472393] dark:text-foreground" />
+                <h4 className="text-xs sm:text-sm font-semibold text-foreground">
+                  Request Additional Information
+                </h4>
               </div>
 
-              <div className="flex items-center gap-2 pt-1">
-                <input
-                  type="text"
-                  value={customItem}
-                  onChange={(e) => setCustomItem(e.target.value)}
-                  placeholder="Specify custom verification requirement..."
-                  className="flex-1 text-sm px-3.5 py-2 rounded-full bg-surface border border-border text-foreground focus:outline-none focus:border-[#472393] focus:ring-2 focus:ring-[#472393]/20 dark:focus:border-foreground dark:focus:ring-0 placeholder:text-foreground-muted"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleAddCustomItem}
-                  className="rounded-full text-xs sm:text-sm h-9 cursor-pointer"
+              {/* Document Required Dropdown */}
+              <div className="space-y-1.5">
+                <label className="text-xs sm:text-sm font-medium text-foreground block">
+                  Document required
+                </label>
+                <select
+                  value={docType}
+                  onChange={(e) => setDocType(e.target.value as DocumentType)}
+                  className="w-full text-sm px-3.5 py-2.5 rounded-xl bg-surface border border-border text-foreground focus:outline-none focus:border-[#472393] dark:focus:border-foreground"
                 >
-                  Add Item
-                </Button>
+                  <option value="BANK_STATEMENT">Bank Statement</option>
+                  <option value="INCOME_PROOF">Income Proof</option>
+                  <option value="TRANSACTION_STATEMENT">Transaction Statement</option>
+                  <option value="BUSINESS_RECORD">Business Record</option>
+                  <option value="OTHER">Other</option>
+                </select>
+              </div>
+
+              {/* Allowed Formats */}
+              <div className="space-y-1.5">
+                <label className="text-xs sm:text-sm font-medium text-foreground block">
+                  Allowed format
+                </label>
+                <div className="flex items-center gap-4">
+                  <label className="flex items-center gap-2 text-xs sm:text-sm text-foreground cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={allowedFormats.pdf}
+                      onChange={(e) =>
+                        setAllowedFormats((prev) => ({ ...prev, pdf: e.target.checked }))
+                      }
+                      className="size-4 rounded border-border text-[#472393] focus:ring-[#472393] accent-[#472393]"
+                    />
+                    <span>PDF</span>
+                  </label>
+                  <label className="flex items-center gap-2 text-xs sm:text-sm text-foreground cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={allowedFormats.excel}
+                      onChange={(e) =>
+                        setAllowedFormats((prev) => ({ ...prev, excel: e.target.checked }))
+                      }
+                      className="size-4 rounded border-border text-[#472393] focus:ring-[#472393] accent-[#472393]"
+                    />
+                    <span>Excel</span>
+                  </label>
+                </div>
+                {!allowedFormats.pdf && !allowedFormats.excel && (
+                  <p className="text-xs text-destructive">At least one allowed format must be selected.</p>
+                )}
+              </div>
+
+              {/* Request Details */}
+              <div className="space-y-1.5">
+                <label className="text-xs sm:text-sm font-medium text-foreground block">
+                  Request details
+                </label>
+                <textarea
+                  rows={3}
+                  value={docDescription}
+                  onChange={(e) => setDocDescription(e.target.value)}
+                  placeholder="Please specify what document is required and details for the applicant..."
+                  className="w-full text-sm p-3 rounded-xl bg-surface border border-border text-foreground focus:outline-none focus:border-[#472393] dark:focus:border-foreground leading-relaxed resize-none placeholder:text-foreground-muted"
+                />
               </div>
             </div>
           )}
@@ -671,18 +859,26 @@ export default function AdminApplicationDetailPage({
           <div className="space-y-1.5">
             <div className="flex justify-between items-center text-xs sm:text-sm">
               <label className="font-semibold text-foreground">
-                Credit Reviewer Qualitative Rationale & Decision Notes
+                {reviewAction === 'REQUEST_VERIFICATION'
+                  ? 'Internal Reviewer Notes (Optional)'
+                  : 'Credit Reviewer Qualitative Rationale & Decision Notes'}
               </label>
-              <span className="text-xs text-foreground-secondary">
-                Minimum 10 characters required
-              </span>
+              {reviewAction !== 'REQUEST_VERIFICATION' && (
+                <span className="text-xs text-foreground-secondary">
+                  Minimum 10 characters required
+                </span>
+              )}
             </div>
             <textarea
-              required
-              rows={4}
+              required={reviewAction !== 'REQUEST_VERIFICATION'}
+              rows={reviewAction === 'REQUEST_VERIFICATION' ? 2 : 4}
               value={decisionNotes}
               onChange={(e) => setDecisionNotes(e.target.value)}
-              placeholder="Record detailed credit review commentary regarding income volatility rebound dynamics, alternative micro-obligations, and justifications for risk tier classification..."
+              placeholder={
+                reviewAction === 'REQUEST_VERIFICATION'
+                  ? 'Optional internal commentary on this verification request...'
+                  : 'Record detailed credit review commentary regarding income volatility rebound dynamics, alternative micro-obligations, and justifications for risk tier classification...'
+              }
               className="w-full text-sm p-3.5 rounded-2xl bg-surface-highlight/30 border border-border text-foreground focus:outline-none focus:border-[#472393] dark:focus:border-foreground leading-relaxed resize-none placeholder:text-foreground-muted"
             />
           </div>
@@ -700,11 +896,9 @@ export default function AdminApplicationDetailPage({
             <div className="p-4 rounded-2xl bg-surface-highlight border border-border text-foreground text-sm flex items-center gap-2.5">
               <CheckCircle2 className="size-4 shrink-0" />
               <span>
-                Underwriting decision committed to PostgreSQL audit ledger successfully. Status updated to{' '}
-                <strong className="text-foreground">
-                  {application.status.replace(/_/g, ' ')}
-                </strong>
-                .
+                {reviewAction === 'REQUEST_VERIFICATION'
+                  ? 'Document verification request created and status updated.'
+                  : `Underwriting decision committed to PostgreSQL audit ledger successfully. Status updated to ${application.status.replace(/_/g, ' ')}.`}
               </span>
             </div>
           )}
@@ -727,22 +921,297 @@ export default function AdminApplicationDetailPage({
               type="submit"
               variant="default"
               size="sm"
-              disabled={isSubmitting || decisionNotes.trim().length < 10}
+              disabled={
+                isSubmitting ||
+                (reviewAction === 'REQUEST_VERIFICATION'
+                  ? (!allowedFormats.pdf && !allowedFormats.excel) || docDescription.trim().length < 5
+                  : decisionNotes.trim().length < 10)
+              }
               className="rounded-full text-xs sm:text-sm font-semibold gap-1.5 px-6 h-9 shadow-xs cursor-pointer"
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="size-3.5 animate-spin" /> Committing Audit...
+                  <Loader2 className="size-3.5 animate-spin" />{' '}
+                  {reviewAction === 'REQUEST_VERIFICATION' ? 'Requesting Document...' : 'Committing Audit...'}
                 </>
               ) : (
                 <>
-                  <Send className="size-3.5" /> Commit Audit Decision
+                  <Send className="size-3.5" />{' '}
+                  {reviewAction === 'REQUEST_VERIFICATION' ? 'Request Document' : 'Commit Audit Decision'}
                 </>
               )}
             </Button>
           </div>
         </form>
       </Card>
+
+      {/* 8. APPLICANT SUBMITTED DOCUMENTS & DOCUMENT REVIEW (Phase 4) */}
+      {documentRequests && documentRequests.length > 0 && (
+        <Card className="p-6 bg-surface border-border space-y-5">
+          <div className="flex items-center justify-between border-b border-border pb-3">
+            <div>
+              <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+                <FileText className="size-4.5 text-primary" />
+                Applicant Submitted Documents
+              </h3>
+              <p className="text-xs text-foreground-secondary mt-0.5">
+                Review, view, download, and verify requested applicant documentation.
+              </p>
+            </div>
+            <Badge variant="outline" className="font-mono text-xs">
+              {documentRequests.length} request{documentRequests.length > 1 ? 's' : ''}
+            </Badge>
+          </div>
+
+          <div className="space-y-4">
+            {documentRequests.map((req) => {
+              const subDoc = req.submittedDocument;
+              const currentReview = reviewDecisions[req.id] || { decision: 'ACCEPT', notes: '' };
+              const isSubmittingReview = reviewSubmittingId === req.id;
+              const isDownloading = downloadingDocId === req.id;
+              const errorMsg = reviewErrors[req.id];
+
+              return (
+                <div
+                  key={req.id}
+                  className="p-5 rounded-xl bg-surface-highlight/40 border border-border space-y-4 text-xs sm:text-sm"
+                >
+                  {/* Top Bar: Title & Status */}
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-sm sm:text-base text-foreground">
+                        {DOCUMENT_TYPE_LABELS[req.documentType] || req.documentType}
+                      </span>
+                      <Badge
+                        variant="outline"
+                        className={`text-[10px] font-mono uppercase px-2.5 py-0.5 rounded-full ${
+                          req.status === 'PENDING'
+                            ? 'border-amber-500/40 text-amber-600 bg-amber-500/10 dark:text-amber-400'
+                            : req.status === 'SUBMITTED'
+                            ? 'border-blue-500/40 text-blue-600 bg-blue-500/10 dark:text-blue-400'
+                            : req.status === 'ACCEPTED'
+                            ? 'border-emerald-500/40 text-emerald-600 bg-emerald-500/10 dark:text-emerald-400'
+                            : 'border-destructive/40 text-destructive bg-destructive/10'
+                        }`}
+                      >
+                        {req.status === 'REJECTED' ? 'REPLACEMENT REQUIRED' : req.status}
+                      </Badge>
+                    </div>
+                    <span className="text-xs text-foreground-muted">
+                      Requested {new Date(req.createdAt).toLocaleDateString('en-IN', {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </span>
+                  </div>
+
+                  <p className="text-foreground-secondary leading-relaxed bg-surface/60 p-3 rounded-lg border border-border/60">
+                    <span className="font-semibold text-foreground-secondary block text-xs mb-0.5">Instructions:</span>
+                    {req.description}
+                  </p>
+
+                  {/* Submitted Document Information (If submitted) */}
+                  {subDoc ? (
+                    <div className="p-4 rounded-xl bg-surface border border-border space-y-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="space-y-0.5">
+                          <span className="font-semibold text-foreground block truncate">
+                            {subDoc.originalFilename}
+                          </span>
+                          <span className="text-xs text-foreground-muted font-mono">
+                            {formatFileSize(subDoc.fileSize)} • Submitted {new Date(subDoc.createdAt).toLocaleDateString('en-IN', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </span>
+                        </div>
+
+                        {/* View & Download Actions */}
+                        <div className="flex items-center gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={isDownloading}
+                            onClick={() => handleViewDocument(req.id)}
+                            className="text-xs h-8 px-3 rounded-lg cursor-pointer"
+                          >
+                            <Eye className="size-3.5 mr-1" /> View Document
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            disabled={isDownloading}
+                            onClick={() => handleDownloadDocument(req.id)}
+                            className="text-xs h-8 px-3 rounded-lg cursor-pointer"
+                          >
+                            <Download className="size-3.5 mr-1" /> Download
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Review Area: Only when SUBMITTED */}
+                      {req.status === 'SUBMITTED' && (
+                        <div className="mt-3 pt-3 border-t border-border space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold uppercase tracking-wider text-foreground">
+                              Document Review
+                            </span>
+                          </div>
+
+                          <div className="space-y-2">
+                            <span className="text-xs font-medium text-foreground-secondary block">Status</span>
+                            <div className="flex items-center gap-6">
+                              <label className="flex items-center gap-2 cursor-pointer text-xs sm:text-sm">
+                                <input
+                                  type="radio"
+                                  name={`decision-${req.id}`}
+                                  value="ACCEPT"
+                                  checked={currentReview.decision === 'ACCEPT'}
+                                  onChange={() => handleDecisionChange(req.id, 'ACCEPT')}
+                                  className="text-primary focus:ring-primary"
+                                />
+                                <span className="text-foreground font-medium">Accept</span>
+                              </label>
+
+                              <label className="flex items-center gap-2 cursor-pointer text-xs sm:text-sm">
+                                <input
+                                  type="radio"
+                                  name={`decision-${req.id}`}
+                                  value="REJECT"
+                                  checked={currentReview.decision === 'REJECT'}
+                                  onChange={() => handleDecisionChange(req.id, 'REJECT')}
+                                  className="text-primary focus:ring-primary"
+                                />
+                                <span className="text-foreground font-medium">Request replacement</span>
+                              </label>
+                            </div>
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-medium text-foreground-secondary block">
+                              Reviewer notes {currentReview.decision === 'REJECT' && <span className="text-destructive">*</span>}
+                            </label>
+                            <textarea
+                              rows={2}
+                              value={currentReview.notes}
+                              onChange={(e) => handleNotesChange(req.id, e.target.value)}
+                              placeholder={
+                                currentReview.decision === 'REJECT'
+                                  ? 'State specific reasons why a replacement document is required...'
+                                  : 'Optional notes on the accepted verification document...'
+                              }
+                              className="w-full text-xs sm:text-sm p-2.5 rounded-lg border border-border bg-surface-highlight/30 text-foreground placeholder:text-foreground-muted focus:outline-none focus:ring-1 focus:ring-primary"
+                            />
+                          </div>
+
+                          {errorMsg && (
+                            <div className="p-2.5 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-xs flex items-center gap-1.5">
+                              <AlertCircle className="size-4 shrink-0" />
+                              <span>{errorMsg}</span>
+                            </div>
+                          )}
+
+                          <div className="flex justify-end pt-1">
+                            <Button
+                              type="button"
+                              variant="default"
+                              size="sm"
+                              disabled={isSubmittingReview}
+                              onClick={() => handleSubmitDocReview(req.id)}
+                              className="text-xs font-semibold h-8 px-4 rounded-lg cursor-pointer"
+                            >
+                              {isSubmittingReview ? (
+                                <>
+                                  <Loader2 className="size-3.5 animate-spin mr-1" /> Submitting...
+                                </>
+                              ) : (
+                                'Submit Review'
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* ACCEPTED State Badge */}
+                      {req.status === 'ACCEPTED' && (
+                        <div className="mt-2 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs flex items-start gap-2 text-emerald-600 dark:text-emerald-400">
+                          <CheckCircle2 className="size-4 shrink-0 mt-0.5" />
+                          <div className="space-y-0.5">
+                            <span className="font-semibold block">Document Verified & Accepted</span>
+                            {req.reviewerNotes && (
+                              <p className="text-foreground-secondary mt-1">
+                                <span className="font-medium text-foreground">Reviewer Note: </span>
+                                {req.reviewerNotes}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* REJECTED State Badge */}
+                      {req.status === 'REJECTED' && (() => {
+                        const hasPendingReplacement = documentRequests.some(
+                          (r) => r.id !== req.id && r.documentType === req.documentType && (r.status === 'PENDING' || r.status === 'SUBMITTED')
+                        );
+                        return (
+                          <div className="mt-2 p-3.5 rounded-lg bg-destructive/10 border border-destructive/20 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-destructive">
+                            <div className="flex items-start gap-2">
+                              <AlertCircle className="size-4 shrink-0 mt-0.5" />
+                              <div className="space-y-0.5">
+                                <span className="font-semibold block">Replacement Required (Rejected)</span>
+                                {req.reviewerNotes && (
+                                  <p className="text-foreground-secondary mt-1">
+                                    <span className="font-medium text-foreground">Reason: </span>
+                                    {req.reviewerNotes}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            {hasPendingReplacement ? (
+                              <Badge variant="outline" className="text-[11px] font-mono text-amber-600 bg-amber-500/10 border-amber-500/30 px-2.5 py-1 shrink-0">
+                                Replacement Pending
+                              </Badge>
+                            ) : (
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                disabled={requestingReplacementId === req.id}
+                                onClick={() => handleRequestReplacement(req.id)}
+                                className="text-xs h-8 px-3 rounded-lg shrink-0 cursor-pointer"
+                              >
+                                {requestingReplacementId === req.id ? (
+                                  <>
+                                    <Loader2 className="size-3.5 animate-spin mr-1" /> Requesting...
+                                  </>
+                                ) : (
+                                  'Request Replacement'
+                                )}
+                              </Button>
+                            )}
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  ) : (
+                    <div className="p-3.5 rounded-xl bg-surface/50 border border-dashed border-border text-xs text-foreground-muted flex items-center gap-2">
+                      <Clock className="size-4 text-amber-500 shrink-0" />
+                      <span>Awaiting applicant upload. No document has been submitted yet.</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </Card>
+      )}
 
       {/* 8. UNDERWRITER AUDIT LOG (If Review Recorded) */}
       {application.review && application.review.recordedAt && (

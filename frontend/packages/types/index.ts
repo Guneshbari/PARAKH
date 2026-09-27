@@ -220,3 +220,67 @@ export function toPortalRole(role?: string | null): PortalRole | null {
   return null;
 }
 
+// --- DOCUMENT REQUEST TYPES (Phase 1 Foundation) ---
+
+export type DocumentType =
+  | 'BANK_STATEMENT'
+  | 'INCOME_PROOF'
+  | 'TRANSACTION_STATEMENT'
+  | 'BUSINESS_RECORD'
+  | 'OTHER';
+
+export type AllowedFileType = 'PDF' | 'XLS' | 'XLSX';
+
+export type DocumentRequestStatus =
+  | 'PENDING'
+  | 'SUBMITTED'
+  | 'REJECTED'
+  | 'ACCEPTED';
+
+export interface SubmittedDocument {
+  id: string;
+  applicationId: string;
+  documentRequestId: string;
+  originalFilename: string;
+  storedFilename: string;
+  fileType: string;
+  mimeType: string;
+  fileSize: number;
+  uploadedBy: string;
+  createdAt: string;
+}
+
+export interface DocumentSubmissionResult {
+  status: string;
+  requestId: string;
+  documentId: string;
+  documentType: DocumentType;
+  filename: string;
+  fileSize: number;
+  submittedAt: string;
+}
+
+export interface DocumentRequest {
+  id: string;
+  applicationId: string;
+  reviewId?: string | null;
+  requestedBy: string;
+  documentType: DocumentType;
+  description: string;
+  allowedFileTypes: AllowedFileType[];
+  status: DocumentRequestStatus;
+  reviewerNotes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  submittedDocument?: SubmittedDocument | null;
+}
+
+export type DocumentReviewDecision = 'ACCEPT' | 'REJECT';
+
+export interface DocumentReviewInput {
+  decision: DocumentReviewDecision;
+  notes?: string;
+}
+
+
+

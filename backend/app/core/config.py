@@ -34,5 +34,9 @@ class Settings(BaseSettings):
     ML_MANIFEST_PATH: Optional[str] = None
     ML_DATASET_PATH: Optional[str] = None
 
+    # Storage & Uploads
+    UPLOAD_DIR: str = "/data/documents"
+    MAX_UPLOAD_SIZE_BYTES: int = 10 * 1024 * 1024  # 10 MB
+
 
 settings = Settings()

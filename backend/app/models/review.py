@@ -1,13 +1,14 @@
 """Review outcome entity capturing human evaluation of assessments."""
 import enum
 import uuid
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, List, Optional
 from sqlalchemy import Enum, ForeignKey, Text, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
 
 if TYPE_CHECKING:
     from app.models.application import Application
+    from app.models.document_request import DocumentRequest
     from app.models.user import User
 
 
@@ -53,4 +54,8 @@ class ReviewOutcome(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     reviewer: Mapped["User"] = relationship(
         "User",
         back_populates="review_outcomes",
+    )
+    document_requests: Mapped[List["DocumentRequest"]] = relationship(
+        "DocumentRequest",
+        back_populates="review",
     )

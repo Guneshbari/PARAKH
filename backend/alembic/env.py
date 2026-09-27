@@ -15,6 +15,8 @@ from app.models import (
     ModelVersion,
     ReviewOutcome,
     AuditLog,
+    DocumentRequest,
+    SubmittedDocument,
 )
 
 # this is the Alembic Config object, which provides

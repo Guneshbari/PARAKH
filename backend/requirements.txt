@@ -8,6 +8,7 @@ psycopg[binary]
 alembic
 pyjwt
 bcrypt
+python-multipart
 
 # ML inference runtime dependencies
 lightgbm
@@ -16,3 +17,6 @@ shap
 pandas
 pyarrow
 joblib
+pytest
+pytest-asyncio
+httpx

@@ -29,6 +29,8 @@ services:
         condition: service_healthy
     ports:
       - "8000:8000"
+    volumes:
+      - uploads_data:/data/documents
     environment:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-parakh}:${POSTGRES_PASSWORD:-parakh_password}@postgres:5432/${POSTGRES_DB:-parakh}
       SECRET_KEY: ${SECRET_KEY:-parakh-super-secret-key-change-in-production-0987654321}
@@ -37,6 +39,7 @@ services:
       ASSESSMENT_ENGINE: ${ASSESSMENT_ENGINE:-mock}
       DEBUG: "false"
       APP_ENV: production
+      UPLOAD_DIR: ${UPLOAD_DIR:-/data/documents}
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 5s
@@ -68,6 +71,8 @@ services:
 volumes:
   postgres_data:
     name: parakh_postgres_data
+  uploads_data:
+    name: parakh_uploads_data
 
 networks:
   parakh-network:

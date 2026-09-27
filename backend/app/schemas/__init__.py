@@ -23,6 +23,15 @@ from app.schemas.auth import (
 )
 from app.schemas.common import DatabaseHealthResponse, StatusResponse
 from app.schemas.consent import ConsentCreate, ConsentResponse
+from app.schemas.document_request import (
+    CreateDocumentRequest,
+    DocumentReplacementRequest,
+    DocumentRequestCreate,
+    DocumentRequestCreateNested,
+    DocumentRequestResponse,
+    DocumentSubmissionResponse,
+    SubmittedDocumentResponse,
+)
 from app.schemas.financial_signal import (
     FinancialSignalCreate,
     FinancialSignalResponse,
@@ -68,6 +77,13 @@ __all__ = [
     # Consent
     "ConsentCreate",
     "ConsentResponse",
+    # Document Request
+    "CreateDocumentRequest",
+    "DocumentRequestCreate",
+    "DocumentRequestCreateNested",
+    "DocumentRequestResponse",
+    "SubmittedDocumentResponse",
+    "DocumentSubmissionResponse",
     # Financial Signal
     "FinancialSignalCreate",
     "FinancialSignalResponse",

@@ -7,6 +7,7 @@ from app.services.application import (
 from app.services.assessment import AssessmentService
 from app.services.audit import AuditService
 from app.services.consent import ConsentService
+from app.services.document_request import DocumentRequestService
 from app.services.exceptions import (
     AuditLoggingError,
     ConsentRequiredError,
@@ -19,6 +20,7 @@ from app.services.exceptions import (
 from app.services.financial_signal import FinancialSignalService
 from app.services.model_version import ModelVersionService
 from app.services.review import ReviewService
+from app.services.storage import DocumentStorageService
 from app.services.user import UserService
 
 __all__ = [
@@ -37,6 +39,8 @@ __all__ = [
     "ApplicantService",
     "ApplicationService",
     "ConsentService",
+    "DocumentRequestService",
+    "DocumentStorageService",
     "FinancialSignalService",
     "AssessmentService",
     "ModelVersionService",

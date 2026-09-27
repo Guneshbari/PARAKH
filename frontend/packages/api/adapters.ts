@@ -13,6 +13,11 @@ import type {
   SHAPContribution,
   VolatilityProfile,
   ReviewActionType,
+  DocumentRequest,
+  DocumentType,
+  AllowedFileType,
+  DocumentRequestStatus,
+  SubmittedDocument,
 } from '@parakh/types';
 import type {
   BackendRiskLevel,
@@ -26,6 +31,8 @@ import type {
   BackendUserResponse,
   BackendPortfolioAnalytics,
   BackendSectorRiskItem,
+  BackendDocumentRequestResponse,
+  BackendSubmittedDocumentResponse,
 } from './types';
 
 // ==========================================
@@ -590,5 +597,46 @@ export function adaptPortfolioAnalytics(backend: BackendPortfolioAnalytics): Ada
     sectorRisk: adaptSectorRisk(backend.sector_risk || []),
   };
 }
+
+/**
+ * Adapts BackendSubmittedDocumentResponse to frontend SubmittedDocument domain model.
+ */
+export function adaptSubmittedDocument(backend: BackendSubmittedDocumentResponse): SubmittedDocument {
+  return {
+    id: backend.id,
+    applicationId: backend.application_id,
+    documentRequestId: backend.document_request_id,
+    originalFilename: backend.original_filename,
+    storedFilename: backend.stored_filename,
+    fileType: backend.file_type,
+    mimeType: backend.mime_type,
+    fileSize: backend.file_size,
+    uploadedBy: backend.uploaded_by,
+    createdAt: backend.created_at,
+  };
+}
+
+/**
+ * Adapts BackendDocumentRequestResponse to frontend DocumentRequest domain model.
+ */
+export function adaptDocumentRequest(backend: BackendDocumentRequestResponse): DocumentRequest {
+  return {
+    id: backend.id,
+    applicationId: backend.application_id,
+    reviewId: backend.review_id,
+    requestedBy: backend.requested_by,
+    documentType: backend.document_type as DocumentType,
+    description: backend.description,
+    allowedFileTypes: backend.allowed_file_types as AllowedFileType[],
+    status: backend.status as DocumentRequestStatus,
+    reviewerNotes: backend.reviewer_notes || null,
+    createdAt: backend.created_at,
+    updatedAt: backend.updated_at,
+    submittedDocument: backend.submitted_document
+      ? adaptSubmittedDocument(backend.submitted_document)
+      : null,
+  };
+}
+
 
 

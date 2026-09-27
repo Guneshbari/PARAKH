@@ -7,6 +7,8 @@ import type {
   CreditAssessmentResult,
   BorrowerProfile,
   UnderwriterReviewOutcome,
+  DocumentRequest,
+  DocumentReviewInput,
   LoginRequest,
   TokenResponse,
   UserResponse,
@@ -33,11 +35,18 @@ import type {
   BackendAuditLog,
   BackendPortfolioAnalytics,
   BackendSectorRiskItem,
+  BackendDocumentRequest,
+  BackendDocumentRequestCreate,
+  BackendDocumentRequestResponse,
+  BackendDocumentSubmissionResponse,
+  BackendSubmittedDocumentResponse,
+  BackendDocumentReviewRequest,
 } from './types';
 import {
   adaptApplication,
   adaptAssessment,
   adaptReviewOutcome,
+  adaptDocumentRequest,
   adaptBorrowerProfile,
   adaptPortfolioAnalytics,
   adaptSectorRisk,
@@ -135,6 +144,11 @@ export class ParakhApiClient {
       ...this.defaultHeaders,
       ...((options?.headers as Record<string, string>) || {}),
     };
+
+    // If body is FormData, let the runtime set multipart boundary automatically
+    if (typeof FormData !== 'undefined' && options?.body instanceof FormData) {
+      delete headers['Content-Type'];
+    }
 
     if (this.token && !headers['Authorization']) {
       headers['Authorization'] = `Bearer ${this.token}`;
@@ -509,6 +523,166 @@ export class ParakhApiClient {
       { method: 'GET' }
     );
   }
+
+  // =========================================================================
+  // DOCUMENT REQUESTS (Phase 1 Foundation)
+  // =========================================================================
+
+  async createDocumentRequest(
+    applicationId: string,
+    data: BackendDocumentRequestCreate
+  ): Promise<BackendDocumentRequestResponse> {
+    const payload = {
+      application_id: applicationId,
+      ...data,
+    };
+    return this.request<BackendDocumentRequestResponse>(
+      `/api/v1/applications/${encodeURIComponent(applicationId)}/document-requests`,
+      {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      }
+    );
+  }
+
+  async getDocumentRequests(applicationId: string): Promise<BackendDocumentRequestResponse[]> {
+    return this.request<BackendDocumentRequestResponse[]>(
+      `/api/v1/applications/${encodeURIComponent(applicationId)}/document-requests`,
+      { method: 'GET' }
+    );
+  }
+
+  async submitDocumentRequest(
+    applicationId: string,
+    requestId: string,
+    file: File | Blob,
+    filename?: string
+  ): Promise<BackendDocumentSubmissionResponse> {
+    const formData = new FormData();
+    if (typeof File !== 'undefined' && file instanceof File) {
+      formData.append('file', file);
+    } else {
+      formData.append('file', file, filename || 'document');
+    }
+
+    return this.request<BackendDocumentSubmissionResponse>(
+      `/api/v1/applications/${encodeURIComponent(applicationId)}/document-requests/${encodeURIComponent(requestId)}/submission`,
+      {
+        method: 'POST',
+        body: formData,
+      }
+    );
+  }
+
+  async getSubmittedDocument(
+    applicationId: string,
+    requestId: string
+  ): Promise<BackendSubmittedDocumentResponse> {
+    return this.request<BackendSubmittedDocumentResponse>(
+      `/api/v1/applications/${encodeURIComponent(applicationId)}/document-requests/${encodeURIComponent(
+        requestId
+      )}/submission`,
+      { method: 'GET' }
+    );
+  }
+
+  async downloadSubmittedDocumentFile(
+    applicationId: string,
+    requestId: string,
+    download = false
+  ): Promise<{ blob: Blob; filename: string }> {
+    const qs = download ? '?download=true' : '';
+    const url = `${this.baseUrl.replace(/\/$/, '')}/api/v1/applications/${encodeURIComponent(
+      applicationId
+    )}/document-requests/${encodeURIComponent(requestId)}/submission/file${qs}`;
+    const headers: Record<string, string> = {};
+    if (this.token) {
+      headers['Authorization'] = `Bearer ${this.token}`;
+    }
+    const response = await fetch(url, { headers });
+    if (!response.ok) {
+      let errData = null;
+      try {
+        errData = await response.json();
+      } catch {}
+      throw ApiError.fromResponse(response.status, errData);
+    }
+    const disposition = response.headers.get('Content-Disposition') || '';
+    let filename = 'document';
+    const match = disposition.match(/filename=["']?([^"';]+)["']?/i);
+    if (match && match[1]) {
+      filename = match[1];
+    }
+    const blob = await response.blob();
+    return { blob, filename };
+  }
+
+  async reviewDocumentRequest(
+    applicationId: string,
+    requestId: string,
+    review: BackendDocumentReviewRequest
+  ): Promise<BackendDocumentRequestResponse> {
+    return this.request<BackendDocumentRequestResponse>(
+      `/api/v1/applications/${encodeURIComponent(applicationId)}/document-requests/${encodeURIComponent(
+        requestId
+      )}/review`,
+      {
+        method: 'POST',
+        body: JSON.stringify(review),
+      }
+    );
+  }
+
+  async reviewDocumentRequestAdapted(
+    applicationId: string,
+    requestId: string,
+    review: DocumentReviewInput
+  ): Promise<DocumentRequest> {
+    const raw = await this.reviewDocumentRequest(applicationId, requestId, {
+      decision: review.decision,
+      notes: review.notes,
+    });
+    return adaptDocumentRequest(raw);
+  }
+
+  async getDocumentRequestsAdapted(applicationId: string): Promise<DocumentRequest[]> {
+    const rawList = await this.getDocumentRequests(applicationId);
+    return rawList.map((r) => adaptDocumentRequest(r));
+  }
+
+  async requestDocumentReplacement(
+    applicationId: string,
+    requestId: string,
+    notes?: string
+  ): Promise<BackendDocumentRequestResponse> {
+    return this.request<BackendDocumentRequestResponse>(
+      `/api/v1/applications/${encodeURIComponent(applicationId)}/document-requests/${encodeURIComponent(
+        requestId
+      )}/replacement`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ notes }),
+      }
+    );
+  }
+
+  async requestDocumentReplacementAdapted(
+    applicationId: string,
+    requestId: string,
+    notes?: string
+  ): Promise<DocumentRequest> {
+    const raw = await this.requestDocumentReplacement(applicationId, requestId, notes);
+    return adaptDocumentRequest(raw);
+  }
+
+  async checkPendingDocumentRequests(applicationId: string): Promise<boolean> {
+    const res = await this.request<{ has_pending: boolean }>(
+      `/api/v1/applications/${encodeURIComponent(applicationId)}/document-requests/pending-check`,
+      { method: 'GET' }
+    );
+    return res.has_pending;
+  }
+
 
   // =========================================================================
   // 8. MODEL VERSIONS

@@ -254,13 +254,91 @@ export interface BackendConsentResponse {
   updated_at: string;
 }
 
+// --- Document Request Transport Models (Phase 1) ---
+
+export type BackendDocumentType =
+  | 'BANK_STATEMENT'
+  | 'INCOME_PROOF'
+  | 'TRANSACTION_STATEMENT'
+  | 'BUSINESS_RECORD'
+  | 'OTHER';
+
+export type BackendAllowedFileType = 'PDF' | 'XLS' | 'XLSX';
+
+export type BackendDocumentRequestStatus =
+  | 'PENDING'
+  | 'SUBMITTED'
+  | 'REJECTED'
+  | 'ACCEPTED';
+
+export interface BackendDocumentRequestNestedCreate {
+  document_type: BackendDocumentType;
+  description: string;
+  allowed_file_types: BackendAllowedFileType[];
+}
+
+export interface BackendDocumentRequestCreate {
+  application_id?: string;
+  review_id?: string | null;
+  document_type: BackendDocumentType;
+  description: string;
+  allowed_file_types: BackendAllowedFileType[];
+}
+
+export interface BackendSubmittedDocumentResponse {
+  id: string;
+  application_id: string;
+  document_request_id: string;
+  original_filename: string;
+  stored_filename: string;
+  file_type: string;
+  mime_type: string;
+  file_size: number;
+  uploaded_by: string;
+  status?: string;
+  created_at: string;
+}
+
+export interface BackendDocumentSubmissionResponse {
+  status: string;
+  request_id: string;
+  document_id: string;
+  document_type: BackendDocumentType;
+  filename: string;
+  file_size: number;
+  submitted_at: string;
+}
+
+export interface BackendDocumentRequestResponse {
+  id: string;
+  application_id: string;
+  review_id?: string | null;
+  requested_by: string;
+  document_type: BackendDocumentType;
+  description: string;
+  allowed_file_types: BackendAllowedFileType[];
+  status: BackendDocumentRequestStatus;
+  reviewer_notes?: string | null;
+  created_at: string;
+  updated_at: string;
+  submitted_document?: BackendSubmittedDocumentResponse | null;
+}
+
+export type BackendDocumentReviewDecision = 'ACCEPT' | 'REJECT';
+
+export interface BackendDocumentReviewRequest {
+  decision: BackendDocumentReviewDecision;
+  notes?: string | null;
+}
+
 // --- Review Transport Models ---
 
 export interface BackendReviewOutcomeCreate {
   application_id?: string;
-  reviewer_id: string;
+  reviewer_id?: string;
   outcome: BackendReviewOutcomeType;
   notes?: string;
+  document_request?: BackendDocumentRequestNestedCreate;
 }
 
 export interface BackendReviewOutcomeResponse {
@@ -269,6 +347,7 @@ export interface BackendReviewOutcomeResponse {
   reviewer_id: string;
   outcome: BackendReviewOutcomeType;
   notes?: string | null;
+  document_requests?: BackendDocumentRequestResponse[] | null;
   created_at: string;
   updated_at: string;
 }
@@ -318,6 +397,7 @@ export type BackendFinancialSignal = BackendFinancialSignalResponse;
 export type BackendConsent = BackendConsentResponse;
 export type BackendUnderwriterReview = BackendReviewOutcomeResponse;
 export type BackendUnderwriterReviewCreate = BackendReviewOutcomeCreate;
+export type BackendDocumentRequest = BackendDocumentRequestResponse;
 export type BackendModelVersion = BackendModelVersionResponse;
 export type BackendAuditLog = BackendAuditLogResponse;
 

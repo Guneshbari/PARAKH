@@ -6,6 +6,7 @@ from app.api.v1.assessments import router as assessments_router
 from app.api.v1.audit import router as audit_router
 from app.api.v1.auth import router as auth_router
 from app.api.v1.consents import router as consents_router
+from app.api.v1.document_requests import router as document_requests_router
 from app.api.v1.financial_signals import router as signals_router
 from app.api.v1.model_versions import router as model_versions_router
 from app.api.v1.reviews import router as reviews_router
@@ -26,5 +27,6 @@ v1_router.include_router(signals_router)
 v1_router.include_router(assessments_router)
 v1_router.include_router(model_versions_router)
 v1_router.include_router(reviews_router)
+v1_router.include_router(document_requests_router)
 v1_router.include_router(audit_router)
 v1_router.include_router(analytics_router, prefix="/analytics")

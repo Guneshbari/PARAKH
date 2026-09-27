@@ -7,6 +7,7 @@ from app.core.audit_events import AuditAction, AuditOutcome
 from app.models.application import Application, ApplicationStatus
 from app.repositories.applicant import ApplicantRepository
 from app.repositories.application import ApplicationRepository
+from app.repositories.document_request import DocumentRequestRepository
 from app.schemas.application import ApplicationCreate, ApplicationUpdate
 from app.services.audit import AuditService
 from app.services.exceptions import (
@@ -56,12 +57,14 @@ class ApplicationService:
         app_repo: Optional[ApplicationRepository] = None,
         applicant_repo: Optional[ApplicantRepository] = None,
         audit_service: Optional[AuditService] = None,
+        doc_repo: Optional[DocumentRequestRepository] = None,
     ) -> None:
         """Initialize ApplicationService with required repositories and audit service."""
         self.db = db
         self.app_repo = app_repo or ApplicationRepository(db=db)
         self.applicant_repo = applicant_repo or ApplicantRepository(db=db)
         self.audit_service = audit_service or AuditService(db=db)
+        self.doc_repo = doc_repo or DocumentRequestRepository(db=db)
 
     def create_application(
         self,
@@ -289,6 +292,12 @@ class ApplicationService:
         old_status = app.status
         self._validate_transition(app.status, new_status)
 
+        if new_status in (ApplicationStatus.COMPLETED, ApplicationStatus.ASSESSED):
+            if self.has_pending_document_requests(app.id):
+                raise InvalidStateTransitionError(
+                    f"Cannot transition application to '{new_status.value}' while document verification requests remain unresolved."
+                )
+
         try:
             updated_app = self.app_repo.update_status(
                 app, new_status, commit=False, db=self.db
@@ -321,6 +330,20 @@ class ApplicationService:
             raise
 
     transition_status = update_status
+
+    def has_pending_document_requests(
+        self,
+        application_id: Union[uuid.UUID, str],
+    ) -> bool:
+        """Determine whether an application has unresolved evidence requests.
+
+        Args:
+            application_id: Application primary key UUID.
+
+        Returns:
+            bool: True if unresolved requests exist, False otherwise.
+        """
+        return self.doc_repo.has_pending_document_requests(application_id, db=self.db)
 
     def _validate_transition(
         self,

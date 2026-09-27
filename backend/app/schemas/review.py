@@ -1,9 +1,13 @@
 """Pydantic schemas for ReviewOutcome entity."""
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field
 from app.models.review import ReviewOutcomeType
+from app.schemas.document_request import (
+    DocumentRequestCreateNested,
+    DocumentRequestResponse,
+)
 
 
 class ReviewOutcomeBase(BaseModel):
@@ -18,6 +22,10 @@ class ReviewOutcomeCreate(ReviewOutcomeBase):
 
     application_id: Optional[UUID] = None
     reviewer_id: Optional[UUID] = None
+    document_request: Optional[DocumentRequestCreateNested] = Field(
+        None,
+        description="Optional structured document request to be created atomically with this review",
+    )
 
 
 class ReviewOutcomeResponse(ReviewOutcomeBase):
@@ -28,5 +36,6 @@ class ReviewOutcomeResponse(ReviewOutcomeBase):
     id: UUID
     application_id: UUID
     reviewer_id: UUID
+    document_requests: Optional[List[DocumentRequestResponse]] = None
     created_at: datetime
     updated_at: datetime

@@ -18,9 +18,11 @@ from app.services.application import ApplicationService
 from app.services.assessment import AssessmentService
 from app.services.audit import AuditService
 from app.services.consent import ConsentService
+from app.services.document_request import DocumentRequestService
 from app.services.financial_signal import FinancialSignalService
 from app.services.model_version import ModelVersionService
 from app.services.review import ReviewService
+from app.services.storage import DocumentStorageService
 from app.services.user import UserService
 
 oauth2_scheme = OAuth2PasswordBearer(
@@ -47,6 +49,8 @@ __all__ = [
     "get_assessment_service",
     "get_model_version_service",
     "get_review_service",
+    "get_document_request_service",
+    "get_document_storage_service",
     "get_audit_service",
 ]
 
@@ -102,6 +106,19 @@ def get_model_version_service(
 def get_review_service(db: Session = Depends(get_db)) -> ReviewService:
     """Dependency providing a ReviewService instance bound to the request database session."""
     return ReviewService(db=db)
+
+
+def get_document_storage_service() -> DocumentStorageService:
+    """Dependency providing a DocumentStorageService instance for file operations."""
+    return DocumentStorageService()
+
+
+def get_document_request_service(
+    db: Session = Depends(get_db),
+    storage_service: DocumentStorageService = Depends(get_document_storage_service),
+) -> DocumentRequestService:
+    """Dependency providing a DocumentRequestService instance bound to the request database session."""
+    return DocumentRequestService(db=db, storage_service=storage_service)
 
 
 def get_audit_service(db: Session = Depends(get_db)) -> AuditService:

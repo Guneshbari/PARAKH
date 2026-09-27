@@ -11,12 +11,14 @@ from app.repositories.assessment import (
 from app.repositories.audit import AuditLogRepository, AuditRepository
 from app.repositories.base import BaseRepository
 from app.repositories.consent import ConsentRepository
+from app.repositories.document_request import DocumentRequestRepository
 from app.repositories.financial_signal import FinancialSignalRepository
 from app.repositories.model_version import ModelVersionRepository
 from app.repositories.review import (
     ReviewOutcomeRepository,
     ReviewRepository,
 )
+from app.repositories.submitted_document import SubmittedDocumentRepository
 from app.repositories.user import UserRepository
 
 __all__ = [
@@ -26,6 +28,8 @@ __all__ = [
     "ApplicantProfileRepository",
     "ApplicationRepository",
     "ConsentRepository",
+    "DocumentRequestRepository",
+    "SubmittedDocumentRepository",
     "FinancialSignalRepository",
     "AssessmentRepository",
     "CreditAssessmentRepository",

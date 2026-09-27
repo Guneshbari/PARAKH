@@ -12,8 +12,10 @@ if TYPE_CHECKING:
     from app.models.assessment import CreditAssessment
     from app.models.audit import AuditLog
     from app.models.consent import Consent
+    from app.models.document_request import DocumentRequest
     from app.models.financial_signal import FinancialSignal
     from app.models.review import ReviewOutcome
+    from app.models.submitted_document import SubmittedDocument
 
 
 class ApplicationStatus(str, enum.Enum):
@@ -82,6 +84,16 @@ class Application(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     )
     review_outcomes: Mapped[List["ReviewOutcome"]] = relationship(
         "ReviewOutcome",
+        back_populates="application",
+        cascade="all, delete-orphan",
+    )
+    document_requests: Mapped[List["DocumentRequest"]] = relationship(
+        "DocumentRequest",
+        back_populates="application",
+        cascade="all, delete-orphan",
+    )
+    submitted_documents: Mapped[List["SubmittedDocument"]] = relationship(
+        "SubmittedDocument",
         back_populates="application",
         cascade="all, delete-orphan",
     )
