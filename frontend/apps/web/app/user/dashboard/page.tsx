@@ -291,7 +291,11 @@ export default function UserDashboardPage() {
                     title="Shock Rebound Speed"
                     value={10}
                     suffix=" Days"
-                    pillLabel={`${Math.round(latestAssessment.volatilityProfile.recoveryRateAfterLowIncome * 100)}% Recovery`}
+                    pillLabel={
+                      latestAssessment.volatilityProfile.recoveryRateAfterLowIncome != null
+                        ? `${Math.round(latestAssessment.volatilityProfile.recoveryRateAfterLowIncome * 100)}% Recovery`
+                        : 'Uncalculated'
+                    }
                     pillVariant="secondary"
                     subtext="Average days to baseline earnings"
                     icon={Zap}
@@ -323,7 +327,11 @@ export default function UserDashboardPage() {
               </div>
 
               <CashflowVolatilityChart
-                recoveryRate={Math.round(latestAssessment.volatilityProfile.recoveryRateAfterLowIncome * 100)}
+                recoveryRate={
+                  latestAssessment.volatilityProfile.recoveryRateAfterLowIncome != null
+                    ? Math.round(latestAssessment.volatilityProfile.recoveryRateAfterLowIncome * 100)
+                    : null
+                }
                 title="Verified UPI & Platform Cashflow Consistency"
               />
             </section>

@@ -135,7 +135,7 @@ class MLModelAdapter(MLModel):
             raise AssessmentEngineError(f"ML inference pipeline error: {exc}") from exc
 
         # 3. Translate PredictionResponse to standard MLModelOutput
-        return self.map_prediction_to_output(prediction_response, app_dict)
+        return self.map_prediction_to_output(prediction_response, app_dict, input_data)
 
     @classmethod
     def transform_input_to_ml_dict(cls, input_data: AssessmentInput) -> Dict[str, Any]:
@@ -394,6 +394,7 @@ class MLModelAdapter(MLModel):
         cls,
         pred: PredictionResponse,
         app_dict: Dict[str, Any],
+        input_data: Optional[AssessmentInput] = None,
     ) -> MLModelOutput:
         """Map PredictionResponse into standard MLModelOutput."""
         # 1. Human-readable key factors list
@@ -442,6 +443,22 @@ class MLModelAdapter(MLModel):
                 "explanation": factor.get("borrower_explanation", ""),
             })
 
+        # Volatility profile for application-specific rebound & recovery analytics (Phase 17)
+        derived = dict(input_data.derived_features or {}) if input_data else {}
+        rec_rate = derived.get("recovery_rate_after_low_income")
+        dips = derived.get("low_income_periods_encountered")
+        recs = derived.get("successful_recovery_cycles")
+
+        volatility_profile = {
+            "recovery_rate_after_low_income": float(rec_rate) if rec_rate is not None else None,
+            "low_income_periods_encountered": int(dips) if dips is not None else 0,
+            "successful_recovery_cycles": int(recs) if recs is not None else 0,
+            "income_volatility_index": float(round(float(app_dict.get("feat_inc_cv_90d", 0.25)), 2)),
+            "income_trend": "volatile_stable" if float(app_dict.get("feat_inc_cv_90d", 0.25)) > 0.4 else "increasing",
+            "income_frequency": "weekly",
+            "repayment_history_rate": int(round(float(app_dict.get("feat_pay_repay_reliability", 0.95)) * 100)),
+        }
+
         structured_explanation = {
             "disclaimer": expl.get("disclaimer", ""),
             "key_protective_factors": protective,
@@ -450,6 +467,7 @@ class MLModelAdapter(MLModel):
             "is_insufficient_evidence": pred.is_insufficient_evidence,
             "missing_signals": pred.missing_or_insufficient_signals,
             "shap_values": shap_items,
+            "volatility_profile": volatility_profile,
         }
 
         # 3. Numeric probabilities and scores

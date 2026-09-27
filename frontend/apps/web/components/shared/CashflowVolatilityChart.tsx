@@ -27,7 +27,7 @@ export interface CashflowDataPoint {
 interface CashflowVolatilityChartProps {
   data?: CashflowDataPoint[];
   title?: string;
-  recoveryRate?: number;
+  recoveryRate?: number | null;
   className?: string;
 }
 
@@ -49,7 +49,7 @@ const defaultData: CashflowDataPoint[] = [
 export function CashflowVolatilityChart({
   data = defaultData,
   title = 'Volatility-Aware Cashflow & Rebound',
-  recoveryRate = 94,
+  recoveryRate,
   className,
 }: CashflowVolatilityChartProps) {
   const { theme } = useTheme();
@@ -73,10 +73,17 @@ export function CashflowVolatilityChart({
           <h3 className="text-base sm:text-lg font-semibold text-foreground tracking-tight">{title}</h3>
         </div>
 
-        <Badge variant="mint" className="text-xs">
-          <ShieldCheck className="size-3" />
-          <span>{recoveryRate}% Rebound Rate</span>
-        </Badge>
+        {recoveryRate != null ? (
+          <Badge variant="mint" className="text-xs">
+            <ShieldCheck className="size-3" />
+            <span>{Math.round(recoveryRate > 1 ? recoveryRate : recoveryRate * 100)}% Rebound Rate</span>
+          </Badge>
+        ) : (
+          <Badge variant="outline" className="text-xs text-foreground-muted">
+            <Activity className="size-3" />
+            <span>Uncalculated (N/A)</span>
+          </Badge>
+        )}
       </div>
 
       {/* Chart Canvas */}

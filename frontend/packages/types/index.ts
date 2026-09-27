@@ -22,7 +22,7 @@ export interface VolatilityProfile {
   incomeFrequency: IncomeFrequency;
   incomeVolatilityIndex: number; // 0.0 - 1.0 (standardized coefficient of variation)
   incomeTrend: IncomeTrend;
-  recoveryRateAfterLowIncome: number; // e.g. 0.94 (94% of low cycles rebound in 10-14 days)
+  recoveryRateAfterLowIncome: number | null; // e.g. 0.94 (94% of low cycles rebound in 10-14 days), or null if uncalculated/no dips
   lowIncomePeriodsEncountered: number; // Dip count over the observation window
   successfulRecoveryCycles: number; // Dips followed by positive rebound
   averageWeeklyInflow: number;

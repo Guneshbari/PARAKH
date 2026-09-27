@@ -85,7 +85,86 @@ def _parse_date(val: Any) -> Optional[date]:
                 return date.fromisoformat(val)
             except ValueError:
                 return None
-    return None
+
+def calculate_application_recovery_cycles(
+    valid_payouts: List[Dict[str, Any]],
+    valid_shifts: List[Dict[str, Any]],
+    median_val: float,
+) -> Tuple[int, int, Optional[float]]:
+    """Calculate application-specific cyclical low-income dip events and successful recovery cycles.
+
+    Evaluates observed cashflow chronologically (from earliest to latest).
+    A cyclical low-income dip occurs when payout drops below 85% of median baseline.
+    A recovery cycle is successful when cashflow returns to >= 85% baseline within 14 days (1-2 cycles).
+    If weekly payouts exhibit zero dips, evaluates chronological daily activity shifts.
+    If no dips were encountered across the observation window, returns (0, 0, None).
+
+    Returns:
+        Tuple of (dips_encountered, recoveries_completed, recovery_rate_after_low_income).
+    """
+    dips_encountered = 0
+    recoveries_completed = 0
+
+    # 1. Weekly payout trough check (chronologically sorted)
+    if valid_payouts and median_val > 0.0:
+        payouts_chrono = sorted(
+            valid_payouts,
+            key=lambda p: _parse_datetime(p.get("payout_timestamp")) or datetime.min.replace(tzinfo=timezone.utc),
+        )
+        payout_amounts_chrono = [float(p.get("net_amount", 0.0)) for p in payouts_chrono]
+        threshold = 0.85 * median_val
+        n = len(payout_amounts_chrono)
+        i = 0
+        while i < n:
+            if payout_amounts_chrono[i] < threshold:
+                dips_encountered += 1
+                recovered = False
+                lookahead = min(n, i + 3)
+                for j in range(i + 1, lookahead):
+                    if payout_amounts_chrono[j] >= threshold:
+                        recovered = True
+                        break
+                if recovered:
+                    recoveries_completed += 1
+                # Advance past consecutive low cycles belonging to this same dip episode
+                while i + 1 < n and payout_amounts_chrono[i + 1] < threshold:
+                    i += 1
+            i += 1
+
+    # 2. Daily shift trough check if weekly payouts showed zero dips
+    if dips_encountered == 0 and valid_shifts:
+        shifts_chrono = sorted(
+            valid_shifts,
+            key=lambda s: _parse_date(s.get("date")) or date.min,
+        )
+        active_shifts = [s for s in shifts_chrono if not s.get("is_unobserved", False)]
+        daily_earnings = [float(s.get("net_earnings", 0.0)) for s in active_shifts]
+        if daily_earnings:
+            daily_median = sorted(daily_earnings)[len(daily_earnings) // 2]
+            if daily_median > 0.0:
+                daily_threshold = 0.85 * daily_median
+                n_days = len(daily_earnings)
+                d = 0
+                while d < n_days:
+                    if daily_earnings[d] < daily_threshold:
+                        dips_encountered += 1
+                        recovered = False
+                        lookahead = min(n_days, d + 15)  # within 14 days
+                        for dj in range(d + 1, lookahead):
+                            if daily_earnings[dj] >= daily_threshold:
+                                recovered = True
+                                break
+                        if recovered:
+                            recoveries_completed += 1
+                        while d + 1 < n_days and daily_earnings[d + 1] < daily_threshold:
+                            d += 1
+                    d += 1
+
+    if dips_encountered == 0:
+        return 0, 0, None
+
+    recovery_rate = round(recoveries_completed / dips_encountered, 4)
+    return dips_encountered, recoveries_completed, recovery_rate
 
 
 class FeaturePipeline(ABC):
@@ -407,6 +486,10 @@ class TelemetryFeaturePipeline(FeaturePipeline):
         )
         feat_rec_max_drawdown = calculate_max_drawdown(payout_amounts)
 
+        dips_count, recs_count, rec_rate = calculate_application_recovery_cycles(
+            valid_payouts, valid_shifts, feat_inc_median_90d
+        )
+
         # 12. Derive Platform Standing & Tenure Features
         feat_ten_years_working = years_working
         feat_ten_platform_rating = platform_rating if platform_rating is not None else 4.50
@@ -525,6 +608,10 @@ class TelemetryFeaturePipeline(FeaturePipeline):
             "feat_int_vol_x_buffer": int_buf,
             "feat_int_trend_x_dti": int_trend,
             "feat_int_resilience_idx": int_res,
+            # Application-specific rebound & recovery metrics (Phase 17)
+            "recovery_rate_after_low_income": rec_rate,
+            "low_income_periods_encountered": dips_count,
+            "successful_recovery_cycles": recs_count,
         }
 
         # 17. Merge non-colliding non-prohibited fields from signal_metadata

@@ -295,7 +295,66 @@ async function runTests() {
   assert.strictEqual(adaptedInsufficient.missingSignals?.[0], 'Observed history below minimum requirement.');
   // Confidence interval must not be inverted
   assert.ok(adaptedInsufficient.volatilityProfile.confidenceInterval[0] <= adaptedInsufficient.volatilityProfile.confidenceInterval[1]);
+  assert.strictEqual(adaptedInsufficient.volatilityProfile.recoveryRateAfterLowIncome, null, 'Must preserve null recovery rate without fallback');
   console.log('   ✓ adaptAssessment (INSUFFICIENT evidence & null score preservation) passed');
+
+  // Application-specific Rebound Rate & Recovery Analytics (Phase 17)
+  const rawWithCustomRecovery: BackendCreditAssessmentResponse = {
+    id: 'asmt-recovery-app',
+    application_id: 'app-recovery-1',
+    model_version_id: 'mv-1',
+    credit_score: 760,
+    score: 760,
+    risk_level: 'LOWER',
+    risk_probability: 0.12,
+    confidence: 0.90,
+    volatility_profile: {
+      recovery_rate_after_low_income: 0.5,
+      low_income_periods_encountered: 4,
+      successful_recovery_cycles: 2,
+      income_frequency: 'weekly',
+      income_volatility_index: 0.28,
+      income_trend: 'volatile_stable',
+      repayment_history_rate: 98,
+    },
+    assessed_at: '2026-01-14T10:00:00Z',
+    created_at: '2026-01-14T10:00:00Z',
+  };
+  const adaptedCustomRecovery = adaptAssessment(rawWithCustomRecovery);
+  assert.strictEqual(adaptedCustomRecovery.volatilityProfile.recoveryRateAfterLowIncome, 0.5, 'Must reflect 0.5 recovery rate');
+  assert.strictEqual(adaptedCustomRecovery.volatilityProfile.lowIncomePeriodsEncountered, 4, 'Must reflect 4 dips');
+  assert.strictEqual(adaptedCustomRecovery.volatilityProfile.successfulRecoveryCycles, 2, 'Must reflect 2 recoveries');
+  assert.strictEqual(adaptedCustomRecovery.volatilityProfile.repaymentHistoryRate, 98);
+  console.log('   ✓ adaptAssessment (Application-specific custom recovery rate) passed');
+
+  const rawWithZeroDips: BackendCreditAssessmentResponse = {
+    id: 'asmt-zero-dips',
+    application_id: 'app-zero-dips-1',
+    model_version_id: 'mv-1',
+    credit_score: 810,
+    score: 810,
+    risk_level: 'LOWER',
+    risk_probability: 0.08,
+    confidence: 0.94,
+    explanation: {
+      volatility_profile: {
+        recovery_rate_after_low_income: null,
+        low_income_periods_encountered: 0,
+        successful_recovery_cycles: 0,
+        income_frequency: 'weekly',
+        income_volatility_index: 0.15,
+        income_trend: 'increasing',
+        repayment_history_rate: 99,
+      },
+    },
+    assessed_at: '2026-01-14T11:00:00Z',
+    created_at: '2026-01-14T11:00:00Z',
+  };
+  const adaptedZeroDips = adaptAssessment(rawWithZeroDips);
+  assert.strictEqual(adaptedZeroDips.volatilityProfile.recoveryRateAfterLowIncome, null, 'Must preserve null recovery rate for 0 dips');
+  assert.strictEqual(adaptedZeroDips.volatilityProfile.lowIncomePeriodsEncountered, 0);
+  assert.strictEqual(adaptedZeroDips.volatilityProfile.successfulRecoveryCycles, 0);
+  console.log('   ✓ adaptAssessment (0 dips uncalculated recovery rate) passed');
 
   // Underwriter Review Adapter
   const rawReview: BackendReviewOutcomeResponse = {

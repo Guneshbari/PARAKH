@@ -52,6 +52,10 @@ class CreditAssessmentBase(BaseModel):
         None,
         description="Structured explanation metadata (TreeSHAP factors, missing signals, diagnostics)",
     )
+    volatility_profile: Optional[Dict[str, Any]] = Field(
+        None,
+        description="Application-specific cashflow volatility and shock rebound recovery profile",
+    )
     assessment_status: str = Field(
         default="COMPLETED",
         description="Status of assessment generation process",
@@ -78,6 +82,10 @@ class CreditAssessmentResponse(CreditAssessmentBase):
     model_version: Optional[str] = Field(None, description="Model semantic version string")
     key_factors: List[str] = Field(default_factory=list, description="Primary driving indicators")
     explanation: Optional[Dict[str, Any]] = Field(default=None, description="Structured explanation metadata")
+    volatility_profile: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Application-specific cashflow volatility and shock rebound recovery profile",
+    )
     assessed_at: datetime
     created_at: datetime
 
@@ -87,6 +95,10 @@ class CreditAssessmentResponse(CreditAssessmentBase):
         if isinstance(data, dict):
             if "score" not in data or data["score"] is None:
                 data["score"] = data.get("credit_score")
+            if "volatility_profile" not in data or data["volatility_profile"] is None:
+                raw_expl = data.get("explanation")
+                if isinstance(raw_expl, dict) and "volatility_profile" in raw_expl:
+                    data["volatility_profile"] = raw_expl["volatility_profile"]
             return data
 
         mv_rel = getattr(data, "model_version", None)
@@ -105,6 +117,10 @@ class CreditAssessmentResponse(CreditAssessmentBase):
         raw_explanation = getattr(data, "_transient_explanation", None)
         if raw_explanation is None:
             raw_explanation = getattr(data, "explanation", None)
+
+        raw_volatility_profile = getattr(data, "volatility_profile", None)
+        if raw_volatility_profile is None and isinstance(raw_explanation, dict):
+            raw_volatility_profile = raw_explanation.get("volatility_profile")
 
         raw_key_factors = getattr(data, "_transient_key_factors", None) or getattr(data, "key_factors", None)
         if not raw_key_factors and isinstance(raw_explanation, dict):
@@ -153,6 +169,7 @@ class CreditAssessmentResponse(CreditAssessmentBase):
             "model_version": mv_version_str,
             "key_factors": raw_key_factors,
             "explanation": raw_explanation,
+            "volatility_profile": raw_volatility_profile,
             "assessed_at": getattr(data, "assessed_at", None),
             "created_at": getattr(data, "created_at", None),
         }

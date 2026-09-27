@@ -289,22 +289,54 @@ export function adaptAssessment(
   });
 
   // Extract or synthesize VolatilityProfile safely from available metrics
+  const backendVolProfile =
+    backendAssessment.volatility_profile || explanation.volatility_profile || {};
+
   const stability =
     backendAssessment.income_stability != null ? Number(backendAssessment.income_stability) : 0.85;
-  const volatilityIndex = Math.max(0, Math.min(1, 1 - stability));
+  const volatilityIndex =
+    backendVolProfile.income_volatility_index != null
+      ? Number(backendVolProfile.income_volatility_index)
+      : Math.max(0, Math.min(1, 1 - stability));
   const repaymentHistoryRate =
-    backendAssessment.repayment_reliability != null
+    backendVolProfile.repayment_history_rate != null
+      ? Number(backendVolProfile.repayment_history_rate)
+      : backendAssessment.repayment_reliability != null
       ? Math.round(Number(backendAssessment.repayment_reliability) * 100)
       : 95;
 
+  const recoveryRateRaw =
+    backendVolProfile.recovery_rate_after_low_income !== undefined
+      ? backendVolProfile.recovery_rate_after_low_income
+      : backendVolProfile.recoveryRateAfterLowIncome !== undefined
+      ? backendVolProfile.recoveryRateAfterLowIncome
+      : null;
+
+  const recoveryRateAfterLowIncome =
+    recoveryRateRaw !== null && recoveryRateRaw !== undefined
+      ? Number(recoveryRateRaw)
+      : null;
+
+  const lowIncomePeriodsEncountered = Number(
+    backendVolProfile.low_income_periods_encountered ??
+    backendVolProfile.lowIncomePeriodsEncountered ??
+    0
+  );
+
+  const successfulRecoveryCycles = Number(
+    backendVolProfile.successful_recovery_cycles ??
+    backendVolProfile.successfulRecoveryCycles ??
+    0
+  );
+
   const volatilityProfile: VolatilityProfile = {
-    incomeFrequency: 'weekly',
+    incomeFrequency: backendVolProfile.income_frequency || 'weekly',
     incomeVolatilityIndex: Number(volatilityIndex.toFixed(2)),
-    incomeTrend: volatilityIndex > 0.4 ? 'volatile_stable' : 'increasing',
-    recoveryRateAfterLowIncome: 0.94,
-    lowIncomePeriodsEncountered: 2,
-    successfulRecoveryCycles: 2,
-    averageWeeklyInflow: 8400,
+    incomeTrend: backendVolProfile.income_trend || (volatilityIndex > 0.4 ? 'volatile_stable' : 'increasing'),
+    recoveryRateAfterLowIncome,
+    lowIncomePeriodsEncountered,
+    successfulRecoveryCycles,
+    averageWeeklyInflow: backendVolProfile.average_weekly_inflow ?? 8400,
     gigPlatformEarnings: [
       {
         platformName: 'Active Delivery Partner',

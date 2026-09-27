@@ -388,7 +388,11 @@ export default function CreditAssessmentResultPage({ params }: ResultPageProps) 
 
           <CashflowVolatilityChart
             data={cashflowSeries || undefined}
-            recoveryRate={Math.round(assessment.volatilityProfile.recoveryRateAfterLowIncome * 100)}
+            recoveryRate={
+              assessment.volatilityProfile.recoveryRateAfterLowIncome != null
+                ? Math.round(assessment.volatilityProfile.recoveryRateAfterLowIncome * 100)
+                : null
+            }
             title="Verified Inflow Rhythm & Rebound Curve"
           />
         </section>

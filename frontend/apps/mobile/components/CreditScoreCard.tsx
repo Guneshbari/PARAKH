@@ -71,7 +71,9 @@ export function CreditScoreCard({ assessment, onPress }: MobileCreditScoreCardPr
             </Text>
           </View>
           <Text style={[styles.metricValue, { color: colors.textPrimary }]}>
-            {Math.round((assessment.volatilityProfile?.recoveryRateAfterLowIncome ?? 0.94) * 100)}%
+            {assessment.volatilityProfile?.recoveryRateAfterLowIncome != null
+              ? `${Math.round(assessment.volatilityProfile.recoveryRateAfterLowIncome * 100)}%`
+              : 'N/A'}
           </Text>
         </View>
       </View>

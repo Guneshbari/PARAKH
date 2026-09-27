@@ -170,6 +170,7 @@ export interface BackendCreditAssessmentResponse {
   model_version?: string | null;
   key_factors?: string[];
   explanation?: Record<string, any>;
+  volatility_profile?: Record<string, any> | null;
   assessed_at: string;
   created_at: string;
 }
