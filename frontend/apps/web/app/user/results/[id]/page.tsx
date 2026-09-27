@@ -2,6 +2,7 @@
 
 import React, { use, useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   Sparkles,
   ArrowRight,
@@ -24,7 +25,7 @@ import { PageTransition } from '@/components/motion/PageTransition';
 import { CreditScoreCard } from '@/components/shared/CreditScoreCard';
 import { AIInsightCard } from '@/components/shared/AIInsightCard';
 import { FeatureContributionCard } from '@/components/shared/FeatureContributionCard';
-import { CashflowVolatilityChart } from '@/components/shared/CashflowVolatilityChart';
+import { CashflowVolatilityChart, type CashflowDataPoint } from '@/components/shared/CashflowVolatilityChart';
 import {
   api,
   adaptAssessment,
@@ -39,12 +40,21 @@ interface ResultPageProps {
 
 export default function CreditAssessmentResultPage({ params }: ResultPageProps) {
   const { id } = use(params);
+  const router = useRouter();
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [assessment, setAssessment] = useState<CreditAssessmentResult | null>(null);
+  const [cashflowSeries, setCashflowSeries] = useState<CashflowDataPoint[] | null>(null);
+
+  useEffect(() => {
+    if (id === 'demo') {
+      router.replace('/user/results');
+    }
+  }, [id, router]);
 
   const fetchAssessment = useCallback(async () => {
+    if (id === 'demo') return;
     setIsLoading(true);
     setError(null);
 
@@ -95,6 +105,27 @@ export default function CreditAssessmentResultPage({ params }: ResultPageProps) 
 
       const adapted = adaptAssessment(rawAssessment);
       setAssessment(adapted);
+
+      // 3. Fetch real telemetry series if available to populate verified inflow rhythm curve
+      try {
+        const appId = rawAssessment.application_id || id;
+        const signals = await api.getFinancialSignals(appId);
+        if (signals && signals.length > 0) {
+          const latestSig = signals[signals.length - 1];
+          const ts = latestSig.telemetry_series;
+          if (ts && Array.isArray(ts.weekly_payouts) && ts.weekly_payouts.length > 0) {
+            const weeklyObligation = Math.round(Number(latestSig.existing_obligation || 0) / 4);
+            const pts: CashflowDataPoint[] = ts.weekly_payouts.map((p: any, idx: number) => ({
+              week: `W${p.cycle_index || idx + 1}`,
+              inflow: Number(p.net_amount || 0),
+              obligations: weeklyObligation,
+            }));
+            setCashflowSeries(pts);
+          }
+        }
+      } catch {
+        // Non-blocking for assessment dossier
+      }
     } catch (err: unknown) {
       const msg = err instanceof ApiError ? err.userMessage : 'Failed to retrieve assessment dossier.';
       setError(msg);
@@ -346,7 +377,7 @@ export default function CreditAssessmentResultPage({ params }: ResultPageProps) 
       </section>
 
       {/* 6. CASHFLOW VOLATILITY TRACKING CHART */}
-      {assessment.volatilityProfile && (
+      {!assessment.isInsufficientEvidence && assessment.volatilityProfile && (
         <section className="space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-foreground-secondary">
@@ -356,9 +387,19 @@ export default function CreditAssessmentResultPage({ params }: ResultPageProps) 
           </div>
 
           <CashflowVolatilityChart
+            data={cashflowSeries || undefined}
             recoveryRate={Math.round(assessment.volatilityProfile.recoveryRateAfterLowIncome * 100)}
             title="Verified Inflow Rhythm & Rebound Curve"
           />
+        </section>
+      )}
+      {assessment.isInsufficientEvidence && (
+        <section className="p-6 rounded-2xl bg-surface border border-border text-center space-y-2">
+          <TrendingUp className="size-6 text-foreground-secondary mx-auto" />
+          <h3 className="text-sm font-semibold text-foreground">Cashflow Rhythm Curve Unavailable</h3>
+          <p className="text-xs sm:text-sm text-foreground-secondary max-w-md mx-auto">
+            Continuous cashflow and recovery trajectory tracking requires at least 30 days of observed platform inflow telemetry.
+          </p>
         </section>
       )}
 

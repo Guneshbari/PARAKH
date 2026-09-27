@@ -19,7 +19,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { PageTransition } from '@/components/motion/PageTransition';
-import { canonicalDemoData } from '@/lib/demo/canonicalDemoData';
 import { useAuth } from '@/components/auth/AuthContext';
 import { api } from '@parakh/api';
 
@@ -28,7 +27,7 @@ export default function AdminProfilePage() {
   const [alertQueue, setAlertQueue] = useState(true);
   const [alertMonsoon, setAlertMonsoon] = useState(true);
   const [alertFairness, setAlertFairness] = useState(true);
-  const [completedReviewsCount, setCompletedReviewsCount] = useState<number>(218);
+  const [completedReviewsCount, setCompletedReviewsCount] = useState<number>(0);
 
   useEffect(() => {
     let isMounted = true;
@@ -251,10 +250,10 @@ export default function AdminProfilePage() {
           <div className="flex items-start justify-between gap-4 p-3.5 rounded-2xl bg-surface-highlight/30 border border-border">
             <div className="space-y-0.5">
               <span className="text-sm font-semibold text-foreground block">
-                {canonicalDemoData.alerts.operational[0].title}
+                High Volatility Surge Queue
               </span>
               <p className="text-xs sm:text-sm text-foreground-secondary">
-                {canonicalDemoData.alerts.operational[0].description}
+                Triggered when an application exhibits an income coefficient of variation above 0.35 requiring discretionary risk evaluation.
               </p>
             </div>
             <button
@@ -275,10 +274,10 @@ export default function AdminProfilePage() {
           <div className="flex items-start justify-between gap-4 p-3.5 rounded-2xl bg-surface-highlight/30 border border-border">
             <div className="space-y-0.5">
               <span className="text-sm font-semibold text-foreground block">
-                {canonicalDemoData.alerts.operational[1].title}
+                Monsoon Disruption Escrow Triggers
               </span>
               <p className="text-xs sm:text-sm text-foreground-secondary">
-                {canonicalDemoData.alerts.operational[1].description}
+                Special alerts during regional seasonal downturns to verify cashflow rebound against historical norms.
               </p>
             </div>
             <button
@@ -299,10 +298,10 @@ export default function AdminProfilePage() {
           <div className="flex items-start justify-between gap-4 p-3.5 rounded-2xl bg-surface-highlight/30 border border-border">
             <div className="space-y-0.5">
               <span className="text-sm font-semibold text-foreground block">
-                {canonicalDemoData.alerts.operational[2].title}
+                Algorithmic Demographic Parity Drift Alerts
               </span>
               <p className="text-xs sm:text-sm text-foreground-secondary">
-                {canonicalDemoData.alerts.operational[2].description}
+                Automatic escalation if Fairlearn demographic parity ratio falls below 0.80 across any gig cohort.
               </p>
             </div>
             <button

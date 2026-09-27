@@ -37,40 +37,63 @@ export function Sidebar({ portal }: SidebarProps) {
   const effectivePortal = userRole === 'APPLICANT' ? 'user' : userRole === 'REVIEWER' ? 'admin' : portal;
 
   const [pendingCount, setPendingCount] = useState<number | null>(null);
+  const [latestAppId, setLatestAppId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (effectivePortal !== 'admin') return;
     let isMounted = true;
 
-    const fetchPendingCount = async () => {
-      try {
-        const rawApps = await api.getApplications();
-        if (isMounted && rawApps) {
-          const pending = rawApps.filter(
-            (app) =>
-              app.status === 'MANUAL_REVIEW' ||
-              app.status === 'UNDER_REVIEW' ||
-              app.status === 'SUBMITTED'
-          ).length;
-          setPendingCount(pending);
+    if (effectivePortal === 'admin') {
+      const fetchPendingCount = async () => {
+        try {
+          const rawApps = await api.getApplications();
+          if (isMounted && rawApps) {
+            const pending = rawApps.filter(
+              (app) =>
+                app.status === 'MANUAL_REVIEW' ||
+                app.status === 'UNDER_REVIEW' ||
+                app.status === 'SUBMITTED'
+            ).length;
+            setPendingCount(pending);
+          }
+        } catch (err) {
+          // Non-blocking for navigation rail
+          console.warn('Sidebar failed to fetch applications count:', err);
         }
-      } catch (err) {
-        // Non-blocking for navigation rail
-        console.warn('Sidebar failed to fetch applications count:', err);
-      }
-    };
+      };
+      fetchPendingCount();
+    } else if (effectivePortal === 'user' && user?.id) {
+      const fetchLatestApp = async () => {
+        try {
+          const profile = await api.getApplicantByUserId(user.id);
+          if (!isMounted || !profile) return;
+          const apps = await api.getApplicationsByApplicant(profile.id);
+          if (!isMounted || !apps || apps.length === 0) return;
+          const sorted = [...apps].sort(
+            (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          );
+          setLatestAppId(sorted[0].id);
+        } catch (err) {
+          // Non-blocking for navigation rail
+          console.warn('Sidebar failed to resolve latest application:', err);
+        }
+      };
+      fetchLatestApp();
+    }
 
-    fetchPendingCount();
     return () => {
       isMounted = false;
     };
-  }, [effectivePortal]);
+  }, [effectivePortal, user?.id]);
 
   const userLinks: NavLinkItem[] = [
     { href: '/user/dashboard', label: 'Applicant Dashboard', icon: Home },
     { href: '/user/applications', label: 'My Applications', icon: FileText },
     { href: '/user/applications/new', label: 'New Application', icon: PlusCircle, highlight: true },
-    { href: '/user/results/demo', label: 'Assessment Report', icon: BarChart3 },
+    {
+      href: latestAppId ? `/user/results/${latestAppId}` : '/user/results',
+      label: 'Assessment Report',
+      icon: BarChart3,
+    },
     { href: '/user/profile', label: 'Applicant Profile', icon: User },
   ];
 
@@ -101,7 +124,9 @@ export function Sidebar({ portal }: SidebarProps) {
 
         <nav className="space-y-1.5">
           {links.map((link) => {
-            const isActive = pathname === link.href;
+            const isActive =
+              pathname === link.href ||
+              (link.href.includes('/user/results') && pathname.startsWith('/user/results'));
             const Icon = link.icon;
 
             return (

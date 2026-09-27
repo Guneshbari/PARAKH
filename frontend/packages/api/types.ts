@@ -189,6 +189,9 @@ export interface BackendFinancialSignalCreate {
   platform_rating?: number | string;
   repayment_reliability?: number | string;
   signal_metadata?: Record<string, any>;
+  telemetry_series?: Record<string, any>;
+  measurement_period_start?: string;
+  measurement_period_end?: string;
   application_id?: string;
   applicant_profile_id?: string;
 
@@ -218,6 +221,9 @@ export interface BackendFinancialSignalResponse {
   platform_rating?: number | string | null;
   repayment_reliability?: number | string | null;
   signal_metadata?: Record<string, any>;
+  telemetry_series?: Record<string, any> | null;
+  measurement_period_start?: string | null;
+  measurement_period_end?: string | null;
   created_at: string;
 
   // Legacy/alias fields for compatibility

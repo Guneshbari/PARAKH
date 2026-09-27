@@ -23,15 +23,15 @@ const APPLICANT_NOTIFICATIONS: NotificationItem[] = [
   {
     id: 'notif-app-1',
     title: 'PARAKH Assessment Ready',
-    message: 'Your volatility-weighted credit score of 742 has been calculated.',
+    message: 'Your volatility-weighted credit evaluation has been calculated.',
     time: '10m ago',
     unread: true,
-    link: '/user/results/demo',
+    link: '/user/results',
   },
   {
     id: 'notif-app-2',
     title: 'Cashflow Data Synced',
-    message: 'Swiggy and Urban Company partner cashflows verified successfully.',
+    message: 'Partner cashflows verified successfully under statutory consent.',
     time: '2h ago',
     unread: true,
     link: '/user/profile',
@@ -39,7 +39,7 @@ const APPLICANT_NOTIFICATIONS: NotificationItem[] = [
   {
     id: 'notif-app-3',
     title: 'Application Active',
-    message: 'Application APP-2024-001 is awaiting discretionary institutional review.',
+    message: 'Alternative credit application is active in verified evaluation queue.',
     time: '1d ago',
     unread: false,
     link: '/user/applications',
@@ -50,7 +50,7 @@ const REVIEWER_NOTIFICATIONS: NotificationItem[] = [
   {
     id: 'notif-rev-1',
     title: 'New Application in Queue',
-    message: 'Arjun Verma (Score 742, Lower Est. Risk) requires review.',
+    message: 'New application registered for underwriter review.',
     time: '5m ago',
     unread: true,
     link: '/admin/applications',
@@ -58,7 +58,7 @@ const REVIEWER_NOTIFICATIONS: NotificationItem[] = [
   {
     id: 'notif-rev-2',
     title: 'Model Governance Audit',
-    message: 'Model version 2.4-vol-tree passed Fairlearn demographic parity.',
+    message: 'Model version 1.0.0 active with Fairlearn diagnostic parity.',
     time: '1h ago',
     unread: true,
     link: '/admin/model-insights',

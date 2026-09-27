@@ -212,7 +212,7 @@ export default function UserDashboardPage() {
             </Button>
           </Link>
           {latestAssessment && (
-            <Link href={`/user/results/${latestAssessment.id}`}>
+            <Link href={`/user/results/${applications[0]?.id || latestAssessment.applicantId || latestAssessment.id}`}>
               <Button variant="secondary" className="gap-1.5 text-xs sm:text-sm rounded-full cursor-pointer">
                 <span>Full Report</span>
                 <ArrowRight className="size-3.5" />
