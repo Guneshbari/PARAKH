@@ -170,6 +170,7 @@ export interface BackendCreditAssessmentResponse {
   model_version?: string | null;
   key_factors?: string[];
   explanation?: Record<string, any>;
+  volatility_profile?: Record<string, any> | null;
   assessed_at: string;
   created_at: string;
 }
@@ -189,6 +190,9 @@ export interface BackendFinancialSignalCreate {
   platform_rating?: number | string;
   repayment_reliability?: number | string;
   signal_metadata?: Record<string, any>;
+  telemetry_series?: Record<string, any>;
+  measurement_period_start?: string;
+  measurement_period_end?: string;
   application_id?: string;
   applicant_profile_id?: string;
 
@@ -218,6 +222,9 @@ export interface BackendFinancialSignalResponse {
   platform_rating?: number | string | null;
   repayment_reliability?: number | string | null;
   signal_metadata?: Record<string, any>;
+  telemetry_series?: Record<string, any> | null;
+  measurement_period_start?: string | null;
+  measurement_period_end?: string | null;
   created_at: string;
 
   // Legacy/alias fields for compatibility
@@ -252,6 +259,32 @@ export interface BackendConsentResponse {
   revoked_at?: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface BackendConsentPreferenceItem {
+  key: string;
+  granted: boolean;
+  consented_at?: string | null;
+  revoked_at?: string | null;
+  updated_at?: string | null;
+}
+
+export interface BackendConsentPreferences {
+  user_id: string;
+  consent_benchmark: boolean;
+  consent_realtime: boolean;
+  consent_alerts: boolean;
+  preferences?: BackendConsentPreferenceItem[];
+  updated_at?: string | null;
+}
+
+export interface BackendConsentPreferencesUpdate {
+  consent_benchmark?: boolean;
+  consent_realtime?: boolean;
+  consent_alerts?: boolean;
+  consentBenchmark?: boolean;
+  consentRealtime?: boolean;
+  consentAlerts?: boolean;
 }
 
 // --- Review Transport Models ---
@@ -294,19 +327,59 @@ export interface BackendModelVersionResponse {
   updated_at: string;
 }
 
+export interface BackendFairnessAuditRecord {
+  y_true: number;
+  y_prob: number;
+  subgroup: string;
+}
+
+export interface BackendFairnessAuditRequest {
+  subgroup_field?: string;
+  threshold?: number;
+  records?: BackendFairnessAuditRecord[];
+}
+
+export interface BackendSubgroupFairnessMetrics {
+  subgroup_name: string;
+  sample_count: number;
+  positive_actual_count: number;
+  negative_actual_count: number;
+  empirical_default_rate: number;
+  favorable_prediction_rate: number;
+  true_positive_rate?: number | null;
+  false_positive_rate?: number | null;
+  precision?: number | null;
+}
+
+export interface BackendFairnessAuditResponse {
+  model_version_id: string;
+  model_name: string;
+  version: string;
+  evaluation_timestamp: string;
+  subgroup_field: string;
+  threshold: number;
+  sample_count: number;
+  subgroups: Record<string, BackendSubgroupFairnessMetrics>;
+  demographic_parity_ratio?: number | null;
+  equal_opportunity_difference?: number | null;
+  limitations_disclaimer: string;
+  audit_notes: string[];
+}
+
 // --- Audit Log Transport Models ---
 
 export interface BackendAuditLogResponse {
   id: string;
-  timestamp: string;
+  created_at?: string;
+  timestamp?: string;
   action: string;
   entity_type: string;
   entity_id?: string | null;
   user_id?: string | null;
   application_id?: string | null;
   actor_role?: string | null;
-  outcome: string;
-  metadata?: Record<string, any>;
+  outcome?: string | null;
+  metadata?: Record<string, any> | null;
 }
 
 // Convenience Type Aliases
@@ -363,3 +436,52 @@ export interface BackendPortfolioAnalytics {
   sector_risk: BackendSectorRiskItem[];
 }
 
+export interface PortfolioAnalyticsQueryParams {
+  start_date?: string;
+  end_date?: string;
+}
+
+// --- Operational Alert Transport Models ---
+
+export type BackendOperationalAlertStatus = 'OPEN' | 'ACKNOWLEDGED' | 'RESOLVED';
+export type BackendOperationalAlertSeverity = 'INFO' | 'WARNING' | 'CRITICAL';
+export type BackendOperationalAlertType =
+  | 'INSUFFICIENT_DATA_REVIEW'
+  | 'ASSESSMENT_FAILURE'
+  | 'CONSENT_BLOCKED'
+  | 'SYSTEM_HEALTH';
+
+export interface BackendOperationalAlertResponse {
+  id: string;
+  alert_type: BackendOperationalAlertType;
+  severity: BackendOperationalAlertSeverity;
+  title: string;
+  message: string;
+  status: BackendOperationalAlertStatus;
+  application_id?: string | null;
+  assessment_id?: string | null;
+  alert_metadata?: Record<string, any> | null;
+  created_at: string;
+  resolved_at?: string | null;
+}
+
+export type BackendOperationalAlert = BackendOperationalAlertResponse;
+
+// --- P2-10: Global SHAP Feature Importance Transport Models ---
+
+export interface BackendGlobalSHAPFeatureItem {
+  feature_name: string;
+  mean_abs_shap: number;
+  mean_shap: number;
+  rank: number;
+}
+
+export interface BackendGlobalSHAPResponse {
+  model_version_id: string;
+  model_version: string;
+  model_name: string;
+  evaluated_at: string;
+  sample_count: number;
+  dataset_source: string;
+  features: BackendGlobalSHAPFeatureItem[];
+}

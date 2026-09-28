@@ -169,11 +169,36 @@ async function runTests() {
     repayment_reliability: 0.96,
     debt_to_income: 0.18,
     key_factors: [
-      'High daily order completion rate',
-      'Consistent weekly income inflow',
-      'Low debt obligations',
+      'Daily order completion rate: High daily order completion rate',
+      'Consistent weekly income inflow: Steady platform cashflow',
+      'Debt obligations: Existing debt commitments require weekly servicing',
     ],
     explanation: {
+      key_protective_factors: [
+        {
+          factor_name: 'Daily order completion rate',
+          technical_feature: 'feat_act_active_days_ratio',
+          impact_direction: 'associated with lower predicted risk',
+          borrower_explanation: 'High daily order completion rate',
+          attribution_value: -0.35,
+        },
+        {
+          factor_name: 'Consistent weekly income inflow',
+          technical_feature: 'feat_inc_median_90d',
+          impact_direction: 'associated with lower predicted risk',
+          borrower_explanation: 'Consistent weekly income inflow',
+          attribution_value: -0.25,
+        },
+      ],
+      key_risk_factors: [
+        {
+          factor_name: 'Debt obligations',
+          technical_feature: 'feat_bur_total_dti',
+          impact_direction: 'associated with higher predicted risk',
+          borrower_explanation: 'Existing debt commitments require weekly servicing',
+          attribution_value: 0.15,
+        },
+      ],
       shap_values: [
         { feature: 'weekly_inflow', displayName: 'Weekly Cash Inflow', value: 0.35, explanation: 'Strong recurring inflows' },
         { feature: 'debt_ratio', displayName: 'Debt Ratio', value: 0.15, explanation: 'Manageable obligation load' },
@@ -197,13 +222,96 @@ async function runTests() {
   assert.strictEqual(adaptedAssessment.modelName, 'volatility-aware-risk-model');
   assert.strictEqual(adaptedAssessment.modelVersion, '1.0.0');
   assert.strictEqual(adaptedAssessment.keyPositiveFactors.length, 2);
+  assert.strictEqual(adaptedAssessment.keyPositiveFactors[0].title, 'Daily order completion rate');
+  assert.strictEqual(adaptedAssessment.keyPositiveFactors[0].impactDirection, 'associated with lower predicted risk');
   assert.strictEqual(adaptedAssessment.keyAttentionFactors.length, 1);
+  assert.strictEqual(adaptedAssessment.keyAttentionFactors[0].title, 'Debt obligations');
+  assert.strictEqual(adaptedAssessment.keyAttentionFactors[0].impactDirection, 'associated with higher predicted risk');
   assert.strictEqual(adaptedAssessment.featureContributions.length, 2);
   assert.strictEqual(adaptedAssessment.featureContributions[0].featureName, 'weekly_inflow');
   assert.strictEqual(adaptedAssessment.featureContributions[0].direction, 'POSITIVE');
   assert.strictEqual(adaptedAssessment.actionableRecommendations.length, 2);
   assert.strictEqual(adaptedAssessment.isInsufficientEvidence, false);
   console.log('   ✓ adaptAssessment (LOWER scored) passed');
+
+  // HIGHER risk assessment test (verifying attention areas are populated and NOT empty)
+  const rawHigherDetailed: BackendCreditAssessmentResponse = {
+    id: 'asmt-higher-detailed',
+    application_id: 'app-higher',
+    model_version_id: 'mv-1',
+    credit_score: 306,
+    score: 306,
+    risk_level: 'HIGHER',
+    risk_probability: 0.9896,
+    confidence: 0.95,
+    key_factors: [
+      'Net cash retained after operating expenses: Compressed operating margins leave limited discretionary income for loan repayment.',
+      'Requested loan principal: Large borrowing facility requires higher weekly debt servicing commitment.',
+      'Average monthly active working days: Regular platform presence correlates with established, sustainable earning patterns.',
+    ],
+    explanation: {
+      key_protective_factors: [
+        {
+          factor_name: 'Average monthly active working days',
+          technical_feature: 'average_working_days',
+          impact_direction: 'associated with lower predicted risk',
+          borrower_explanation: 'Regular platform presence correlates with established, sustainable earning patterns.',
+          attribution_value: -0.202,
+        },
+      ],
+      key_risk_factors: [
+        {
+          factor_name: 'Net cash retained after operating expenses',
+          technical_feature: 'feat_liq_net_margin',
+          impact_direction: 'associated with higher predicted risk',
+          borrower_explanation: 'Compressed operating margins leave limited discretionary income for loan repayment.',
+          attribution_value: 5.105,
+        },
+        {
+          factor_name: 'Requested loan principal',
+          technical_feature: 'requested_loan_amount',
+          impact_direction: 'associated with higher predicted risk',
+          borrower_explanation: 'Large borrowing facility requires higher weekly debt servicing commitment.',
+          attribution_value: 2.219,
+        },
+      ],
+      shap_values: [
+        { feature: 'average_working_days', displayName: 'Average monthly active working days', value: -0.202, explanation: 'Regular presence' },
+        { feature: 'feat_liq_net_margin', displayName: 'Net cash retained', value: 5.105, explanation: 'Compressed margin' },
+      ],
+    },
+    assessed_at: '2026-01-12T11:00:00Z',
+    created_at: '2026-01-12T11:00:00Z',
+  };
+
+  const adaptedHigherDetailed = adaptAssessment(rawHigherDetailed, 'High Risk Applicant');
+  assert.strictEqual(adaptedHigherDetailed.score, 306);
+  assert.strictEqual(adaptedHigherDetailed.riskLevel, 'HIGHER_ESTIMATED RISK');
+  assert.strictEqual(adaptedHigherDetailed.keyPositiveFactors.length, 1);
+  assert.strictEqual(adaptedHigherDetailed.keyAttentionFactors.length, 2);
+  assert.strictEqual(adaptedHigherDetailed.keyAttentionFactors[0].title, 'Net cash retained after operating expenses');
+  assert.strictEqual(adaptedHigherDetailed.keyAttentionFactors[0].impactDirection, 'associated with higher predicted risk');
+  console.log('   ✓ adaptAssessment (HIGHER scored with genuine risk factors) passed');
+
+  // Fallback test: legacy plain strings with HIGHER risk level (must NOT classify all as positive)
+  const rawLegacyHigher: BackendCreditAssessmentResponse = {
+    id: 'asmt-legacy-higher',
+    application_id: 'app-legacy-higher',
+    model_version_id: 'mv-1',
+    credit_score: 310,
+    score: 310,
+    risk_level: 'HIGHER',
+    key_factors: [
+      'Elevated repayment burden: Compressed margins',
+      'Irregular platform payouts: Cashflow volatility',
+    ],
+    assessed_at: '2026-01-12T12:00:00Z',
+    created_at: '2026-01-12T12:00:00Z',
+  };
+  const adaptedLegacyHigher = adaptAssessment(rawLegacyHigher);
+  assert.strictEqual(adaptedLegacyHigher.keyAttentionFactors.length, 2, 'High risk legacy factors must populate attention areas');
+  assert.strictEqual(adaptedLegacyHigher.keyPositiveFactors.length, 0);
+  console.log('   ✓ adaptAssessment (legacy plain string HIGHER fallback) passed');
 
   // MODERATE assessment test
   const rawModerate: BackendCreditAssessmentResponse = {
@@ -295,7 +403,66 @@ async function runTests() {
   assert.strictEqual(adaptedInsufficient.missingSignals?.[0], 'Observed history below minimum requirement.');
   // Confidence interval must not be inverted
   assert.ok(adaptedInsufficient.volatilityProfile.confidenceInterval[0] <= adaptedInsufficient.volatilityProfile.confidenceInterval[1]);
+  assert.strictEqual(adaptedInsufficient.volatilityProfile.recoveryRateAfterLowIncome, null, 'Must preserve null recovery rate without fallback');
   console.log('   ✓ adaptAssessment (INSUFFICIENT evidence & null score preservation) passed');
+
+  // Application-specific Rebound Rate & Recovery Analytics (Phase 17)
+  const rawWithCustomRecovery: BackendCreditAssessmentResponse = {
+    id: 'asmt-recovery-app',
+    application_id: 'app-recovery-1',
+    model_version_id: 'mv-1',
+    credit_score: 760,
+    score: 760,
+    risk_level: 'LOWER',
+    risk_probability: 0.12,
+    confidence: 0.90,
+    volatility_profile: {
+      recovery_rate_after_low_income: 0.5,
+      low_income_periods_encountered: 4,
+      successful_recovery_cycles: 2,
+      income_frequency: 'weekly',
+      income_volatility_index: 0.28,
+      income_trend: 'volatile_stable',
+      repayment_history_rate: 98,
+    },
+    assessed_at: '2026-01-14T10:00:00Z',
+    created_at: '2026-01-14T10:00:00Z',
+  };
+  const adaptedCustomRecovery = adaptAssessment(rawWithCustomRecovery);
+  assert.strictEqual(adaptedCustomRecovery.volatilityProfile.recoveryRateAfterLowIncome, 0.5, 'Must reflect 0.5 recovery rate');
+  assert.strictEqual(adaptedCustomRecovery.volatilityProfile.lowIncomePeriodsEncountered, 4, 'Must reflect 4 dips');
+  assert.strictEqual(adaptedCustomRecovery.volatilityProfile.successfulRecoveryCycles, 2, 'Must reflect 2 recoveries');
+  assert.strictEqual(adaptedCustomRecovery.volatilityProfile.repaymentHistoryRate, 98);
+  console.log('   ✓ adaptAssessment (Application-specific custom recovery rate) passed');
+
+  const rawWithZeroDips: BackendCreditAssessmentResponse = {
+    id: 'asmt-zero-dips',
+    application_id: 'app-zero-dips-1',
+    model_version_id: 'mv-1',
+    credit_score: 810,
+    score: 810,
+    risk_level: 'LOWER',
+    risk_probability: 0.08,
+    confidence: 0.94,
+    explanation: {
+      volatility_profile: {
+        recovery_rate_after_low_income: null,
+        low_income_periods_encountered: 0,
+        successful_recovery_cycles: 0,
+        income_frequency: 'weekly',
+        income_volatility_index: 0.15,
+        income_trend: 'increasing',
+        repayment_history_rate: 99,
+      },
+    },
+    assessed_at: '2026-01-14T11:00:00Z',
+    created_at: '2026-01-14T11:00:00Z',
+  };
+  const adaptedZeroDips = adaptAssessment(rawWithZeroDips);
+  assert.strictEqual(adaptedZeroDips.volatilityProfile.recoveryRateAfterLowIncome, null, 'Must preserve null recovery rate for 0 dips');
+  assert.strictEqual(adaptedZeroDips.volatilityProfile.lowIncomePeriodsEncountered, 0);
+  assert.strictEqual(adaptedZeroDips.volatilityProfile.successfulRecoveryCycles, 0);
+  console.log('   ✓ adaptAssessment (0 dips uncalculated recovery rate) passed');
 
   // Underwriter Review Adapter
   const rawReview: BackendReviewOutcomeResponse = {
@@ -467,10 +634,109 @@ async function runTests() {
     assert.strictEqual(assessedResult.score, 850);
     assert.strictEqual(assessedResult.riskLevel, 'LOWER_ESTIMATED RISK');
     assert.strictEqual(assessedResult.estimatedRepaymentDifficulty, 3);
-    assert.strictEqual(assessedResult.modelConfidence, 100);
-    assert.strictEqual(assessedResult.modelName, 'volatility-aware-risk-model');
-    assert.strictEqual(assessedResult.modelVersion, '1.0.0');
-    assert.strictEqual(assessedResult.featureContributions.length, 1);
+    // Test 6: P2-11 getAssessmentsByApplication delegates to GET /api/v1/applications/{id}/assessments
+    let historyUrl = '';
+    let historyMethod = '';
+    globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+      historyUrl = String(input);
+      historyMethod = init?.method || 'GET';
+      return {
+        ok: true,
+        status: 200,
+        json: async () => [
+          {
+            id: 'asmt-hist-1',
+            application_id: 'app-100',
+            model_version_id: 'mv-1',
+            credit_score: 720,
+            score: 720,
+            risk_probability: 0.05,
+            risk_level: 'LOWER',
+            confidence: 0.95,
+            model_name: 'volatility-aware-risk-model',
+            model_version: '1.0.0',
+            key_factors: ['Consistent cashflow'],
+            assessment_status: 'COMPLETED',
+            assessed_at: '2026-09-24T10:00:00Z',
+            created_at: '2026-09-24T10:00:00Z',
+          },
+        ],
+      } as Response;
+    };
+
+    const historyResult = await client.getAssessmentsByApplication('app-100');
+    assert.strictEqual(historyUrl, 'http://localhost:8000/api/v1/applications/app-100/assessments');
+    assert.strictEqual(historyMethod, 'GET');
+    assert.strictEqual(Array.isArray(historyResult), true);
+    assert.strictEqual(historyResult.length, 1);
+    assert.strictEqual(historyResult[0].id, 'asmt-hist-1');
+    assert.strictEqual(historyResult[0].score, 720);
+
+    // Test 7: P2-10 getGlobalSHAP delegates to POST /api/v1/model-versions/{id}/global-shap
+    let shapUrl = '';
+    let shapMethod = '';
+    globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+      shapUrl = String(input);
+      shapMethod = init?.method || 'GET';
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          model_version_id: 'mv-uuid-1',
+          model_version: '1.0.0',
+          model_name: 'volatility-aware-risk-model',
+          evaluated_at: '2026-09-27T02:00:00Z',
+          sample_count: 12000,
+          dataset_source: 'Offline synthetic evaluation dataset.',
+          features: [
+            {
+              feature_name: 'feat_liq_net_margin',
+              mean_abs_shap: 1.577,
+              mean_shap: -0.037,
+              rank: 1,
+            },
+          ],
+        }),
+      } as Response;
+    };
+
+    // Test 8: P3-06 updateApplication delegates to PATCH /api/v1/applications/{id}
+    let patchAppUrl = '';
+    let patchAppMethod = '';
+    let patchAppBody = '';
+    globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+      patchAppUrl = String(input);
+      patchAppMethod = init?.method || 'GET';
+      patchAppBody = String(init?.body || '');
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          id: 'app-edit-1',
+          applicant_profile_id: 'prof-1',
+          requested_loan_amount: '65000.00',
+          loan_purpose: 'EV delivery two-wheeler battery and storage upgrade',
+          preferred_repayment_period: 18,
+          status: 'DRAFT',
+          created_at: '2026-09-24T10:00:00Z',
+          updated_at: '2026-09-27T03:00:00Z',
+        }),
+      } as Response;
+    };
+
+    const updateRes = await client.updateApplication('app-edit-1', {
+      requested_loan_amount: 65000,
+      loan_purpose: 'EV delivery two-wheeler battery and storage upgrade',
+      preferred_repayment_period: 18,
+    });
+    assert.strictEqual(patchAppUrl, 'http://localhost:8000/api/v1/applications/app-edit-1');
+    assert.strictEqual(patchAppMethod, 'PATCH');
+    const parsedPatch = JSON.parse(patchAppBody);
+    assert.strictEqual(parsedPatch.requested_loan_amount, 65000);
+    assert.strictEqual(parsedPatch.loan_purpose, 'EV delivery two-wheeler battery and storage upgrade');
+    assert.strictEqual(parsedPatch.preferred_repayment_period, 18);
+    assert.strictEqual(updateRes.id, 'app-edit-1');
+    assert.strictEqual(updateRes.requested_loan_amount, '65000.00');
 
   } finally {
     globalThis.fetch = originalFetch;

@@ -124,6 +124,22 @@ class MockAssessmentEngine(AssessmentEngine):
             ),
         }
 
+        # Volatility profile for application-specific rebound & recovery analytics (Phase 17)
+        derived = dict(input_data.derived_features or {})
+        rec_rate = derived.get("recovery_rate_after_low_income")
+        dips = derived.get("low_income_periods_encountered")
+        recs = derived.get("successful_recovery_cycles")
+
+        explanation["volatility_profile"] = {
+            "recovery_rate_after_low_income": float(rec_rate) if rec_rate is not None else None,
+            "low_income_periods_encountered": int(dips) if dips is not None else 0,
+            "successful_recovery_cycles": int(recs) if recs is not None else 0,
+            "income_volatility_index": round(max(0.0, min(1.0, 1.0 - inc_stability)), 2),
+            "income_trend": "volatile_stable" if inc_stability < 0.6 else "increasing",
+            "income_frequency": "weekly",
+            "repayment_history_rate": int(round(pay_reliability * 100)),
+        }
+
         return AssessmentResult(
             score=score,
             risk_probability=risk_probability,

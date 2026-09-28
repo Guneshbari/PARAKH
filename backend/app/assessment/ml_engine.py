@@ -1,7 +1,7 @@
 """ML Assessment Engine and Model boundary contracts for PARAKH.
 
-Provides the decoupled integration interface for Person 3's trained ML models
-(e.g., LightGBM, XGBoost, Logistic Regression) to plug into the canonical
+Provides the decoupled integration interface for PARAKH's trained ML models
+(such as the frozen LightGBM volatility-aware risk model) to plug into the canonical
 AssessmentEngine architecture and map into standard AssessmentResult instances.
 """
 from abc import ABC, abstractmethod
@@ -159,7 +159,7 @@ class MLAssessmentEngine(AssessmentEngine):
         if self._model is None:
             raise AssessmentNotImplementedError(
                 "ML credit assessment model is not implemented or registered. "
-                "AssessmentEngine is configured for ML mode, but requires Person 3's trained model."
+                "AssessmentEngine is configured for ML mode, but requires an initialized MLModel instance."
             )
 
         output = self._model.predict(input_data)

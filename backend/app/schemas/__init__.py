@@ -31,6 +31,11 @@ from app.schemas.model_version import (
     ModelVersionCreate,
     ModelVersionResponse,
 )
+from app.schemas.operational_alert import (
+    OperationalAlertCreate,
+    OperationalAlertResponse,
+    OperationalAlertUpdate,
+)
 from app.schemas.review import (
     ReviewOutcomeCreate,
     ReviewOutcomeResponse,
@@ -74,6 +79,10 @@ __all__ = [
     # Model Version
     "ModelVersionCreate",
     "ModelVersionResponse",
+    # Operational Alert
+    "OperationalAlertCreate",
+    "OperationalAlertUpdate",
+    "OperationalAlertResponse",
     # Assessment
     "CreditAssessmentCreate",
     "CreditAssessmentResponse",

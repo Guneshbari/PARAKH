@@ -18,6 +18,7 @@ import {
   X,
   Send,
   Loader2,
+  ExternalLink,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -45,11 +46,8 @@ import {
   adaptApplication,
   type AdaptedPortfolioAnalytics,
 } from '@parakh/api';
-import {
-  mockOperationalAlerts,
-} from '@/data/mock/admin';
 import { formatCurrency } from '@/lib/utils';
-import type { ReviewActionType, UnderwriterReviewOutcome } from '@parakh/types';
+import type { ReviewActionType, UnderwriterReviewOutcome, OperationalAlert } from '@parakh/types';
 
 export default function AdminDashboardPage() {
   const { theme } = useTheme();
@@ -59,6 +57,9 @@ export default function AdminDashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [portfolio, setPortfolio] = useState<AdaptedPortfolioAnalytics | null>(null);
   const [portfolioError, setPortfolioError] = useState<string | null>(null);
+  const [alerts, setAlerts] = useState<OperationalAlert[]>([]);
+  const [alertsLoading, setAlertsLoading] = useState(true);
+  const [alertsError, setAlertsError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [reviewError, setReviewError] = useState<string | null>(null);
 
@@ -111,6 +112,19 @@ export default function AdminDashboardPage() {
       setPortfolioError(err?.message || 'Failed to fetch portfolio analytics from database');
     }
 
+    setAlertsLoading(true);
+    setAlertsError(null);
+    try {
+      const activeAlerts = await api.getOperationalAlerts({ status: 'OPEN' });
+      setAlerts(activeAlerts || []);
+    } catch (err: any) {
+      console.warn('Operational alerts fetch error:', err);
+      setAlertsError(err?.message || 'Failed to fetch operational alerts from database');
+      setAlerts([]);
+    } finally {
+      setAlertsLoading(false);
+    }
+
     try {
       const rawApps = await api.getApplications();
       if (rawApps && rawApps.length > 0) {
@@ -143,6 +157,15 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     loadDashboardData();
   }, []);
+
+  const handleAcknowledgeAlert = async (alertId: string) => {
+    try {
+      await api.acknowledgeOperationalAlert(alertId);
+      setAlerts((prev) => prev.filter((a) => a.id !== alertId));
+    } catch (err) {
+      console.warn('Failed to acknowledge alert:', err);
+    }
+  };
 
   const handleOpenReview = (item: (typeof activeQueue)[0]) => {
     setSelectedCase(item);
@@ -268,23 +291,23 @@ export default function AdminDashboardPage() {
 
         <MetricCard
           title="Portfolio Average Score"
-          value={avgScore ?? 0}
-          format={(n) => (avgScore !== null ? String(n) : '—')}
+          value={avgScore}
+          emptyText="—"
           suffix={avgScore !== null ? ' / 850' : ''}
-          pillLabel={avgScore !== null ? 'Calibrated' : 'Pending'}
+          pillLabel={avgScore !== null ? 'Calibrated' : 'UNRATED'}
           pillVariant="secondary"
-          subtext={avgScore !== null ? 'Alternative volatility scoring engine' : 'No assessments completed yet'}
+          subtext={avgScore !== null ? 'Alternative volatility scoring engine' : 'No assessed applications in portfolio'}
           icon={TrendingUp}
         />
 
         <MetricCard
           title="Avg. Repayment Difficulty"
-          value={avgRiskDifficulty ?? 0}
-          format={(n) => (avgRiskDifficulty !== null ? String(n) : '—')}
+          value={avgRiskDifficulty}
+          emptyText="—"
           suffix={avgRiskDifficulty !== null ? '%' : ''}
-          pillLabel={avgRiskDifficulty !== null ? 'Risk Rate' : 'Pending'}
+          pillLabel={avgRiskDifficulty !== null ? 'Risk Rate' : 'UNRATED'}
           pillVariant="secondary"
-          subtext={avgRiskDifficulty !== null ? 'Estimated repayment stress indicator' : 'No assessments completed yet'}
+          subtext={avgRiskDifficulty !== null ? 'Estimated repayment stress indicator' : 'No assessed applications in portfolio'}
           icon={Activity}
         />
 
@@ -301,33 +324,126 @@ export default function AdminDashboardPage() {
 
       {/* 3. OPERATIONAL REVIEW ALERTS */}
       <div className="space-y-3">
-        {mockOperationalAlerts.map((alert) => (
-          <div
-            key={alert.id}
-            className="p-4 rounded-2xl bg-surface border border-border shadow-card flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
-          >
+        {alertsLoading ? (
+          <div className="p-4 rounded-2xl bg-surface border border-border shadow-card flex items-center gap-3">
+            <div className="size-8 rounded-xl bg-surface-highlight border border-border flex items-center justify-center shrink-0 animate-pulse">
+              <AlertCircle className="size-4 opacity-50" />
+            </div>
+            <div className="space-y-1">
+              <div className="h-4 w-48 bg-surface-highlight rounded animate-pulse" />
+              <div className="h-3 w-80 bg-surface-highlight rounded animate-pulse" />
+            </div>
+          </div>
+        ) : alertsError ? (
+          <div className="p-4 rounded-2xl bg-surface border border-rose-500/20 shadow-card flex items-center justify-between gap-4">
             <div className="flex items-start gap-3">
-              <div className="size-8 rounded-xl bg-surface-highlight border border-border flex items-center justify-center shrink-0 mt-0.5 text-foreground">
-                <AlertCircle className="size-4 opacity-80" />
+              <div className="size-8 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center shrink-0 text-rose-500">
+                <AlertCircle className="size-4" />
               </div>
               <div className="space-y-0.5">
-                <div className="flex items-center gap-2">
-                  <h4 className="text-sm font-semibold text-foreground">{alert.title}</h4>
-                  <Badge variant="outline" className="text-xs py-0.5 px-2 uppercase font-mono">
-                    {alert.category.replace(/_/g, ' ')}
-                  </Badge>
-                </div>
-                <p className="text-xs sm:text-sm text-foreground-secondary leading-relaxed">
-                  {alert.message}
+                <h4 className="text-sm font-semibold text-rose-500">Operational Alerts Unavailable</h4>
+                <p className="text-xs sm:text-sm text-foreground-secondary">
+                  Failed to synchronize operational alerts: {alertsError}
                 </p>
               </div>
             </div>
-
-            <span className="text-xs font-mono text-foreground-secondary shrink-0 self-end sm:self-center">
-              {alert.timestamp}
-            </span>
           </div>
-        ))}
+        ) : alerts.length === 0 ? (
+          <div className="p-4 rounded-2xl bg-surface border border-border shadow-card flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="size-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0 text-emerald-500">
+                <CheckCircle2 className="size-4" />
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-foreground">Operational Status Normal</h4>
+                <p className="text-xs sm:text-sm text-foreground-secondary">
+                  No active operational alerts or manual-review pipeline exceptions detected.
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          alerts.map((alert) => {
+            const isCritical = alert.severity === 'CRITICAL';
+            const isWarning = alert.severity === 'WARNING';
+
+            const severityBorder = isCritical
+              ? 'border-rose-500/30'
+              : isWarning
+              ? 'border-amber-500/30'
+              : 'border-border';
+
+            const severityIconColor = isCritical
+              ? 'text-rose-500 bg-rose-500/10 border-rose-500/20'
+              : isWarning
+              ? 'text-amber-500 bg-amber-500/10 border-amber-500/20'
+              : 'text-sky-500 bg-sky-500/10 border-sky-500/20';
+
+            const severityBadge = isCritical
+              ? 'bg-rose-500/10 text-rose-500 border-rose-500/20'
+              : isWarning
+              ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+              : 'bg-sky-500/10 text-sky-500 border-sky-500/20';
+
+            const formattedTime = alert.createdAt
+              ? new Date(alert.createdAt).toLocaleString(undefined, {
+                  month: 'short',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })
+              : 'Just now';
+
+            return (
+              <div
+                key={alert.id}
+                className={`p-4 rounded-2xl bg-surface border shadow-card flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${severityBorder}`}
+              >
+                <div className="flex items-start gap-3">
+                  <div
+                    className={`size-8 rounded-xl border flex items-center justify-center shrink-0 mt-0.5 ${severityIconColor}`}
+                  >
+                    <AlertCircle className="size-4" />
+                  </div>
+                  <div className="space-y-0.5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h4 className="text-sm font-semibold text-foreground">{alert.title}</h4>
+                      <Badge variant="outline" className="text-xs py-0.5 px-2 uppercase font-mono">
+                        {alert.alertType.replace(/_/g, ' ')}
+                      </Badge>
+                      <Badge variant="outline" className={`text-xs py-0.5 px-2 uppercase font-mono ${severityBadge}`}>
+                        {alert.severity}
+                      </Badge>
+                    </div>
+                    <p className="text-xs sm:text-sm text-foreground-secondary leading-relaxed">
+                      {alert.message}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 shrink-0 self-end sm:self-center">
+                  {alert.applicationId && (
+                    <Link
+                      href={`/admin/applications/${alert.applicationId}`}
+                      className="text-xs font-medium text-primary hover:underline flex items-center gap-1"
+                    >
+                      View Case <ExternalLink className="size-3" />
+                    </Link>
+                  )}
+                  <button
+                    onClick={() => handleAcknowledgeAlert(alert.id)}
+                    className="text-xs font-medium text-foreground-secondary hover:text-foreground border border-border px-2 py-1 rounded-lg hover:bg-surface-highlight transition-colors"
+                  >
+                    Acknowledge
+                  </button>
+                  <span className="text-xs font-mono text-foreground-secondary">
+                    {formattedTime}
+                  </span>
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
 
       {/* 4. RISK DISTRIBUTION & EVALUATION PIPELINE FUNNEL */}
@@ -516,7 +632,7 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        <div className="h-64 w-full pt-2">
+        <div className="h-64 w-full min-w-0 pt-2">
           {monthlyVolume.length === 0 || monthlyVolume.every((m) => m.count === 0) ? (
             <div className="h-full flex items-center justify-center text-sm text-foreground-secondary">
               No application intake recorded in recent months.
@@ -589,38 +705,38 @@ export default function AdminDashboardPage() {
 
       {/* 6. SECTOR VOLATILITY & SCORE BUCKETS (TWO COLUMNS) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Sector Volatility Comparison - Explicit ML Placeholder */}
-        <Card className="p-6 bg-surface border-border space-y-4">
+        {/* Sector Volatility & ML Pipeline Active Status */}
+        <Card className="p-4 sm:p-6 bg-surface border-border space-y-4 min-w-0">
           <div className="flex items-center justify-between pb-2 border-b border-border">
             <div>
               <h3 className="text-sm sm:text-base font-semibold text-foreground flex items-center gap-2">
-                <Building2 className="size-4 text-foreground-secondary" />
-                Sector Volatility & Shock Rebound
+                <Sparkles className="size-4 text-mint" />
+                Live ML Volatility Assessment Engine
               </h3>
               <p className="text-xs sm:text-sm text-foreground-secondary">
-                Observed recovery velocity and volatility index by gig worker segment.
+                Production volatility-aware LightGBM risk model (v1.0.0).
               </p>
             </div>
-            <Badge variant="outline" className="text-xs font-mono">
-              Pending ML Pipeline
+            <Badge variant="mint" className="text-xs font-mono">
+              Active: v1.0.0
             </Badge>
           </div>
 
           <div className="p-4 rounded-2xl bg-surface-highlight/30 border border-border space-y-2 text-xs sm:text-sm">
             <div className="flex items-center gap-2">
-              <AlertCircle className="size-4 text-amber-500 shrink-0" />
+              <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />
               <span className="font-semibold text-foreground">
-                ML Volatility Telemetry Integration
+                ML Assessment Pipeline Active
               </span>
             </div>
             <p className="text-foreground-secondary text-xs sm:text-sm leading-relaxed">
-              Sector-level recovery velocity curves and cyclical volatility indices are computed by Person 2 & 3's LightGBM/XGBoost ML pipeline. In the interim, live assessments are scored through the deterministic MockAssessmentEngine registered in PostgreSQL. ML analytics unavailable until the production assessment model is integrated.
+              Real-time alternative credit evaluations utilize the active volatility-aware LightGBM risk model (v1.0.0) with fitted TelemetryFeaturePipeline preprocessing and persisted TreeSHAP attributions.
             </p>
           </div>
         </Card>
 
         {/* Alternative Score Distribution Buckets */}
-        <Card className="p-6 bg-surface border-border space-y-4">
+        <Card className="p-4 sm:p-6 bg-surface border-border space-y-4 min-w-0">
           <div className="flex items-center justify-between pb-2 border-b border-border">
             <div>
               <h3 className="text-sm sm:text-base font-semibold text-foreground flex items-center gap-2">
@@ -722,7 +838,7 @@ export default function AdminDashboardPage() {
 
         {/* Queue Table */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs sm:text-sm">
+          <table className="w-full min-w-[700px] text-left text-xs sm:text-sm">
             <thead className="bg-surface-highlight/40 border-b border-border text-foreground-secondary font-semibold uppercase tracking-wider text-xs">
               <tr>
                 <th className="py-3 px-4">Application ID</th>

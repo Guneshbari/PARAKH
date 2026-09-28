@@ -39,12 +39,14 @@ PARAKH is engineered as a decoupled full-stack platform:
                 │                        │
        SQLAlchemy 2.0                    │ Injected Engine
                 ▼                        ▼
-┌────────────────────────┐   ┌───────────────────────────┐
-│  PostgreSQL 16         │   │  AssessmentEngine (Mock)  │
-│  - Multi-table schema  │   │  - Phase 10 ML boundary   │
-│  - Alembic migrations  │   │  - Standard result schema │
-│  - Persistent storage  │   │  - Deterministic scoring  │
-└────────────────────────┘   └───────────────────────────┘
+┌────────────────────────┐   ┌──────────────────────────────────────────────┐
+│  PostgreSQL 16         │   │  ML Assessment Engine (Active Production)    │
+│  - Multi-table schema  │   │  - TelemetryFeaturePipeline (40 features)    │
+│  - Alembic migrations  │   │  - Persisted CreditRiskPreprocessor (joblib) │
+│  - Persistent storage  │   │  - Frozen Volatility-Aware LightGBM (v1.0.0) │
+│  - JSONB explanations  │   │  - Persisted TreeSHAP explanations           │
+└────────────────────────┘   │  - MockAssessmentEngine (testing fallback)   │
+                             └──────────────────────────────────────────────┘
 ```
 
 ---
@@ -76,7 +78,9 @@ All services are configured using environment variables. See [.env.example](file
 | `SECRET_KEY` | JWT signing secret | `parakh-super-secret-key-change-in-production-0987654321` |
 | `JWT_ALGORITHM` | JWT signing algorithm | `HS256` |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | JWT validity lifetime | `1440` (24 hours) |
-| `ASSESSMENT_ENGINE` | Assessment engine implementation | `mock` (current) or `ml` (future) |
+| `ASSESSMENT_ENGINE` | Assessment engine implementation | `ml` (production/prototype default) or `mock` (unit test fallback) |
+| `ML_MANIFEST_PATH` | Path to FINAL_MODEL.json | `models/artifacts/FINAL_MODEL.json` (optional override) |
+| `ML_PREPROCESSOR_PATH` | Path to fitted CreditRiskPreprocessor | `models/artifacts/credit_risk_preprocessor.joblib` (optional override) |
 | `DEBUG` | FastAPI debug mode | `false` |
 | `APP_ENV` | Application environment | `production` or `development` |
 | `NEXT_PUBLIC_API_URL` | Browser-accessible backend URL | `http://localhost:8000` |
@@ -185,36 +189,33 @@ Default seeded administrator:
 
 ## 10. ML Integration Boundary
 
-### Current State
-- The current assessment execution uses **`MockAssessmentEngine`** (configured via `ASSESSMENT_ENGINE=mock`).
-- It implements the formal abstract base class `AssessmentEngine` and generates a standard `AssessmentResult` with realistic scores (300–900), risk tiers (`LOW`, `MODERATE`, `HIGH`, `CRITICAL`), confidence metrics, and key explanation factors.
-
-### Target Future Architecture (Person 2 & 3 ML Integration)
-When Person 2 (Feature Engineering) and Person 3 (Machine Learning Model) integrate their pipelines, the rest of the application remains completely unchanged:
+### Active Production Architecture
+The machine learning pipeline is fully integrated into the backend assessment flow:
 
 ```
-Raw Financial Signals
+Financial Telemetry (telemetry_series JSONB)
         ↓
-Person 2 Feature Pipeline (FeatureEngineeringPipeline)
+TelemetryFeaturePipeline (backend/app/assessment/pipeline.py)
         ↓
-Person 3 ML Model (XGBoost / LightGBM / LogisticRegression)
+AssessmentInput with 40 Derived Features
         ↓
-AssessmentEngine (RealAssessmentEngine / MLAssessmentEngine)
+MLModelAdapter (app/assessment/ml_model_adapter.py)
+        ↓ Data Sufficiency Gate (observed_days >= 30, payout_count >= 4, group_count >= 2)
+RiskPredictor (src/ml/inference/predictor.py)
+        ↓ FeatureEngineer (9 interaction/volatility features)
+Persisted CreditRiskPreprocessor (models/artifacts/credit_risk_preprocessor.joblib)
+        ↓ 64 model-ready columns
+Frozen Volatility-Aware LightGBM Model (models/artifacts/volatility_aware_risk_model.joblib v1.0.0)
+        ↓ TreeShapExplainer
+Persisted Assessment Record (credit_assessments table with explanation JSONB)
         ↓
-Standard AssessmentResult (Same Pydantic contract)
-        ↓
-PostgreSQL (credit_assessments table)
-        ↓
-Existing API (/api/v1/applications/{id}/assess)
-        ↓
-Existing Frontend (@parakh/api client & React adapters)
+CreditAssessmentResponse (score, risk_level, confidence, key_factors, explanation)
 ```
 
-The transition will simply involve:
-```
-MockAssessmentEngine ──► RealAssessmentEngine / MLAssessmentEngine
-```
-No frontend, database schema, or API rewrite is required.
+- **Data Sufficiency Governance (Phase 13A-2)**: Strictly evaluates active observation days and payout cycles from real telemetry. Missing telemetry is never fabricated with synthetic defaults.
+- **Deterministic Inference (Phase 13A-4)**: Loads the serialized, fitted `CreditRiskPreprocessor` directly (<1ms startup) without coupling runtime inference to training datasets.
+- **Auditable Explanations (Phase 13A-1)**: TreeSHAP local instance explanations and plain-language protective/risk factors are permanently persisted in PostgreSQL JSONB.
+- **Testing Engine**: `MockAssessmentEngine` remains available for offline development and isolated unit testing via `ASSESSMENT_ENGINE=mock`.
 
 ---
 
@@ -251,6 +252,6 @@ npm run build                          # Successful production build
 
 ## 12. Known Limitations
 
-1. **Current Assessment Engine**: Currently executes `MockAssessmentEngine`. Person 2's feature engineering and Person 3's ML models (XGBoost/LightGBM/SHAP/Fairlearn) are designated for future integration.
+1. **Alternative Credit Assessment Engine**: Powered by the frozen `volatility-aware-risk-model` v1.0.0 (`models/artifacts/volatility_aware_risk_model.joblib`) with deterministic `TelemetryFeaturePipeline` feature derivation, persisted `CreditRiskPreprocessor` artifact, and persisted TreeSHAP explanations.
 2. **External Gateway Mocking**: In local demonstration mode, external platform account aggregators (Swiggy, Zomato, AA gateways) are simulated through synthetic API payloads rather than live sandbox OAuth connections.
 3. **Database Port Exposure**: PostgreSQL is intentionally not exposed on the host machine to enforce network security. All database interaction occurs via the backend container or Docker network.

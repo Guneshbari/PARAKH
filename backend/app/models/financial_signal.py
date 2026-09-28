@@ -138,6 +138,12 @@ class FinancialSignal(Base, UUIDPrimaryKeyMixin):
         nullable=True,
     )
 
+    # Granular telemetry time-series for authentic feature derivation
+    telemetry_series: Mapped[Optional[Dict[str, Any]]] = mapped_column(
+        JSON().with_variant(JSONB, "postgresql"),
+        nullable=True,
+    )
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

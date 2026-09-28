@@ -34,7 +34,7 @@ services:
       SECRET_KEY: ${SECRET_KEY:-parakh-super-secret-key-change-in-production-0987654321}
       JWT_ALGORITHM: HS256
       ACCESS_TOKEN_EXPIRE_MINUTES: 1440
-      ASSESSMENT_ENGINE: ${ASSESSMENT_ENGINE:-mock}
+      ASSESSMENT_ENGINE: ${ASSESSMENT_ENGINE:-ml}
       DEBUG: "false"
       APP_ENV: production
     healthcheck:

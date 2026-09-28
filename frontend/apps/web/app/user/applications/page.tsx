@@ -270,8 +270,8 @@ export default function UserApplicationsPage() {
           </div>
 
           {/* Desktop Table View */}
-          <div className="hidden sm:block overflow-hidden rounded-2xl border border-border bg-surface">
-            <table className="w-full text-left text-xs">
+          <div className="hidden sm:block overflow-x-auto rounded-2xl border border-border bg-surface">
+            <table className="w-full min-w-[700px] text-left text-xs">
               <thead className="bg-surface-highlight border-b border-border text-foreground-muted uppercase font-semibold tracking-wider">
                 <tr>
                   <th className="py-3.5 px-5">Application ID</th>
@@ -304,7 +304,7 @@ export default function UserApplicationsPage() {
                       <StatusBadge status={app.status} />
                     </td>
                     <td className="py-4 px-5">
-                      <RiskBadge riskLevel={app.assessment?.riskLevel || 'MODERATE_ESTIMATED RISK'} />
+                      <RiskBadge riskLevel={app.assessment?.riskLevel || 'UNRATED'} />
                     </td>
                     <td className="py-4 px-5 text-foreground-muted">
                       {new Date(app.submittedAt).toLocaleDateString('en-IN', {

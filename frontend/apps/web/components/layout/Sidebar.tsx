@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -10,11 +10,13 @@ import {
   BarChart3,
   Sparkles,
   User,
+  History,
   LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/components/auth/AuthContext';
+import { api } from '@parakh/api';
 
 interface NavLinkItem {
   href: string;
@@ -34,19 +36,78 @@ export function Sidebar({ portal }: SidebarProps) {
   const userRole = (user?.role || role)?.toUpperCase();
   const effectivePortal = userRole === 'APPLICANT' ? 'user' : userRole === 'REVIEWER' ? 'admin' : portal;
 
+  const [pendingCount, setPendingCount] = useState<number | null>(null);
+  const [latestAppId, setLatestAppId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    if (effectivePortal === 'admin') {
+      const fetchPendingCount = async () => {
+        try {
+          const rawApps = await api.getApplications();
+          if (isMounted && rawApps) {
+            const pending = rawApps.filter(
+              (app) =>
+                app.status === 'MANUAL_REVIEW' ||
+                app.status === 'UNDER_REVIEW' ||
+                app.status === 'SUBMITTED'
+            ).length;
+            setPendingCount(pending);
+          }
+        } catch (err) {
+          // Non-blocking for navigation rail
+          console.warn('Sidebar failed to fetch applications count:', err);
+        }
+      };
+      fetchPendingCount();
+    } else if (effectivePortal === 'user' && user?.id) {
+      const fetchLatestApp = async () => {
+        try {
+          const profile = await api.getApplicantByUserId(user.id);
+          if (!isMounted || !profile) return;
+          const apps = await api.getApplicationsByApplicant(profile.id);
+          if (!isMounted || !apps || apps.length === 0) return;
+          const sorted = [...apps].sort(
+            (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          );
+          setLatestAppId(sorted[0].id);
+        } catch (err) {
+          // Non-blocking for navigation rail
+          console.warn('Sidebar failed to resolve latest application:', err);
+        }
+      };
+      fetchLatestApp();
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [effectivePortal, user?.id]);
+
   const userLinks: NavLinkItem[] = [
     { href: '/user/dashboard', label: 'Applicant Dashboard', icon: Home },
     { href: '/user/applications', label: 'My Applications', icon: FileText },
     { href: '/user/applications/new', label: 'New Application', icon: PlusCircle, highlight: true },
-    { href: '/user/results/demo', label: 'Assessment Report', icon: BarChart3 },
+    {
+      href: latestAppId ? `/user/results/${latestAppId}` : '/user/results',
+      label: 'Assessment Report',
+      icon: BarChart3,
+    },
     { href: '/user/profile', label: 'Applicant Profile', icon: User },
   ];
 
   const adminLinks: NavLinkItem[] = [
     { href: '/admin/dashboard', label: 'Credit Review Dashboard', icon: Home },
-    { href: '/admin/applications', label: 'Applications', icon: FileText, badge: '4 Pending' },
+    {
+      href: '/admin/applications',
+      label: 'Applications',
+      icon: FileText,
+      badge: pendingCount !== null ? `${pendingCount} Pending` : undefined,
+    },
     { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
     { href: '/admin/model-insights', label: 'Model Insights', icon: Sparkles },
+    { href: '/admin/audit-logs', label: 'Audit Logs', icon: History },
     { href: '/admin/profile', label: 'Profile', icon: User },
   ];
 
@@ -63,7 +124,9 @@ export function Sidebar({ portal }: SidebarProps) {
 
         <nav className="space-y-1.5">
           {links.map((link) => {
-            const isActive = pathname === link.href;
+            const isActive =
+              pathname === link.href ||
+              (link.href.includes('/user/results') && pathname.startsWith('/user/results'));
             const Icon = link.icon;
 
             return (
@@ -77,7 +140,7 @@ export function Sidebar({ portal }: SidebarProps) {
                     : 'text-foreground-secondary hover:text-[#472393] hover:bg-[#F7F3FF] dark:hover:text-foreground dark:hover:bg-surface-highlight'
                 )}
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 min-w-0">
                   <Icon
                     className={cn(
                       'size-4.5 shrink-0 transition-colors',

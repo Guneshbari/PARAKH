@@ -787,12 +787,20 @@ class TestAuditApiAndSecurity(unittest.TestCase):
         # Pre-seed Admin and Applicant
         db = self.Session()
         self.admin_id = uuid.uuid4()
+        self.reviewer_id = uuid.uuid4()
         self.applicant_id = uuid.uuid4()
         self.admin = User(
             id=self.admin_id,
             email="admin@parakh.local",
             password_hash=hash_password("adminSecret123"),
             role=UserRole.ADMIN,
+            is_active=True,
+        )
+        self.reviewer = User(
+            id=self.reviewer_id,
+            email="reviewer@parakh.local",
+            password_hash=hash_password("reviewerSecret123"),
+            role=UserRole.REVIEWER,
             is_active=True,
         )
         self.applicant = User(
@@ -802,11 +810,12 @@ class TestAuditApiAndSecurity(unittest.TestCase):
             role=UserRole.APPLICANT,
             is_active=True,
         )
-        db.add_all([self.admin, self.applicant])
+        db.add_all([self.admin, self.reviewer, self.applicant])
         db.commit()
         db.close()
 
         self.admin_token = create_access_token(subject=self.admin_id, role=UserRole.ADMIN.value)
+        self.reviewer_token = create_access_token(subject=self.reviewer_id, role=UserRole.REVIEWER.value)
         self.applicant_token = create_access_token(subject=self.applicant_id, role=UserRole.APPLICANT.value)
 
     def tearDown(self):
@@ -873,7 +882,7 @@ class TestAuditApiAndSecurity(unittest.TestCase):
         self.assertEqual(logs[0].audit_metadata.get("outcome"), "DENIED")
 
     def test_32_audit_retrieval_enforces_admin_authorization(self):
-        """32. Verify audit retrieval endpoints enforce strict admin authorization."""
+        """32. Verify audit retrieval endpoints enforce reviewer and admin authorization."""
         # 1. Unauthenticated -> 401
         res1 = self.client.get("/api/v1/audit-logs")
         self.assertEqual(res1.status_code, 401)
@@ -885,13 +894,21 @@ class TestAuditApiAndSecurity(unittest.TestCase):
         )
         self.assertEqual(res2.status_code, 403)
 
-        # 3. Admin caller -> 200
+        # 3. Reviewer caller -> 200
         res3 = self.client.get(
             "/api/v1/audit-logs",
-            headers={"Authorization": f"Bearer {self.admin_token}"},
+            headers={"Authorization": f"Bearer {self.reviewer_token}"},
         )
         self.assertEqual(res3.status_code, 200)
         self.assertIsInstance(res3.json(), list)
+
+        # 4. Admin caller -> 200
+        res4 = self.client.get(
+            "/api/v1/audit-logs",
+            headers={"Authorization": f"Bearer {self.admin_token}"},
+        )
+        self.assertEqual(res4.status_code, 200)
+        self.assertIsInstance(res4.json(), list)
 
 
 class TestAuditPostgresLiveIntegration(unittest.TestCase):

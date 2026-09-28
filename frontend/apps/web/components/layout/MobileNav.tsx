@@ -29,7 +29,7 @@ export function MobileNav() {
     { href: '/user/dashboard', label: 'Home', icon: Home },
     { href: '/user/applications', label: 'Applications', icon: FileText },
     { href: '/user/applications/new', label: 'Assess', icon: Plus, isAction: true },
-    { href: '/user/results/demo', label: 'Report', icon: BarChart3 },
+    { href: '/user/results', label: 'Report', icon: BarChart3 },
     { href: '/user/profile', label: 'Profile', icon: User },
   ];
 
@@ -47,7 +47,9 @@ export function MobileNav() {
     <div className="fixed bottom-4 inset-x-0 z-50 flex justify-center px-4 md:hidden pointer-events-none">
       <nav className="pointer-events-auto flex items-center justify-around gap-1 bg-surface/95 dark:bg-[#121416]/95 backdrop-blur-xl border border-border rounded-full px-3 py-2 shadow-2xl w-full max-w-sm transition-colors duration-200">
         {navItems.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive =
+            pathname === item.href ||
+            (item.href === '/user/results' && pathname.startsWith('/user/results'));
           const Icon = item.icon;
 
           if (item.isAction) {

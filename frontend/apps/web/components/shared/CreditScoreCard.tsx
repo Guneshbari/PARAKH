@@ -89,9 +89,9 @@ export function CreditScoreCard({
             <ShieldCheck className="size-3.5 text-foreground-secondary" /> Data Confidence
           </span>
           <span className="text-sm sm:text-base font-bold text-foreground font-mono mt-0.5 block">
-            {assessment.modelConfidence !== null && assessment.modelConfidence > 0
+            {assessment.modelConfidence !== null && assessment.modelConfidence !== undefined && assessment.modelConfidence > 0
               ? `${assessment.modelConfidence}% High Confidence`
-              : '0% (Insufficient telemetry)'}
+              : 'N/A (Insufficient telemetry)'}
           </span>
         </div>
 
@@ -100,9 +100,9 @@ export function CreditScoreCard({
             <Activity className="size-3.5 text-foreground-secondary" /> Shock Recovery
           </span>
           <span className="text-sm sm:text-base font-bold text-foreground font-mono mt-0.5 block">
-            {isInsufficient
-              ? 'Pending Data'
-              : `${Math.round((assessment.volatilityProfile?.recoveryRateAfterLowIncome ?? 0.94) * 100)}% Rebound Rate`}
+            {isInsufficient || assessment.volatilityProfile?.recoveryRateAfterLowIncome == null
+              ? 'Uncalculated (N/A)'
+              : `${Math.round(assessment.volatilityProfile.recoveryRateAfterLowIncome * 100)}% Rebound Rate`}
           </span>
         </div>
       </div>

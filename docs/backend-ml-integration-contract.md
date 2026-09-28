@@ -29,21 +29,27 @@ This contract defines the binding interface between the PARAKH FastAPI backend a
                            │
              ┌─────────────┴─────────────┐
              ▼                           ▼
-[Application + ApplicantProfile]  [FinancialSignal records]
+[Application + ApplicantProfile]  [FinancialSignal records with telemetry_series]
              └─────────────┬─────────────┘
+                           │
+                           ▼
+             [TelemetryFeaturePipeline.extract_features]
+             (Derives 40 base features from telemetry_series)
                            │
                            ▼
           [AssessmentInput (app/assessment/schemas.py)]
                            │
                            ▼
-        [MLModelAdapter (app/assessment/ml_engine.py)]
+        [MLModelAdapter (app/assessment/ml_model_adapter.py)]
                            │
       Transforms AssessmentInput -> 46-field flat dict
+      (Enforces Phase 13A-2 sufficiency gate without fallback fabrication)
                            │
                            ▼
     [RiskPredictor.predict (src/ml/inference/predictor.py)]
+    (Loads persisted credit_risk_preprocessor.joblib + frozen LightGBM)
                            │
-             Returns PredictionResponse
+             Returns PredictionResponse (with TreeSHAP explanations)
                            │
                            ▼
           [MLModelOutput (app/assessment/ml_engine.py)]
@@ -53,6 +59,7 @@ This contract defines the binding interface between the PARAKH FastAPI backend a
                            │
                            ▼
    [CreditAssessment persisted in PostgreSQL DB via SQLAlchemy]
+   (Stores score, probabilities, metrics, and explanation in JSONB)
                            │
                            ▼
 [HTTP 201 Response: CreditAssessmentResponse (JSON)]
@@ -276,12 +283,14 @@ $$\text{Score} = \text{clamp}\left(300 + \text{round}\left((1.0 - p) \times 550\
 
 ## 9. Data Sufficiency & Cold-Start Gate
 
-The pipeline implements an automated gate prior to model feature engineering. An application is routed to `INSUFFICIENT` if any of the following apply:
+The pipeline implements an automated sufficiency gate prior to model feature engineering. An application is routed to `INSUFFICIENT` if any of the following apply:
 1. `feat_suf_observed_days < 30` (Less than 30 days active history).
 2. `feat_suf_payout_count < 4` (Fewer than 4 payout cycles).
 3. `feat_suf_group_count < 2` (Fewer than 2 core signal groups).
 
-**Contract Behavior on Insufficiency:**
+**Contract Behavior on Insufficiency (Phase 13A-2):**
+- Missing telemetry values are **never** fabricated or defaulted to passing numbers (`90.0`, `12.0`, `4.0`, `0.0`).
+- If telemetry is absent or unobserved, sufficiency parameters evaluate to `None`, triggering the sufficiency gate.
 - `repayment_risk_probability`: `None` (persisted as NULL).
 - `credit_score`: `None` (persisted as NULL).
 - `risk_level`: `RiskLevel.INSUFFICIENT`.
@@ -307,6 +316,7 @@ INSERT INTO credit_assessments (
     utilization,
     income_stability,
     repayment_reliability,
+    explanation,
     assessment_status,
     assessed_at,
     created_at
@@ -322,13 +332,17 @@ INSERT INTO credit_assessments (
     :utilization,            -- Nullable numeric(6,4)
     :income_stability,       -- Nullable numeric(5,4)
     :repayment_reliability,  -- Nullable numeric(5,4)
+    :explanation,            -- JSONB containing TreeSHAP values, base value, and disclaimer (Phase 13A-1)
     'COMPLETED',
     NOW(),
     NOW()
 );
 ```
 
-Transient metadata (`_transient_key_factors`, `_transient_explanation`, `_transient_model_name`, `_transient_model_version`) is attached to the Python object for serialization into the immediate `CreditAssessmentResponse`.
+**Persistence & Provenance Guarantees (Phase 13A-1):**
+- As implemented in Phase 13A-1, TreeSHAP explanations (`explanation` JSONB) are permanently persisted to PostgreSQL.
+- Subsequent `GET /api/v1/assessments/{id}` and `GET /api/v1/applications/{id}/assessments/latest` requests retrieve the authoritative persisted explanation directly from the database.
+- Transient model metadata (`_transient_key_factors`, `_transient_model_name`, `_transient_model_version`) is attached to the Python entity for serialization into `CreditAssessmentResponse`.
 
 ---
 

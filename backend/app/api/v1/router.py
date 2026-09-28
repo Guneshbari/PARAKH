@@ -11,6 +11,7 @@ from app.api.v1.model_versions import router as model_versions_router
 from app.api.v1.reviews import router as reviews_router
 from app.api.v1.users import router as users_router
 from app.api.v1.analytics import router as analytics_router
+from app.api.v1.operational_alerts import router as operational_alerts_router
 
 v1_router = APIRouter()
 
@@ -27,4 +28,5 @@ v1_router.include_router(assessments_router)
 v1_router.include_router(model_versions_router)
 v1_router.include_router(reviews_router)
 v1_router.include_router(audit_router)
+v1_router.include_router(operational_alerts_router)
 v1_router.include_router(analytics_router, prefix="/analytics")

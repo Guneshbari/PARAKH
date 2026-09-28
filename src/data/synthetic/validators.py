@@ -245,10 +245,12 @@ class DatasetValidationReport:
             exp = COHORT_PROPORTIONS.get(c, 0.0)
             lines.append(f"  - {c:20s}: {count:5d} ({prop:6.2%}, Expected: {exp:6.2%})")
 
+        combos_violations = self.impossible_combination_checks.get('violations_count', 0)
+        combos_status = '0 Violations' if combos_violations == 0 else f"{combos_violations} Violations"
         lines.extend([
             "-" * 78,
             f"LEAKAGE CHECKS:     {'PASSED' if self.leakage_checks.get('passed') else 'FAILED'}",
-            f"IMPOSSIBLE COMBOS:  {'0 Violations' if self.impossible_combination_checks.get('violations_count') == 0 else f'{self.impossible_combination_checks.get("violations_count")} Violations'}",
+            f"IMPOSSIBLE COMBOS:  {combos_status}",
             f"DETERMINISM TEST:   {'PASSED' if self.determinism_result.get('passed') else 'FAILED'}",
             f"ERRORS DETECTED:    {len(self.validation_errors)}",
             f"WARNINGS DETECTED:  {len(self.validation_warnings)}",

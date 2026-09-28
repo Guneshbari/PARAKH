@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Union
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-from app.models.consent import Consent, ConsentDataSource
+from app.models.consent import Consent, ConsentDataSource, ConsentPreference
 from app.repositories.base import BaseRepository, _parse_id
 
 
@@ -161,3 +161,77 @@ class ConsentRepository(BaseRepository[Consent]):
         else:
             session.flush()
         return consent
+
+    def get_preferences_by_user(
+        self,
+        user_id: Union[uuid.UUID, str],
+        db: Optional[Session] = None,
+    ) -> List[ConsentPreference]:
+        """Fetch all consent preferences for a user."""
+        session = self._get_db(db)
+        stmt = (
+            select(ConsentPreference)
+            .where(ConsentPreference.user_id == _parse_id(user_id))
+            .order_by(ConsentPreference.preference_key.asc())
+        )
+        return list(session.scalars(stmt).all())
+
+    def get_preference(
+        self,
+        user_id: Union[uuid.UUID, str],
+        preference_key: str,
+        db: Optional[Session] = None,
+    ) -> Optional[ConsentPreference]:
+        """Fetch a specific consent preference for a user."""
+        session = self._get_db(db)
+        stmt = select(ConsentPreference).where(
+            ConsentPreference.user_id == _parse_id(user_id),
+            ConsentPreference.preference_key == preference_key,
+        )
+        return session.scalars(stmt).first()
+
+    def upsert_preference(
+        self,
+        user_id: Union[uuid.UUID, str],
+        preference_key: str,
+        granted: bool,
+        applicant_profile_id: Optional[Union[uuid.UUID, str]] = None,
+        commit: bool = False,
+        db: Optional[Session] = None,
+    ) -> ConsentPreference:
+        """Upsert a consent preference for a user."""
+        session = self._get_db(db)
+        pref = self.get_preference(user_id=user_id, preference_key=preference_key, db=session)
+        now = datetime.now(timezone.utc)
+        if pref is None:
+            pref = ConsentPreference(
+                user_id=_parse_id(user_id),
+                applicant_profile_id=_parse_id(applicant_profile_id) if applicant_profile_id else None,
+                preference_key=preference_key,
+                granted=granted,
+                consented_at=now if granted else None,
+                revoked_at=now if not granted else None,
+                created_at=now,
+                updated_at=now,
+            )
+            session.add(pref)
+        else:
+            if applicant_profile_id and not pref.applicant_profile_id:
+                pref.applicant_profile_id = _parse_id(applicant_profile_id)
+            if pref.granted != granted:
+                pref.granted = granted
+                if granted:
+                    pref.consented_at = now
+                    pref.revoked_at = None
+                else:
+                    pref.revoked_at = now
+            pref.updated_at = now
+            session.add(pref)
+
+        if commit:
+            session.commit()
+            session.refresh(pref)
+        else:
+            session.flush()
+        return pref
+

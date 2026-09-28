@@ -104,6 +104,11 @@ def update_applicant_profile(
 ) -> ApplicantProfileResponse:
     """Update applicant profile details with ownership enforcement."""
     profile = applicant_service.get_profile(profile_id)
+    if current_user.role == UserRole.REVIEWER:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied: reviewers cannot modify applicant profiles.",
+        )
     if current_user.role != UserRole.ADMIN and profile.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

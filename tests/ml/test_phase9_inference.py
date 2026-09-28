@@ -6,7 +6,7 @@ Tests the full PARAKH credit risk inference pipeline including:
   - RiskPredictor (end-to-end prediction, INSUFFICIENT routing, input rejection)
 
 All tests run deterministically without network access or model retraining.
-The RiskPredictor is expensive to initialise (loads model + fits preprocessor), so
+The RiskPredictor loads the frozen model and persisted preprocessor artifact, and
 a session-scoped fixture is used to share a single predictor instance across tests.
 """
 import math

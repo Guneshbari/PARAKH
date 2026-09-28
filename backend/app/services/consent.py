@@ -4,12 +4,17 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Union
 from sqlalchemy.orm import Session
 from app.core.audit_events import AuditAction, AuditOutcome
-from app.models.consent import Consent, ConsentDataSource
+from app.models.consent import Consent, ConsentDataSource, ConsentPreference
 from app.repositories.applicant import ApplicantRepository
 from app.repositories.application import ApplicationRepository
 from app.repositories.base import _parse_id
 from app.repositories.consent import ConsentRepository
-from app.schemas.consent import ConsentCreate
+from app.schemas.consent import (
+    ConsentCreate,
+    ConsentPreferenceItem,
+    ConsentPreferencesResponse,
+    ConsentPreferencesUpdate,
+)
 from app.services.audit import AuditService
 from app.services.exceptions import (
     ConsentRequiredError,
@@ -364,3 +369,211 @@ class ConsentService:
         if not active:
             return None
         return self.revoke_consent(active.id, revoked_at=revoked_at, auto_commit=auto_commit)
+
+    # -------------------------------------------------------------------------
+    # DPDP Applicant Consent Preferences (P2-04)
+    # -------------------------------------------------------------------------
+
+    CANONICAL_PREFERENCE_KEYS = [
+        "consent_benchmark",
+        "consent_realtime",
+        "consent_alerts",
+    ]
+
+    PREFERENCE_KEY_ALIASES = {
+        "consent_benchmark": "consent_benchmark",
+        "consentbenchmark": "consent_benchmark",
+        "anonymized_benchmarking": "consent_benchmark",
+        "anonymized_industry_volatility_benchmarking": "consent_benchmark",
+        "consent_realtime": "consent_realtime",
+        "consentrealtime": "consent_realtime",
+        "realtime_telemetry": "consent_realtime",
+        "continuous_telemetry_refresh": "consent_realtime",
+        "consent_alerts": "consent_alerts",
+        "consentalerts": "consent_alerts",
+        "shock_alerts": "consent_alerts",
+        "volatile_shock_rebound_alerts": "consent_alerts",
+    }
+
+    def _normalize_preference_key(self, key: str) -> str:
+        """Normalize a preference key using recognized aliases."""
+        clean = key.strip().lower()
+        if clean in self.PREFERENCE_KEY_ALIASES:
+            return self.PREFERENCE_KEY_ALIASES[clean]
+        return key.strip()
+
+    def get_consent_preferences(
+        self,
+        user_id: Union[uuid.UUID, str],
+    ) -> ConsentPreferencesResponse:
+        """Fetch authoritative DPDP consent preferences for an applicant user.
+
+        If a preference record has not yet been established, defaults to False
+        (missing consent is never defaulted to granted).
+
+        Args:
+            user_id: User UUID.
+
+        Returns:
+            ConsentPreferencesResponse: Consolidated preferences and individual audit records.
+        """
+        parsed_user_id = _parse_id(user_id)
+        records = self.consent_repo.get_preferences_by_user(parsed_user_id, db=self.db)
+        record_map = {r.preference_key: r for r in records}
+
+        items: List[ConsentPreferenceItem] = []
+        latest_updated_at: Optional[datetime] = None
+
+        flags = {
+            "consent_benchmark": False,
+            "consent_realtime": False,
+            "consent_alerts": False,
+        }
+
+        for key in self.CANONICAL_PREFERENCE_KEYS:
+            rec = record_map.get(key)
+            if rec is not None:
+                flags[key] = bool(rec.granted)
+                if rec.updated_at:
+                    if latest_updated_at is None or rec.updated_at > latest_updated_at:
+                        latest_updated_at = rec.updated_at
+                items.append(
+                    ConsentPreferenceItem(
+                        key=key,
+                        granted=bool(rec.granted),
+                        consented_at=rec.consented_at,
+                        revoked_at=rec.revoked_at,
+                        updated_at=rec.updated_at,
+                    )
+                )
+            else:
+                items.append(
+                    ConsentPreferenceItem(
+                        key=key,
+                        granted=False,
+                        consented_at=None,
+                        revoked_at=None,
+                        updated_at=None,
+                    )
+                )
+
+        return ConsentPreferencesResponse(
+            user_id=parsed_user_id,
+            consent_benchmark=flags["consent_benchmark"],
+            consent_realtime=flags["consent_realtime"],
+            consent_alerts=flags["consent_alerts"],
+            preferences=items,
+            updated_at=latest_updated_at,
+        )
+
+    def update_consent_preferences(
+        self,
+        user_id: Union[uuid.UUID, str],
+        preferences_in: Union[ConsentPreferencesUpdate, Dict[str, Any]],
+        auto_commit: bool = True,
+    ) -> ConsentPreferencesResponse:
+        """Update and persist DPDP consent preferences for an applicant user.
+
+        Explicitly records consent grants and revocations with audit tracking.
+
+        Args:
+            user_id: User UUID.
+            preferences_in: Update payload with one or more preference fields.
+            auto_commit: Whether to commit at the service boundary.
+
+        Returns:
+            ConsentPreferencesResponse: Updated authoritative preferences state.
+        """
+        parsed_user_id = _parse_id(user_id)
+        data = _extract_dict(preferences_in)
+
+        # Look up applicant profile if one exists for user
+        profile = self.applicant_repo.get_by_user_id(parsed_user_id, db=self.db)
+        profile_id = profile.id if profile else None
+
+        # Resolve field values
+        updates: Dict[str, bool] = {}
+        for key, val in data.items():
+            if val is not None:
+                norm_key = self._normalize_preference_key(key)
+                if norm_key in self.CANONICAL_PREFERENCE_KEYS:
+                    updates[norm_key] = bool(val)
+
+        try:
+            for pref_key, is_granted in updates.items():
+                existing = self.consent_repo.get_preference(
+                    parsed_user_id, pref_key, db=self.db
+                )
+                prev_granted = existing.granted if existing else False
+
+                pref = self.consent_repo.upsert_preference(
+                    user_id=parsed_user_id,
+                    preference_key=pref_key,
+                    granted=is_granted,
+                    applicant_profile_id=profile_id,
+                    commit=False,
+                    db=self.db,
+                )
+
+                # Record audit event on state transition or initial explicit preference creation
+                if existing is None or prev_granted != is_granted:
+                    if self.audit_service:
+                        try:
+                            action = (
+                                AuditAction.CONSENT_GRANTED
+                                if is_granted
+                                else AuditAction.CONSENT_REVOKED
+                            )
+                            self.audit_service.record_event(
+                                action=action,
+                                entity_type="ConsentPreference",
+                                entity_id=pref.id,
+                                user_id=parsed_user_id,
+                                outcome=AuditOutcome.SUCCESS,
+                                metadata={
+                                    "preference_key": pref_key,
+                                    "granted": is_granted,
+                                    "applicant_profile_id": str(profile_id) if profile_id else None,
+                                },
+                                commit=False,
+                            )
+                        except Exception:
+                            pass
+
+            if auto_commit:
+                self.db.commit()
+
+            return self.get_consent_preferences(parsed_user_id)
+        except Exception:
+            if auto_commit:
+                self.db.rollback()
+            raise
+
+    def revoke_consent_preference(
+        self,
+        user_id: Union[uuid.UUID, str],
+        preference_key: str,
+        auto_commit: bool = True,
+    ) -> ConsentPreferencesResponse:
+        """Revoke a specific DPDP consent preference.
+
+        Sets granted=False, stamps revoked_at, and records an audit event.
+
+        Args:
+            user_id: User UUID.
+            preference_key: Canonical key or recognized alias.
+            auto_commit: Whether to commit at the service boundary.
+
+        Returns:
+            ConsentPreferencesResponse: Updated authoritative preferences state.
+        """
+        norm_key = self._normalize_preference_key(preference_key)
+        if norm_key not in self.CANONICAL_PREFERENCE_KEYS:
+            raise ValidationError(f"Invalid consent preference key: '{preference_key}'.")
+
+        return self.update_consent_preferences(
+            user_id=user_id,
+            preferences_in={norm_key: False},
+            auto_commit=auto_commit,
+        )
+

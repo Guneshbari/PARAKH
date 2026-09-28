@@ -1,10 +1,10 @@
 import React from 'react';
 import type { RiskLevel } from '@parakh/types';
 import { Badge, type BadgeProps } from '@/components/ui/badge';
-import { ShieldCheck, AlertTriangle, AlertCircle, HelpCircle } from 'lucide-react';
+import { ShieldCheck, AlertTriangle, AlertCircle, HelpCircle, MinusCircle } from 'lucide-react';
 
 interface RiskBadgeProps extends Omit<BadgeProps, 'variant'> {
-  riskLevel: RiskLevel;
+  riskLevel?: RiskLevel | 'UNRATED' | string | null;
   showIcon?: boolean;
 }
 
@@ -32,11 +32,20 @@ export function RiskBadge({ riskLevel, showIcon = true, className, ...props }: R
         </Badge>
       );
     case 'INSUFFICIENT_EVIDENCE_MANUAL_REVIEW':
-    default:
       return (
         <Badge variant="riskNeutral" className={className} {...props}>
           {showIcon && <HelpCircle className="size-3 shrink-0" />}
           <span>MANUAL REVIEW REQUIRED</span>
+        </Badge>
+      );
+    case 'UNRATED':
+    case null:
+    case undefined:
+    default:
+      return (
+        <Badge variant="outline" className={className} {...props}>
+          {showIcon && <MinusCircle className="size-3 shrink-0 text-foreground-secondary" />}
+          <span>UNRATED</span>
         </Badge>
       );
   }

@@ -6,6 +6,7 @@ and formatting PredictionResponse into standard MLModelOutput.
 """
 from decimal import Decimal
 import logging
+import math
 import threading
 from typing import Any, Dict, Optional, Tuple
 
@@ -32,6 +33,7 @@ _SHARED_PREDICTOR: Optional[RiskPredictor] = None
 def get_shared_risk_predictor(
     manifest_path: Optional[str] = None,
     dataset_path: Optional[str] = None,
+    preprocessor_path: Optional[str] = None,
 ) -> RiskPredictor:
     """Retrieve or lazily initialize the shared singleton RiskPredictor instance.
 
@@ -41,6 +43,7 @@ def get_shared_risk_predictor(
     Args:
         manifest_path: Optional explicit manifest path. Defaults to settings.ML_MANIFEST_PATH.
         dataset_path: Optional explicit dataset path. Defaults to settings.ML_DATASET_PATH.
+        preprocessor_path: Optional explicit preprocessor path. Defaults to settings.ML_PREPROCESSOR_PATH.
 
     Returns:
         RiskPredictor: Shared thread-safe inference predictor instance.
@@ -53,15 +56,17 @@ def get_shared_risk_predictor(
         if _SHARED_PREDICTOR is None:
             resolved_manifest = manifest_path or settings.ML_MANIFEST_PATH
             resolved_dataset = dataset_path or settings.ML_DATASET_PATH
+            resolved_preprocessor = preprocessor_path or settings.ML_PREPROCESSOR_PATH
             logger.info(
-                "Initializing shared RiskPredictor singleton (manifest=%s, dataset=%s)",
+                "Initializing shared RiskPredictor singleton (manifest=%s, preprocessor=%s)",
                 resolved_manifest,
-                resolved_dataset,
+                resolved_preprocessor,
             )
             try:
                 _SHARED_PREDICTOR = RiskPredictor(
                     manifest_path=resolved_manifest,
                     dataset_path=resolved_dataset,
+                    preprocessor_path=resolved_preprocessor,
                 )
             except FileNotFoundError as exc:
                 raise AssessmentEngineError(
@@ -130,7 +135,7 @@ class MLModelAdapter(MLModel):
             raise AssessmentEngineError(f"ML inference pipeline error: {exc}") from exc
 
         # 3. Translate PredictionResponse to standard MLModelOutput
-        return self.map_prediction_to_output(prediction_response, app_dict)
+        return self.map_prediction_to_output(prediction_response, app_dict, input_data)
 
     @classmethod
     def transform_input_to_ml_dict(cls, input_data: AssessmentInput) -> Dict[str, Any]:
@@ -231,10 +236,38 @@ class MLModelAdapter(MLModel):
         installment_dti = est_installment / monthly_income_est
         total_dti = dti_ratio + installment_dti
 
-        # Telemetry sufficiency defaults
-        observed_days = 90.0
-        payout_count = 12.0
-        group_count = 4.0
+        # Telemetry sufficiency metrics: strictly extracted from derived features without fabrication
+        def _extract_suf_metric(primary_key: str, alias_key: str) -> Optional[float]:
+            val = derived.get(primary_key)
+            if val is None:
+                val = derived.get(alias_key)
+            if val is None:
+                return None
+            try:
+                f_val = float(val)
+                return f_val if not (math.isnan(f_val) or math.isinf(f_val)) else None
+            except (ValueError, TypeError):
+                return None
+
+        f_suf_observed_days = _extract_suf_metric("feat_suf_observed_days", "observed_days")
+        f_suf_payout_count = _extract_suf_metric("feat_suf_payout_count", "payout_count")
+        f_suf_group_count = _extract_suf_metric("feat_suf_group_count", "group_count")
+        f_suf_missing_ratio = _extract_suf_metric("feat_suf_missing_ratio", "missing_ratio")
+
+        if f_suf_missing_ratio is None:
+            # If all required telemetry metrics are present and sufficient, default missing ratio to 0.0;
+            # otherwise mark missing ratio as 1.0 reflecting telemetry absence.
+            if (
+                f_suf_observed_days is not None
+                and f_suf_observed_days >= 30.0
+                and f_suf_payout_count is not None
+                and f_suf_payout_count >= 4.0
+                and f_suf_group_count is not None
+                and f_suf_group_count >= 2.0
+            ):
+                f_suf_missing_ratio = 0.0
+            else:
+                f_suf_missing_ratio = 1.0
 
         # --- 2. Mandatory Core Derived Features (19 fields) ---
         f_inc_median_90d = float(derived.get("feat_inc_median_90d", safe_median))
@@ -252,10 +285,6 @@ class MLModelAdapter(MLModel):
         f_bur_dti_ratio = float(derived.get("feat_bur_dti_ratio", dti_ratio))
         f_bur_installment_dti = float(derived.get("feat_bur_installment_dti", installment_dti))
         f_bur_total_dti = float(derived.get("feat_bur_total_dti", total_dti))
-        f_suf_observed_days = float(derived.get("feat_suf_observed_days", observed_days))
-        f_suf_payout_count = float(derived.get("feat_suf_payout_count", payout_count))
-        f_suf_group_count = float(derived.get("feat_suf_group_count", group_count))
-        f_suf_missing_ratio = float(derived.get("feat_suf_missing_ratio", 0.0))
 
         # --- 3. Optional Derived Features (21 fields) ---
         f_inc_mean_90d = float(derived.get("feat_inc_mean_90d", avg_inc if avg_inc is not None else safe_median))
@@ -274,13 +303,39 @@ class MLModelAdapter(MLModel):
         f_pay_utility_on_time = float(derived.get("feat_pay_utility_on_time", pay_regularity if pay_regularity is not None else 0.90))
         f_pay_max_bill_delay = float(derived.get("feat_pay_max_bill_delay", 3.0))
         f_pay_repay_reliability = float(derived.get("feat_pay_repay_reliability", repay_reliability if repay_reliability is not None else 0.95))
-        f_bur_loan_to_income = float(derived.get("feat_bur_loan_to_income", req_amount / monthly_income_est))
+        # Authoritative formula: loan principal divided by annualized median income (median * 52)
+        f_bur_loan_to_income = float(
+            derived.get(
+                "feat_bur_loan_to_income",
+                min(max(req_amount / max(1.0, safe_median * 52.0), 0.0), 10.0),
+            )
+        )
 
-        # Interaction terms
-        f_int_vol_x_recovery = float(derived.get("feat_int_vol_x_recovery", f_inc_cv_90d * f_rec_days_to_recover))
-        f_int_vol_x_buffer = float(derived.get("feat_int_vol_x_buffer", f_inc_cv_90d * f_liq_buffer_to_loan))
-        f_int_trend_x_dti = float(derived.get("feat_int_trend_x_dti", f_trend_slope_90d * f_bur_dti_ratio))
-        f_int_resilience_idx = float(derived.get("feat_int_resilience_idx", 50.0))
+        # Interaction terms matching authoritative training formulas
+        f_int_vol_x_recovery = float(
+            derived.get(
+                "feat_int_vol_x_recovery",
+                min(max(f_inc_cv_90d * f_rec_days_to_recover, 0.0), 450.0),
+            )
+        )
+        f_int_vol_x_buffer = float(
+            derived.get(
+                "feat_int_vol_x_buffer",
+                min(max(f_inc_cv_90d / (f_liq_buffer_to_loan + 0.1), 0.0), 50.0),
+            )
+        )
+        f_int_trend_x_dti = float(
+            derived.get(
+                "feat_int_trend_x_dti",
+                min(max(f_trend_slope_90d * (1.0 + f_bur_total_dti), -50000.0), 50000.0),
+            )
+        )
+        f_int_resilience_idx = float(
+            derived.get(
+                "feat_int_resilience_idx",
+                min(max(f_rec_bounceback_ratio / (f_inc_cv_90d + 0.05), 0.0), 100.0),
+            )
+        )
 
         return {
             # 6 raw profile/loan inputs
@@ -339,6 +394,7 @@ class MLModelAdapter(MLModel):
         cls,
         pred: PredictionResponse,
         app_dict: Dict[str, Any],
+        input_data: Optional[AssessmentInput] = None,
     ) -> MLModelOutput:
         """Map PredictionResponse into standard MLModelOutput."""
         # 1. Human-readable key factors list
@@ -347,13 +403,16 @@ class MLModelAdapter(MLModel):
         protective = expl.get("key_protective_factors", [])
         risk_factors = expl.get("key_risk_factors", [])
 
-        for factor in protective:
-            name = factor.get("factor_name", "Protective Factor")
-            borrower_exp = factor.get("borrower_explanation", "")
-            key_factors.append(f"{name}: {borrower_exp}" if borrower_exp else name)
+        # For HIGHER risk, prioritize risk factors so primary attention drivers are prominent.
+        # For LOWER / MODERATE risk, prioritize protective strengths first.
+        primary_factors = (
+            risk_factors + protective
+            if pred.risk_tier == "HIGHER"
+            else protective + risk_factors
+        )
 
-        for factor in risk_factors:
-            name = factor.get("factor_name", "Risk Factor")
+        for factor in primary_factors:
+            name = factor.get("factor_name", "Factor")
             borrower_exp = factor.get("borrower_explanation", "")
             key_factors.append(f"{name}: {borrower_exp}" if borrower_exp else name)
 
@@ -376,6 +435,8 @@ class MLModelAdapter(MLModel):
                 "value": float(val),
                 "contributionValue": float(val),
                 "explanation": factor.get("borrower_explanation", ""),
+                "direction": "POSITIVE",
+                "impact_direction": factor.get("impact_direction", "associated with lower predicted risk"),
             })
         for factor in risk_factors:
             val = factor.get("attribution_value", 0.15)
@@ -385,7 +446,25 @@ class MLModelAdapter(MLModel):
                 "value": float(val),
                 "contributionValue": float(val),
                 "explanation": factor.get("borrower_explanation", ""),
+                "direction": "NEGATIVE",
+                "impact_direction": factor.get("impact_direction", "associated with higher predicted risk"),
             })
+
+        # Volatility profile for application-specific rebound & recovery analytics (Phase 17)
+        derived = dict(input_data.derived_features or {}) if input_data else {}
+        rec_rate = derived.get("recovery_rate_after_low_income")
+        dips = derived.get("low_income_periods_encountered")
+        recs = derived.get("successful_recovery_cycles")
+
+        volatility_profile = {
+            "recovery_rate_after_low_income": float(rec_rate) if rec_rate is not None else None,
+            "low_income_periods_encountered": int(dips) if dips is not None else 0,
+            "successful_recovery_cycles": int(recs) if recs is not None else 0,
+            "income_volatility_index": float(round(float(app_dict.get("feat_inc_cv_90d", 0.25)), 2)),
+            "income_trend": "volatile_stable" if float(app_dict.get("feat_inc_cv_90d", 0.25)) > 0.4 else "increasing",
+            "income_frequency": "weekly",
+            "repayment_history_rate": int(round(float(app_dict.get("feat_pay_repay_reliability", 0.95)) * 100)),
+        }
 
         structured_explanation = {
             "disclaimer": expl.get("disclaimer", ""),
@@ -395,6 +474,7 @@ class MLModelAdapter(MLModel):
             "is_insufficient_evidence": pred.is_insufficient_evidence,
             "missing_signals": pred.missing_or_insufficient_signals,
             "shap_values": shap_items,
+            "volatility_profile": volatility_profile,
         }
 
         # 3. Numeric probabilities and scores
@@ -422,7 +502,7 @@ class MLModelAdapter(MLModel):
             confidence=conf,
             credit_score=score,
             risk_level=risk_level,
-            key_factors=key_factors[:4],
+            key_factors=key_factors[:8],
             explanation=structured_explanation,
             debt_to_income=dti,
             utilization=utilization,

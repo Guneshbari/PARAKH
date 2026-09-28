@@ -212,7 +212,7 @@ export default function UserDashboardPage() {
             </Button>
           </Link>
           {latestAssessment && (
-            <Link href={`/user/results/${latestAssessment.id}`}>
+            <Link href={`/user/results/${applications[0]?.id || latestAssessment.applicantId || latestAssessment.id}`}>
               <Button variant="secondary" className="gap-1.5 text-xs sm:text-sm rounded-full cursor-pointer">
                 <span>Full Report</span>
                 <ArrowRight className="size-3.5" />
@@ -291,7 +291,11 @@ export default function UserDashboardPage() {
                     title="Shock Rebound Speed"
                     value={10}
                     suffix=" Days"
-                    pillLabel={`${Math.round(latestAssessment.volatilityProfile.recoveryRateAfterLowIncome * 100)}% Recovery`}
+                    pillLabel={
+                      latestAssessment.volatilityProfile.recoveryRateAfterLowIncome != null
+                        ? `${Math.round(latestAssessment.volatilityProfile.recoveryRateAfterLowIncome * 100)}% Recovery`
+                        : 'Uncalculated'
+                    }
                     pillVariant="secondary"
                     subtext="Average days to baseline earnings"
                     icon={Zap}
@@ -323,7 +327,11 @@ export default function UserDashboardPage() {
               </div>
 
               <CashflowVolatilityChart
-                recoveryRate={Math.round(latestAssessment.volatilityProfile.recoveryRateAfterLowIncome * 100)}
+                recoveryRate={
+                  latestAssessment.volatilityProfile.recoveryRateAfterLowIncome != null
+                    ? Math.round(latestAssessment.volatilityProfile.recoveryRateAfterLowIncome * 100)
+                    : null
+                }
                 title="Verified UPI & Platform Cashflow Consistency"
               />
             </section>

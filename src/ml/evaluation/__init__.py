@@ -6,7 +6,12 @@ model comparison, experiment tracking, and fairness evaluation utilities.
 from src.ml.evaluation.calibration import CalibrationBin, CalibrationResult, evaluate_calibration
 from src.ml.evaluation.cohorts import CohortEvaluationResult, evaluate_by_cohort
 from src.ml.evaluation.comparison import CohortDelta, ModelComparisonResult, compare_models
-from src.ml.evaluation.fairness import FairnessAuditReport, SubgroupFairnessMetrics, audit_subgroup_fairness
+from src.ml.evaluation.fairness import (
+    FairnessAuditReport,
+    GroupedFairnessAuditor,
+    SubgroupFairnessMetrics,
+    audit_subgroup_fairness,
+)
 from src.ml.evaluation.metrics import ClassificationMetrics, evaluate_predictions
 from src.ml.evaluation.tracking import ExperimentMetadata
 
@@ -24,5 +29,6 @@ __all__ = [
     "SubgroupFairnessMetrics",
     "FairnessAuditReport",
     "audit_subgroup_fairness",
+    "GroupedFairnessAuditor",
     "ExperimentMetadata",
 ]

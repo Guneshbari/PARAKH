@@ -7,10 +7,11 @@ import { cn } from '@/lib/utils';
 
 interface MetricCardProps {
   title: string;
-  value: number;
+  value: number | null | undefined;
   format?: (n: number) => string;
   prefix?: string;
   suffix?: string;
+  emptyText?: string;
   pillLabel?: string;
   pillVariant?: 'mint' | 'lavender' | 'riskLower' | 'riskModerate' | 'riskHigher' | 'outline' | 'secondary' | 'default';
   subtext?: string;
@@ -25,6 +26,7 @@ export function MetricCard({
   format,
   prefix = '',
   suffix = '',
+  emptyText = '—',
   pillLabel,
   pillVariant = 'secondary',
   subtext,
@@ -32,6 +34,8 @@ export function MetricCard({
   className,
   onClick,
 }: MetricCardProps) {
+  const isNumeric = value !== null && value !== undefined && typeof value === 'number' && !isNaN(value);
+
   return (
     <MotionCard
       className={cn('space-y-3.5', className)}
@@ -52,12 +56,16 @@ export function MetricCard({
 
       <div className="flex items-baseline gap-2">
         <span className="text-3xl sm:text-4xl font-semibold text-foreground tracking-tight font-mono">
-          <AnimatedNumber
-            value={value}
-            format={format}
-            prefix={prefix}
-            suffix={suffix}
-          />
+          {isNumeric ? (
+            <AnimatedNumber
+              value={value}
+              format={format}
+              prefix={prefix}
+              suffix={suffix}
+            />
+          ) : (
+            <span>{prefix}{emptyText}{suffix}</span>
+          )}
         </span>
         {pillLabel && Icon && (
           <Badge variant={pillVariant} className="text-xs py-0.5 px-2">

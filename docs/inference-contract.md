@@ -68,6 +68,8 @@ Before scoring, the predictor evaluates three data sufficiency thresholds:
 | `feat_suf_payout_count` | ≥ 4 cycles | → INSUFFICIENT |
 | `feat_suf_group_count` | ≥ 2 core signal groups | → INSUFFICIENT |
 
+In accordance with Phase 13A-2 data sufficiency governance, missing telemetry values are never fabricated or defaulted to passing numbers (`90.0`, `12.0`, `4.0`). If required telemetry is absent, incomplete, or unobserved, the application immediately routes to `INSUFFICIENT` evidence.
+
 Applications failing any rule receive an `INSUFFICIENT` response with `repayment_risk_probability=null` and `presentation_score=null`.  They are **not** scored by the model.
 
 ---
@@ -143,20 +145,20 @@ The diagnostic threshold is **0.50** (from `FINAL_MODEL.json`).  This is for ref
 ## 6. Pipeline Architecture
 
 ```
-application_dict
+application_dict (derived via TelemetryFeaturePipeline)
        │
        ▼
  InputValidator.validate()              ← contract + type + range + categorical checks
        │
        ▼
- InputValidator.check_data_sufficiency() ← sufficiency gate
+ InputValidator.check_data_sufficiency() ← sufficiency gate (strictly rejects missing telemetry)
        │
   ┌────┴────────────────────────────────────┐
   │ INSUFFICIENT                            │ SUFFICIENT
   ▼                                         ▼
 OutputFormatter.format_insufficient()   FeatureEngineer.transform()      ← 9 engineered features
                                               │
-                                         preprocessor.transform()         ← scale/impute/encode
+                                         persisted preprocessor.transform() ← models/artifacts/credit_risk_preprocessor.joblib
                                               │
                                          model.predict_proba()            ← 64-col model input
                                               │
@@ -174,30 +176,34 @@ OutputFormatter.format_insufficient()   FeatureEngineer.transform()      ← 9 e
 
 ## 7. Preprocessor Initialisation Strategy
 
-The predictor does **not** fit the preprocessor on inference data.  At `RiskPredictor.__init__()`:
+As established in **Phase 13A-4**, runtime inference does **not** reconstruct or refit the preprocessor from the training dataset.
 
-1. The canonical Phase 2 dataset is loaded from `data/synthetic/synthetic_credit_applications.parquet`
-2. The deterministic 70/15/15 grouped split is applied (seed=42, scored_only=True)
-3. `build_model_ready_matrices(train_df=split.train_df, variant=VOLATILITY_AWARE)` is called
-4. The returned fitted `CreditRiskPreprocessor` is stored for all subsequent `predict()` calls
-
-This is identical to the preprocessing path used during model training, guaranteeing that fitted medians, scaler parameters, and OHE category lists are consistent with the frozen model.
+At `RiskPredictor.__init__()`:
+1. The persisted fitted `CreditRiskPreprocessor` artifact is loaded directly from:
+   `models/artifacts/credit_risk_preprocessor.joblib`
+   *(SHA-256: `bba8d91afebb8e88fe1e9e30567b60817c77a28afa055befe1cbf77ed4039eb2`)*
+2. Strict artifact validation verifies:
+   - Object instance is of type `CreditRiskPreprocessor`
+   - Preprocessor state reports `is_fitted_ = True`
+   - Model version matches `"1.0.0"`
+   - Feature variant matches `"VOLATILITY_AWARE"`
+   - Output feature count and column names match the 64 features expected by `model.feature_names_in_`
+3. The verified preprocessor is retained in memory for all subsequent `predict()` requests (<1ms startup).
 
 > [!NOTE]
-> A production deployment would serialise the fitted preprocessor to a joblib artifact alongside the model and load it directly, avoiding the dataset dependency at inference time.
+> The historical training split reconstruction method (`RiskPredictor.reconstruct_fitted_pipeline()`) is retained strictly as an isolated test-harness utility for regression audits and parity benchmarking. Production inference does not invoke dataset reconstruction.
 
 ---
 
-## 8. Phase 10 Integration Notes
+## 8. Backend ML Integration Notes
 
-Phase 10 (backend integration) must:
+The FastAPI backend integrates with `RiskPredictor` via `MLModelAdapter` (`backend/app/assessment/ml_model_adapter.py`):
 
-1. Import `from src.ml.inference import RiskPredictor`
-2. Instantiate `RiskPredictor()` once at application startup (expensive: loads model + fits preprocessor)
-3. Call `predictor.predict(application_dict)` per assessment request
-4. Map `PredictionResponse.to_dict()` to the backend `Assessment` schema
-
-The 46 required input fields must be sourced entirely from the backend application record and telemetry summary — no forward-looking or target-derived fields are permitted.
+1. `get_shared_risk_predictor()` retrieves the thread-safe singleton `RiskPredictor` on startup.
+2. Ingestion pipelines extract features using `TelemetryFeaturePipeline`, deriving the 40 base features from `FinancialSignal.telemetry_series` without synthetic fabrication.
+3. The adapter formats inputs into the 46-field flat contract and calls `predictor.predict(application_dict)`.
+4. `MLModelAdapter` maps `PredictionResponse` into `MLModelOutput` and `AssessmentResult`.
+5. `AssessmentService` persists the assessment to PostgreSQL (`credit_assessments` table), storing the TreeSHAP explanation payload in the dedicated `explanation` JSONB column (Phase 13A-1).
 
 ---
 
@@ -206,6 +212,8 @@ The 46 required input fields must be sourced entirely from the backend applicati
 | Error Type | Condition | Consumer Action |
 |------------|-----------|-----------------|
 | `InputValidationError` | Contract violation in input dict | Return 422 / reject request |
-| `FileNotFoundError` | Model artifact or dataset missing | Fatal startup error — do not serve |
-| `RuntimeError` | Feature engineering or preprocessing failure | Log + return 500 |
-| SHAP exception | Explanation unavailable | Non-fatal — score/tier remain valid; return with empty explanation |
+| `FileNotFoundError` | Model artifact, manifest, or preprocessor artifact missing | Fatal startup error — do not serve |
+| `RuntimeError` | Preprocessor artifact corrupt, not fitted, or transformation failure | Log + return 500 |
+| `TypeError` | Corrupt or invalid preprocessor class | Fatal startup error — do not serve |
+| `ValueError` | Metadata or feature mismatch between preprocessor and model | Fatal startup error — do not serve |
+| SHAP exception | Explanation calculation error | Fall back to empty explanation; score/tier remain valid |

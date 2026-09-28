@@ -22,7 +22,7 @@ export interface VolatilityProfile {
   incomeFrequency: IncomeFrequency;
   incomeVolatilityIndex: number; // 0.0 - 1.0 (standardized coefficient of variation)
   incomeTrend: IncomeTrend;
-  recoveryRateAfterLowIncome: number; // e.g. 0.94 (94% of low cycles rebound in 10-14 days)
+  recoveryRateAfterLowIncome: number | null; // e.g. 0.94 (94% of low cycles rebound in 10-14 days), or null if uncalculated/no dips
   lowIncomePeriodsEncountered: number; // Dip count over the observation window
   successfulRecoveryCycles: number; // Dips followed by positive rebound
   averageWeeklyInflow: number;
@@ -39,6 +39,10 @@ export interface FactorSummary {
   category: 'INCOME_VOLATILITY' | 'REPAYMENT' | 'OBLIGATION' | 'TENURE' | 'DATA_QUALITY';
   impact: 'HIGH' | 'MEDIUM' | 'LOW';
   description: string;
+  technicalFeature?: string;
+  impactDirection?: 'LOWER_RISK' | 'HIGHER_RISK' | string;
+  attributionValue?: number;
+  factorName?: string;
 }
 
 export interface SHAPContribution {
@@ -149,6 +153,11 @@ export interface PortfolioAnalytics {
   }[];
 }
 
+export interface PortfolioAnalyticsQueryParams {
+  start_date?: string;
+  end_date?: string;
+}
+
 export interface ModelInsights {
   modelVersion: string;
   lastTrainedAt: string;
@@ -219,4 +228,46 @@ export function toPortalRole(role?: string | null): PortalRole | null {
   if (normalized === 'ADMIN') return 'admin';
   return null;
 }
+
+// --- Operational Alerts ---
+
+export type OperationalAlertStatus = 'OPEN' | 'ACKNOWLEDGED' | 'RESOLVED';
+
+export type OperationalAlertSeverity = 'INFO' | 'WARNING' | 'CRITICAL';
+
+export type OperationalAlertType =
+  | 'INSUFFICIENT_DATA_REVIEW'
+  | 'ASSESSMENT_FAILURE'
+  | 'CONSENT_BLOCKED'
+  | 'SYSTEM_HEALTH';
+
+export interface OperationalAlert {
+  id: string;
+  alertType: OperationalAlertType | string;
+  severity: OperationalAlertSeverity | 'SUCCESS' | string;
+  title: string;
+  message: string;
+  status: OperationalAlertStatus | string;
+  applicationId?: string | null;
+  assessmentId?: string | null;
+  metadata?: Record<string, any> | null;
+  createdAt: string;
+  resolvedAt?: string | null;
+}
+
+// --- Audit Trail & Compliance ---
+
+export interface AuditLogEntry {
+  id: string;
+  userId?: string | null;
+  applicationId?: string | null;
+  action: string;
+  entityType: string;
+  entityId?: string | null;
+  actorRole?: string | null;
+  outcome?: string | null;
+  metadata?: Record<string, any> | null;
+  createdAt: string;
+}
+
 

@@ -1,7 +1,7 @@
 """Algorithmic model version registry API routes."""
 from typing import List, Optional
 from uuid import UUID
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from app.api.deps import (
     get_current_active_user,
     get_model_version_service,
@@ -9,10 +9,13 @@ from app.api.deps import (
 )
 from app.models.user import User, UserRole
 from app.schemas.model_version import (
+    FairnessAuditRequest,
+    FairnessAuditResponse,
+    GlobalSHAPResponse,
     ModelVersionCreate,
     ModelVersionResponse,
 )
-from app.services.exceptions import EntityNotFoundError
+from app.services.exceptions import EntityNotFoundError, ValidationError
 from app.services.model_version import ModelVersionService
 
 router = APIRouter(prefix="/model-versions", tags=["model-versions"])
@@ -89,3 +92,89 @@ def get_model_version(
     mv = mv_service.get_model_version(model_version_id)
     return ModelVersionResponse.model_validate(mv)
 
+
+@router.post(
+    "/{model_version_id}/activate",
+    response_model=ModelVersionResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Activate Model Version",
+    description="Promote and activate a registered scoring model version. Deactivates other active versions in the same model family. Requires ADMIN role.",
+)
+def activate_model_version(
+    model_version_id: UUID,
+    current_admin: User = Depends(require_role(UserRole.ADMIN)),
+    mv_service: ModelVersionService = Depends(get_model_version_service),
+) -> ModelVersionResponse:
+    """Activate a model version (Admin only)."""
+    mv = mv_service.activate_model_version(model_version_id, actor=current_admin)
+    return ModelVersionResponse.model_validate(mv)
+
+
+@router.post(
+    "/{model_version_id}/fairness-audit",
+    response_model=FairnessAuditResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Execute Offline Fairness Audit",
+    description="Execute an offline fairness audit (Demographic Parity Ratio and Equal Opportunity Difference) across operational subgroups. Requires ADMIN or REVIEWER role.",
+)
+@router.post(
+    "/{model_version_id}/fairness",
+    response_model=FairnessAuditResponse,
+    status_code=status.HTTP_200_OK,
+    include_in_schema=False,
+)
+def evaluate_model_version_fairness(
+    model_version_id: UUID,
+    audit_request: Optional[FairnessAuditRequest] = None,
+    current_user: User = Depends(require_role(UserRole.ADMIN, UserRole.REVIEWER)),
+    mv_service: ModelVersionService = Depends(get_model_version_service),
+) -> FairnessAuditResponse:
+    """Execute offline fairness audit (Admin and Reviewer only)."""
+    try:
+        req = audit_request or FairnessAuditRequest()
+        return mv_service.evaluate_fairness(
+            model_version_id=model_version_id,
+            audit_request=req,
+            actor=current_user,
+        )
+    except ValidationError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(exc.message if hasattr(exc, "message") else exc),
+        )
+
+
+@router.post(
+    "/{model_version_id}/global-shap",
+    response_model=GlobalSHAPResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Compute Global SHAP Feature Importance",
+    description=(
+        "Compute model-level global SHAP feature importance using the existing TreeSHAP "
+        "infrastructure over the offline evaluation dataset. "
+        "Returns mean absolute SHAP and signed mean SHAP per feature, ordered by importance. "
+        "Results are computed from the offline benchmark population — NOT from individual applicant data. "
+        "Requires ADMIN or REVIEWER role. Applicants are not granted access to model-governance internals."
+    ),
+)
+def compute_global_shap(
+    model_version_id: UUID,
+    current_user: User = Depends(require_role(UserRole.ADMIN, UserRole.REVIEWER)),
+    mv_service: ModelVersionService = Depends(get_model_version_service),
+) -> GlobalSHAPResponse:
+    """Execute global SHAP aggregation for a registered model version (Admin and Reviewer only)."""
+    try:
+        return mv_service.compute_global_shap(
+            model_version_id=model_version_id,
+            actor=current_user,
+        )
+    except EntityNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(exc),
+        )
+    except ValidationError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(exc.message if hasattr(exc, "message") else exc),
+        )

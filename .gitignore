@@ -45,6 +45,7 @@ models/artifacts/*
 !models/artifacts/logistic_regression_baseline*
 !models/artifacts/volatility_aware_risk_model*
 !models/artifacts/FINAL_MODEL.json
+!models/artifacts/credit_risk_preprocessor*
 models/checkpoints/*
 !models/checkpoints/.gitkeep
 mlruns/

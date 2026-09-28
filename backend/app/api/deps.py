@@ -20,6 +20,7 @@ from app.services.audit import AuditService
 from app.services.consent import ConsentService
 from app.services.financial_signal import FinancialSignalService
 from app.services.model_version import ModelVersionService
+from app.services.operational_alert import OperationalAlertService
 from app.services.review import ReviewService
 from app.services.user import UserService
 
@@ -48,6 +49,7 @@ __all__ = [
     "get_model_version_service",
     "get_review_service",
     "get_audit_service",
+    "get_operational_alert_service",
 ]
 
 
@@ -107,6 +109,13 @@ def get_review_service(db: Session = Depends(get_db)) -> ReviewService:
 def get_audit_service(db: Session = Depends(get_db)) -> AuditService:
     """Dependency providing an AuditService instance bound to the request database session."""
     return AuditService(db=db)
+
+
+def get_operational_alert_service(
+    db: Session = Depends(get_db),
+) -> OperationalAlertService:
+    """Dependency providing an OperationalAlertService instance bound to the request database session."""
+    return OperationalAlertService(db=db)
 
 
 def get_current_user(
