@@ -1,0 +1,179 @@
+{
+  "disclaimer": "MANDATORY SCIENTIFIC & REGULATORY DISCLAIMER: The evaluations, portfolio simulations, approval rates, expected-loss estimates, and financial inclusion coverage numbers reported herein are controlled synthetic benchmarks derived from synthetic gig-worker profiles and held-out test partitions. They do not constitute actual commercial banking outcomes, empirical bank-loss reductions, regulatory compliance approvals, or legal fair-lending certification.",
+  "policy_assumptions": {
+    "policy_name": "Provisional Three-Tier Credit Policy",
+    "source": "FINAL_MODEL.json / docs/ml-specification.md",
+    "tiers": {
+      "APPROVE": {
+        "condition": "Predicted Default Probability < 0.20 (Presentation Score > 740)",
+        "operational_action": "Streamlined automated credit grant"
+      },
+      "HUMAN_REVIEW": {
+        "condition": "0.20 <= Predicted Probability < 0.45 (Score 603 to 740)",
+        "operational_action": "Credit adjudicator queue with explainability drill-down"
+      },
+      "DECLINE": {
+        "condition": "Predicted Default Probability >= 0.45 (Presentation Score <= 602)",
+        "operational_action": "Adverse credit decision with statutory notification"
+      }
+    },
+    "exposure_field": "requested_loan_amount",
+    "lgd_scenarios": [
+      0.25,
+      0.5,
+      0.75
+    ],
+    "disclaimer": "MANDATORY SCIENTIFIC & REGULATORY DISCLAIMER: The evaluations, portfolio simulations, approval rates, expected-loss estimates, and financial inclusion coverage numbers reported herein are controlled synthetic benchmarks derived from synthetic gig-worker profiles and held-out test partitions. They do not constitute actual commercial banking outcomes, empirical bank-loss reductions, regulatory compliance approvals, or legal fair-lending certification."
+  },
+  "baseline_simulation": {
+    "model_name": "Baseline Logistic Regression",
+    "total_applications": 1698,
+    "total_requested_exposure_inr": 69281500.0,
+    "outcomes": {
+      "approved": {
+        "count": 1343,
+        "rate": 0.7909,
+        "exposure_inr": 62365500.0,
+        "exposure_share": 0.9002,
+        "actual_defaults": 26,
+        "actual_good_repayers": 1317,
+        "default_rate_among_approved": 0.0194,
+        "good_repayment_rate_among_approved": 0.9806
+      },
+      "human_review": {
+        "count": 134,
+        "rate": 0.0789,
+        "exposure_inr": 3030500.0,
+        "exposure_share": 0.0437
+      },
+      "declined": {
+        "count": 221,
+        "rate": 0.1302,
+        "exposure_inr": 3885500.0,
+        "exposure_share": 0.0561
+      }
+    },
+    "capture_and_errors": {
+      "good_borrower_capture_rate": 0.9083,
+      "good_borrowers_approved": 1317,
+      "total_good_borrowers": 1450,
+      "false_positive_decline_rate": 0.0297,
+      "false_negative_approval_rate": 0.1048
+    },
+    "expected_loss_simulation": {
+      "lgd_25pct": {
+        "lgd_assumption": 0.25,
+        "approved_portfolio_expected_loss_inr": 163570.24,
+        "expected_loss_per_1_lakh_approved_inr": 262.28,
+        "realized_default_loss_inr": 201125.0,
+        "unconstrained_portfolio_el_inr": 1121585.55,
+        "unconstrained_el_per_1_lakh_inr": 1618.88
+      },
+      "lgd_50pct": {
+        "lgd_assumption": 0.5,
+        "approved_portfolio_expected_loss_inr": 327140.49,
+        "expected_loss_per_1_lakh_approved_inr": 524.55,
+        "realized_default_loss_inr": 402250.0,
+        "unconstrained_portfolio_el_inr": 2243171.11,
+        "unconstrained_el_per_1_lakh_inr": 3237.76
+      },
+      "lgd_75pct": {
+        "lgd_assumption": 0.75,
+        "approved_portfolio_expected_loss_inr": 490710.73,
+        "expected_loss_per_1_lakh_approved_inr": 786.83,
+        "realized_default_loss_inr": 603375.0,
+        "unconstrained_portfolio_el_inr": 3364756.66,
+        "unconstrained_el_per_1_lakh_inr": 4856.65
+      }
+    }
+  },
+  "parakh_simulation": {
+    "model_name": "PARAKH Volatility-Aware Model",
+    "total_applications": 1698,
+    "total_requested_exposure_inr": 69281500.0,
+    "outcomes": {
+      "approved": {
+        "count": 1393,
+        "rate": 0.8204,
+        "exposure_inr": 63479500.0,
+        "exposure_share": 0.9163,
+        "actual_defaults": 38,
+        "actual_good_repayers": 1355,
+        "default_rate_among_approved": 0.0273,
+        "good_repayment_rate_among_approved": 0.9727
+      },
+      "human_review": {
+        "count": 81,
+        "rate": 0.0477,
+        "exposure_inr": 1780500.0,
+        "exposure_share": 0.0257
+      },
+      "declined": {
+        "count": 224,
+        "rate": 0.1319,
+        "exposure_inr": 4021500.0,
+        "exposure_share": 0.058
+      }
+    },
+    "capture_and_errors": {
+      "good_borrower_capture_rate": 0.9345,
+      "good_borrowers_approved": 1355,
+      "total_good_borrowers": 1450,
+      "false_positive_decline_rate": 0.0262,
+      "false_negative_approval_rate": 0.1532
+    },
+    "expected_loss_simulation": {
+      "lgd_25pct": {
+        "lgd_assumption": 0.25,
+        "approved_portfolio_expected_loss_inr": 139575.56,
+        "expected_loss_per_1_lakh_approved_inr": 219.88,
+        "realized_default_loss_inr": 258000.0,
+        "unconstrained_portfolio_el_inr": 1070220.42,
+        "unconstrained_el_per_1_lakh_inr": 1544.74
+      },
+      "lgd_50pct": {
+        "lgd_assumption": 0.5,
+        "approved_portfolio_expected_loss_inr": 279151.12,
+        "expected_loss_per_1_lakh_approved_inr": 439.75,
+        "realized_default_loss_inr": 516000.0,
+        "unconstrained_portfolio_el_inr": 2140440.84,
+        "unconstrained_el_per_1_lakh_inr": 3089.48
+      },
+      "lgd_75pct": {
+        "lgd_assumption": 0.75,
+        "approved_portfolio_expected_loss_inr": 418726.68,
+        "expected_loss_per_1_lakh_approved_inr": 659.63,
+        "realized_default_loss_inr": 774000.0,
+        "unconstrained_portfolio_el_inr": 3210661.26,
+        "unconstrained_el_per_1_lakh_inr": 4634.23
+      }
+    }
+  },
+  "comparative_summary": {
+    "approval_rate_difference": 0.0295,
+    "good_borrower_capture_difference": 0.0262,
+    "net_good_borrowers_expanded": 38,
+    "human_review_rate_difference": -0.0312,
+    "expected_loss_comparison_per_1_lakh": {
+      "lgd_25pct": {
+        "baseline_el_per_100k": 262.28,
+        "parakh_el_per_100k": 219.88,
+        "el_delta_inr": -42.4,
+        "percentage_change": -16.17
+      },
+      "lgd_50pct": {
+        "baseline_el_per_100k": 524.55,
+        "parakh_el_per_100k": 439.75,
+        "el_delta_inr": -84.8,
+        "percentage_change": -16.17
+      },
+      "lgd_75pct": {
+        "baseline_el_per_100k": 786.83,
+        "parakh_el_per_100k": 659.63,
+        "el_delta_inr": -127.2,
+        "percentage_change": -16.17
+      }
+    },
+    "executive_finding": "Under identical policy cutoffs (<0.20 Approve, 0.20-0.45 Review, >=0.45 Decline), PARAKH expands approval coverage by +2.95 percentage points, capturing +38 additional good borrowers (+2.62% relative capture) while reducing simulated expected loss per \u20b91 Lakh exposure by 16.2% at 50% LGD."
+  }
+}

@@ -1,0 +1,304 @@
+{
+  "disclaimer": "MANDATORY SCIENTIFIC & REGULATORY DISCLAIMER: The evaluations, portfolio simulations, approval rates, expected-loss estimates, and financial inclusion coverage numbers reported herein are controlled synthetic benchmarks derived from synthetic gig-worker profiles and held-out test partitions. They do not constitute actual commercial banking outcomes, empirical bank-loss reductions, regulatory compliance approvals, or legal fair-lending certification.",
+  "volatility_recovery_matrix": {
+    "volatility_cutoff_cv": 0.22,
+    "recovery_cutoff_bounceback": 1.0,
+    "quadrants": {
+      "low_vol_high_rec": {
+        "title": "Low Volatility + High Recovery (Benchmark Anchor)",
+        "expected_risk": "Lowest Risk Profile",
+        "sample_count": 461,
+        "positive_defaults": 14,
+        "observed_default_rate": 0.0304,
+        "baseline_mean_predicted_prob": 0.0296,
+        "parakh_mean_predicted_prob": 0.0235,
+        "baseline_mean_score": 833.8,
+        "parakh_mean_score": 837.1,
+        "parakh_score_delta": 3.4,
+        "baseline_pr_auc": 0.4915,
+        "parakh_pr_auc": 0.6751,
+        "baseline_recall_at_050": 0.2857,
+        "parakh_recall_at_050": 0.4286,
+        "baseline_good_borrower_fpr_at_020": 0.0336,
+        "parakh_good_borrower_fpr_at_020": 0.0089
+      },
+      "low_vol_low_rec": {
+        "title": "Low Volatility + Low Recovery (Subdued / Stagnant)",
+        "expected_risk": "Intermediate Stagnation Risk",
+        "sample_count": 171,
+        "positive_defaults": 9,
+        "observed_default_rate": 0.0526,
+        "baseline_mean_predicted_prob": 0.0394,
+        "parakh_mean_predicted_prob": 0.0361,
+        "baseline_mean_score": 828.4,
+        "parakh_mean_score": 830.2,
+        "parakh_score_delta": 1.8,
+        "baseline_pr_auc": 0.8091,
+        "parakh_pr_auc": 0.7866,
+        "baseline_recall_at_050": 0.3333,
+        "parakh_recall_at_050": 0.3333,
+        "baseline_good_borrower_fpr_at_020": 0.0185,
+        "parakh_good_borrower_fpr_at_020": 0.0247
+      },
+      "high_vol_high_rec": {
+        "title": "High Volatility + High Recovery (Healthy Gig Fluctuations)",
+        "expected_risk": "Resilient / Low-to-Moderate Default Risk",
+        "sample_count": 769,
+        "positive_defaults": 124,
+        "observed_default_rate": 0.1612,
+        "baseline_mean_predicted_prob": 0.1517,
+        "parakh_mean_predicted_prob": 0.1476,
+        "baseline_mean_score": 766.6,
+        "parakh_mean_score": 768.9,
+        "parakh_score_delta": 2.4,
+        "baseline_pr_auc": 0.8526,
+        "parakh_pr_auc": 0.8648,
+        "baseline_recall_at_050": 0.6694,
+        "parakh_recall_at_050": 0.6935,
+        "baseline_good_borrower_fpr_at_020": 0.1023,
+        "parakh_good_borrower_fpr_at_020": 0.0884
+      },
+      "high_vol_low_rec": {
+        "title": "High Volatility + Low Recovery (Distressed Volatility)",
+        "expected_risk": "Elevated Default Risk",
+        "sample_count": 297,
+        "positive_defaults": 101,
+        "observed_default_rate": 0.3401,
+        "baseline_mean_predicted_prob": 0.3358,
+        "parakh_mean_predicted_prob": 0.3215,
+        "baseline_mean_score": 665.4,
+        "parakh_mean_score": 673.2,
+        "parakh_score_delta": 7.8,
+        "baseline_pr_auc": 0.9269,
+        "parakh_pr_auc": 0.9239,
+        "baseline_recall_at_050": 0.7624,
+        "parakh_recall_at_050": 0.7921,
+        "baseline_good_borrower_fpr_at_020": 0.25,
+        "parakh_good_borrower_fpr_at_020": 0.1531
+      }
+    },
+    "heatmaps": {
+      "observed_default_rate": [
+        [
+          34.01,
+          16.12
+        ],
+        [
+          5.26,
+          3.04
+        ]
+      ],
+      "baseline_mean_predicted_prob": [
+        [
+          33.58,
+          15.17
+        ],
+        [
+          3.94,
+          2.96
+        ]
+      ],
+      "parakh_mean_predicted_prob": [
+        [
+          32.15,
+          14.76
+        ],
+        [
+          3.61,
+          2.35
+        ]
+      ],
+      "parakh_mean_score": [
+        [
+          673.2,
+          768.9
+        ],
+        [
+          830.2,
+          837.1
+        ]
+      ]
+    }
+  },
+  "shock_recovery_stress_test": {
+    "disclaimer": "MANDATORY SCIENTIFIC & REGULATORY DISCLAIMER: The evaluations, portfolio simulations, approval rates, expected-loss estimates, and financial inclusion coverage numbers reported herein are controlled synthetic benchmarks derived from synthetic gig-worker profiles and held-out test partitions. They do not constitute actual commercial banking outcomes, empirical bank-loss reductions, regulatory compliance approvals, or legal fair-lending certification.",
+    "scenarios": {
+      "pre_shock_baseline": {
+        "name": "Pre-Shock Baseline",
+        "description": "Normal earnings trajectory with low volatility and baseline liquidity.",
+        "baseline": {
+          "predicted_probability": 0.0,
+          "presentation_score": 850,
+          "risk_tier": "LOWER"
+        },
+        "volatility_aware": {
+          "predicted_probability": 0.0016,
+          "presentation_score": 849,
+          "risk_tier": "LOWER"
+        },
+        "divergence": {
+          "probability_diff": 0.0016,
+          "score_diff": -1
+        }
+      },
+      "fast_recovery": {
+        "name": "Fast Recovery",
+        "description": "Shock followed by rapid bounceback to 135% baseline in 7 days.",
+        "baseline": {
+          "predicted_probability": 0.0,
+          "presentation_score": 850,
+          "risk_tier": "LOWER"
+        },
+        "volatility_aware": {
+          "predicted_probability": 0.0015,
+          "presentation_score": 849,
+          "risk_tier": "LOWER"
+        },
+        "divergence": {
+          "probability_diff": 0.0015,
+          "score_diff": -1
+        }
+      },
+      "moderate_recovery": {
+        "name": "Moderate Recovery",
+        "description": "Shock followed by steady rebound to 105% baseline over 18 days.",
+        "baseline": {
+          "predicted_probability": 0.0,
+          "presentation_score": 850,
+          "risk_tier": "LOWER"
+        },
+        "volatility_aware": {
+          "predicted_probability": 0.0018,
+          "presentation_score": 849,
+          "risk_tier": "LOWER"
+        },
+        "divergence": {
+          "probability_diff": 0.0018,
+          "score_diff": -1
+        }
+      },
+      "slow_recovery": {
+        "name": "Slow Recovery",
+        "description": "Shock followed by weak recovery to 78% baseline over 35 days.",
+        "baseline": {
+          "predicted_probability": 0.0,
+          "presentation_score": 850,
+          "risk_tier": "LOWER"
+        },
+        "volatility_aware": {
+          "predicted_probability": 0.0021,
+          "presentation_score": 849,
+          "risk_tier": "LOWER"
+        },
+        "divergence": {
+          "probability_diff": 0.0021,
+          "score_diff": -1
+        }
+      },
+      "no_recovery": {
+        "name": "No Recovery",
+        "description": "Severe shock with no rebound; earnings remain depressed at 40% baseline.",
+        "baseline": {
+          "predicted_probability": 0.0001,
+          "presentation_score": 850,
+          "risk_tier": "LOWER"
+        },
+        "volatility_aware": {
+          "predicted_probability": 0.0113,
+          "presentation_score": 844,
+          "risk_tier": "LOWER"
+        },
+        "divergence": {
+          "probability_diff": 0.0112,
+          "score_diff": -6
+        }
+      }
+    }
+  },
+  "sensitivity_audit": {
+    "baseline_probability": 0.0002,
+    "parakh_probability": 0.0014,
+    "tests": {
+      "income_plus_5pct": {
+        "perturbed_feature": "feat_inc_median_90d",
+        "perturbation_factor": 1.05,
+        "parakh_new_prob": 0.0014,
+        "parakh_delta_prob": 0.0,
+        "parakh_score_delta": 0,
+        "baseline_new_prob": 0.0002,
+        "baseline_delta_prob": 0.0,
+        "is_stable": true
+      },
+      "income_minus_5pct": {
+        "perturbed_feature": "feat_inc_median_90d",
+        "perturbation_factor": 0.95,
+        "parakh_new_prob": 0.0014,
+        "parakh_delta_prob": 0.0,
+        "parakh_score_delta": 0,
+        "baseline_new_prob": 0.0002,
+        "baseline_delta_prob": -0.0,
+        "is_stable": true
+      },
+      "volatility_plus_10pct": {
+        "perturbed_feature": "feat_inc_cv_90d",
+        "perturbation_factor": 1.1,
+        "parakh_new_prob": 0.0014,
+        "parakh_delta_prob": 0.0,
+        "parakh_score_delta": 0,
+        "baseline_new_prob": 0.0002,
+        "baseline_delta_prob": 0.0,
+        "is_stable": true
+      },
+      "volatility_minus_10pct": {
+        "perturbed_feature": "feat_inc_cv_90d",
+        "perturbation_factor": 0.9,
+        "parakh_new_prob": 0.0014,
+        "parakh_delta_prob": 0.0,
+        "parakh_score_delta": 0,
+        "baseline_new_prob": 0.0002,
+        "baseline_delta_prob": -0.0,
+        "is_stable": true
+      },
+      "debt_burden_plus_10pct": {
+        "perturbed_feature": "feat_bur_total_dti",
+        "perturbation_factor": 1.1,
+        "parakh_new_prob": 0.0014,
+        "parakh_delta_prob": 0.0,
+        "parakh_score_delta": 0,
+        "baseline_new_prob": 0.0002,
+        "baseline_delta_prob": 0.0,
+        "is_stable": true
+      },
+      "debt_burden_minus_10pct": {
+        "perturbed_feature": "feat_bur_total_dti",
+        "perturbation_factor": 0.9,
+        "parakh_new_prob": 0.0014,
+        "parakh_delta_prob": 0.0,
+        "parakh_score_delta": 0,
+        "baseline_new_prob": 0.0002,
+        "baseline_delta_prob": -0.0,
+        "is_stable": true
+      },
+      "liquidity_buffer_plus_10pct": {
+        "perturbed_feature": "feat_liq_buffer_to_loan",
+        "perturbation_factor": 1.1,
+        "parakh_new_prob": 0.0014,
+        "parakh_delta_prob": 0.0,
+        "parakh_score_delta": 0,
+        "baseline_new_prob": 0.0002,
+        "baseline_delta_prob": -0.0,
+        "is_stable": true
+      },
+      "liquidity_buffer_minus_10pct": {
+        "perturbed_feature": "feat_liq_buffer_to_loan",
+        "perturbation_factor": 0.9,
+        "parakh_new_prob": 0.0014,
+        "parakh_delta_prob": 0.0,
+        "parakh_score_delta": 0,
+        "baseline_new_prob": 0.0002,
+        "baseline_delta_prob": 0.0,
+        "is_stable": true
+      }
+    }
+  }
+}

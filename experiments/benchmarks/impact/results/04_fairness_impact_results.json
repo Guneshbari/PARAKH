@@ -1,0 +1,486 @@
+{
+  "disclaimer": "MANDATORY SCIENTIFIC & REGULATORY DISCLAIMER: The evaluations, portfolio simulations, approval rates, expected-loss estimates, and financial inclusion coverage numbers reported herein are controlled synthetic benchmarks derived from synthetic gig-worker profiles and held-out test partitions. They do not constitute actual commercial banking outcomes, empirical bank-loss reductions, regulatory compliance approvals, or legal fair-lending certification.",
+  "operational_fairness": {
+    "disclaimer": "IMPORTANT REGULATORY & FAIRNESS NOTICE: The evaluation dataset is entirely synthetic and does not contain real-world legally protected demographic attributes (e.g., race, gender, religion, national origin, age). Subgroup divisions represent synthetic behavioral cohorts and simulated platform metadata. Observed disparities reflect intentionally designed synthetic population profiles and do not demonstrate real-world demographic fairness or compliance with statutory lending fairness standards (e.g., ECOA, FHA). Rigorous empirical fair-lending testing requires representative population data with audited demographic attributes.",
+    "diagnostic_threshold": 0.5,
+    "dimensions": {
+      "gig_work_type": {
+        "dimension_name": "gig_work_type",
+        "subgroup_count": 6,
+        "baseline_demographic_parity_ratio": 0.9041,
+        "parakh_demographic_parity_ratio": 0.9032,
+        "baseline_equal_opportunity_diff": 0.75,
+        "parakh_equal_opportunity_diff": 0.5444,
+        "subgroups": {
+          "DELIVERY": {
+            "sample_count": 706,
+            "small_sample_flag": false,
+            "observed_default_rate": 0.1388,
+            "baseline": {
+              "favorable_rate_at_050": 0.881,
+              "tpr_recall_at_050": 0.6735,
+              "fpr_at_050": 0.0296,
+              "policy_approval_rate": 0.789,
+              "policy_review_rate": 0.0793,
+              "policy_decline_rate": 0.1317
+            },
+            "volatility_aware": {
+              "favorable_rate_at_050": 0.8895,
+              "tpr_recall_at_050": 0.6531,
+              "fpr_at_050": 0.023,
+              "policy_approval_rate": 0.8286,
+              "policy_review_rate": 0.0524,
+              "policy_decline_rate": 0.119
+            }
+          },
+          "FREELANCE_MICRO": {
+            "sample_count": 51,
+            "small_sample_flag": false,
+            "observed_default_rate": 0.0588,
+            "baseline": {
+              "favorable_rate_at_050": 0.9608,
+              "tpr_recall_at_050": null,
+              "fpr_at_050": 0.0417,
+              "policy_approval_rate": 0.8824,
+              "policy_review_rate": 0.0588,
+              "policy_decline_rate": 0.0588
+            },
+            "volatility_aware": {
+              "favorable_rate_at_050": 0.8824,
+              "tpr_recall_at_050": 0.6667,
+              "fpr_at_050": 0.0833,
+              "policy_approval_rate": 0.8627,
+              "policy_review_rate": 0.0196,
+              "policy_decline_rate": 0.1176
+            }
+          },
+          "HOME_SERVICES": {
+            "sample_count": 119,
+            "small_sample_flag": false,
+            "observed_default_rate": 0.1513,
+            "baseline": {
+              "favorable_rate_at_050": 0.8739,
+              "tpr_recall_at_050": 0.6667,
+              "fpr_at_050": 0.0297,
+              "policy_approval_rate": 0.7983,
+              "policy_review_rate": 0.0672,
+              "policy_decline_rate": 0.1345
+            },
+            "volatility_aware": {
+              "favorable_rate_at_050": 0.8319,
+              "tpr_recall_at_050": 0.9444,
+              "fpr_at_050": 0.0297,
+              "policy_approval_rate": 0.7899,
+              "policy_review_rate": 0.042,
+              "policy_decline_rate": 0.1681
+            }
+          },
+          "LOGISTICS": {
+            "sample_count": 190,
+            "small_sample_flag": false,
+            "observed_default_rate": 0.1053,
+            "baseline": {
+              "favorable_rate_at_050": 0.9105,
+              "tpr_recall_at_050": 0.75,
+              "fpr_at_050": 0.0118,
+              "policy_approval_rate": 0.8158,
+              "policy_review_rate": 0.0895,
+              "policy_decline_rate": 0.0947
+            },
+            "volatility_aware": {
+              "favorable_rate_at_050": 0.9211,
+              "tpr_recall_at_050": 0.75,
+              "fpr_at_050": null,
+              "policy_approval_rate": 0.8579,
+              "policy_review_rate": 0.0526,
+              "policy_decline_rate": 0.0895
+            }
+          },
+          "OTHER": {
+            "sample_count": 38,
+            "small_sample_flag": false,
+            "observed_default_rate": 0.1316,
+            "baseline": {
+              "favorable_rate_at_050": 0.8947,
+              "tpr_recall_at_050": 0.4,
+              "fpr_at_050": 0.0606,
+              "policy_approval_rate": 0.7632,
+              "policy_review_rate": 0.1316,
+              "policy_decline_rate": 0.1053
+            },
+            "volatility_aware": {
+              "favorable_rate_at_050": 0.9211,
+              "tpr_recall_at_050": 0.4,
+              "fpr_at_050": 0.0303,
+              "policy_approval_rate": 0.8947,
+              "policy_review_rate": 0.0263,
+              "policy_decline_rate": 0.0789
+            }
+          },
+          "RIDE_HAILING": {
+            "sample_count": 594,
+            "small_sample_flag": false,
+            "observed_default_rate": 0.1751,
+            "baseline": {
+              "favorable_rate_at_050": 0.8687,
+              "tpr_recall_at_050": 0.6923,
+              "fpr_at_050": 0.0122,
+              "policy_approval_rate": 0.7778,
+              "policy_review_rate": 0.0758,
+              "policy_decline_rate": 0.1465
+            },
+            "volatility_aware": {
+              "favorable_rate_at_050": 0.8535,
+              "tpr_recall_at_050": 0.7212,
+              "fpr_at_050": 0.0245,
+              "policy_approval_rate": 0.7963,
+              "policy_review_rate": 0.0455,
+              "policy_decline_rate": 0.1582
+            }
+          }
+        }
+      },
+      "loan_purpose": {
+        "dimension_name": "loan_purpose",
+        "subgroup_count": 5,
+        "baseline_demographic_parity_ratio": 0.9309,
+        "parakh_demographic_parity_ratio": 0.9267,
+        "baseline_equal_opportunity_diff": 0.0956,
+        "parakh_equal_opportunity_diff": 0.2733,
+        "subgroups": {
+          "EQUIPMENT_PURCHASE": {
+            "sample_count": 261,
+            "small_sample_flag": false,
+            "observed_default_rate": 0.1648,
+            "baseline": {
+              "favorable_rate_at_050": 0.8812,
+              "tpr_recall_at_050": 0.6279,
+              "fpr_at_050": 0.0183,
+              "policy_approval_rate": 0.8238,
+              "policy_review_rate": 0.0498,
+              "policy_decline_rate": 0.1264
+            },
+            "volatility_aware": {
+              "favorable_rate_at_050": 0.8774,
+              "tpr_recall_at_050": 0.6512,
+              "fpr_at_050": 0.0183,
+              "policy_approval_rate": 0.8276,
+              "policy_review_rate": 0.0307,
+              "policy_decline_rate": 0.1418
+            }
+          },
+          "OTHER": {
+            "sample_count": 60,
+            "small_sample_flag": false,
+            "observed_default_rate": 0.2,
+            "baseline": {
+              "favorable_rate_at_050": 0.8333,
+              "tpr_recall_at_050": 0.6667,
+              "fpr_at_050": 0.0417,
+              "policy_approval_rate": 0.75,
+              "policy_review_rate": 0.0667,
+              "policy_decline_rate": 0.1833
+            },
+            "volatility_aware": {
+              "favorable_rate_at_050": 0.8333,
+              "tpr_recall_at_050": 0.6667,
+              "fpr_at_050": 0.0417,
+              "policy_approval_rate": 0.7,
+              "policy_review_rate": 0.1167,
+              "policy_decline_rate": 0.1833
+            }
+          },
+          "PERSONAL_EMERGENCY": {
+            "sample_count": 129,
+            "small_sample_flag": false,
+            "observed_default_rate": 0.1395,
+            "baseline": {
+              "favorable_rate_at_050": 0.8837,
+              "tpr_recall_at_050": 0.6111,
+              "fpr_at_050": 0.036,
+              "policy_approval_rate": 0.7829,
+              "policy_review_rate": 0.1008,
+              "policy_decline_rate": 0.1163
+            },
+            "volatility_aware": {
+              "favorable_rate_at_050": 0.8992,
+              "tpr_recall_at_050": 0.5,
+              "fpr_at_050": 0.036,
+              "policy_approval_rate": 0.8217,
+              "policy_review_rate": 0.062,
+              "policy_decline_rate": 0.1163
+            }
+          },
+          "VEHICLE_MAINTENANCE": {
+            "sample_count": 735,
+            "small_sample_flag": false,
+            "observed_default_rate": 0.1361,
+            "baseline": {
+              "favorable_rate_at_050": 0.8952,
+              "tpr_recall_at_050": 0.68,
+              "fpr_at_050": 0.0142,
+              "policy_approval_rate": 0.8068,
+              "policy_review_rate": 0.0776,
+              "policy_decline_rate": 0.1156
+            },
+            "volatility_aware": {
+              "favorable_rate_at_050": 0.8844,
+              "tpr_recall_at_050": 0.72,
+              "fpr_at_050": 0.0205,
+              "policy_approval_rate": 0.8354,
+              "policy_review_rate": 0.0395,
+              "policy_decline_rate": 0.1252
+            }
+          },
+          "WORKING_CAPITAL": {
+            "sample_count": 513,
+            "small_sample_flag": false,
+            "observed_default_rate": 0.1462,
+            "baseline": {
+              "favorable_rate_at_050": 0.8694,
+              "tpr_recall_at_050": 0.7067,
+              "fpr_at_050": 0.032,
+              "policy_approval_rate": 0.7583,
+              "policy_review_rate": 0.0916,
+              "policy_decline_rate": 0.1501
+            },
+            "volatility_aware": {
+              "favorable_rate_at_050": 0.8655,
+              "tpr_recall_at_050": 0.7733,
+              "fpr_at_050": 0.0251,
+              "policy_approval_rate": 0.809,
+              "policy_review_rate": 0.0565,
+              "policy_decline_rate": 0.1345
+            }
+          }
+        }
+      },
+      "tenure_group": {
+        "dimension_name": "tenure_group",
+        "subgroup_count": 4,
+        "baseline_demographic_parity_ratio": 0.8948,
+        "parakh_demographic_parity_ratio": 0.8695,
+        "baseline_equal_opportunity_diff": 0.1037,
+        "parakh_equal_opportunity_diff": 0.1972,
+        "subgroups": {
+          "1 - 2.5 Years": {
+            "sample_count": 651,
+            "small_sample_flag": false,
+            "observed_default_rate": 0.1475,
+            "baseline": {
+              "favorable_rate_at_050": 0.874,
+              "tpr_recall_at_050": 0.6979,
+              "fpr_at_050": 0.027,
+              "policy_approval_rate": 0.7803,
+              "policy_review_rate": 0.0814,
+              "policy_decline_rate": 0.1382
+            },
+            "volatility_aware": {
+              "favorable_rate_at_050": 0.8756,
+              "tpr_recall_at_050": 0.6979,
+              "fpr_at_050": 0.0252,
+              "policy_approval_rate": 0.8172,
+              "policy_review_rate": 0.0522,
+              "policy_decline_rate": 0.1306
+            }
+          },
+          "2.5 - 5 Years": {
+            "sample_count": 626,
+            "small_sample_flag": false,
+            "observed_default_rate": 0.1086,
+            "baseline": {
+              "favorable_rate_at_050": 0.9153,
+              "tpr_recall_at_050": 0.6471,
+              "fpr_at_050": 0.0161,
+              "policy_approval_rate": 0.8275,
+              "policy_review_rate": 0.0767,
+              "policy_decline_rate": 0.0958
+            },
+            "volatility_aware": {
+              "favorable_rate_at_050": 0.9121,
+              "tpr_recall_at_050": 0.6176,
+              "fpr_at_050": 0.0233,
+              "policy_approval_rate": 0.8594,
+              "policy_review_rate": 0.0431,
+              "policy_decline_rate": 0.0974
+            }
+          },
+          "5+ Years": {
+            "sample_count": 189,
+            "small_sample_flag": false,
+            "observed_default_rate": 0.1587,
+            "baseline": {
+              "favorable_rate_at_050": 0.8783,
+              "tpr_recall_at_050": 0.6,
+              "fpr_at_050": 0.0314,
+              "policy_approval_rate": 0.8095,
+              "policy_review_rate": 0.0582,
+              "policy_decline_rate": 0.1323
+            },
+            "volatility_aware": {
+              "favorable_rate_at_050": 0.8677,
+              "tpr_recall_at_050": 0.7333,
+              "fpr_at_050": 0.0189,
+              "policy_approval_rate": 0.8042,
+              "policy_review_rate": 0.0476,
+              "policy_decline_rate": 0.1481
+            }
+          },
+          "< 1 Year": {
+            "sample_count": 232,
+            "small_sample_flag": false,
+            "observed_default_rate": 0.2328,
+            "baseline": {
+              "favorable_rate_at_050": 0.819,
+              "tpr_recall_at_050": 0.7037,
+              "fpr_at_050": 0.0225,
+              "policy_approval_rate": 0.7069,
+              "policy_review_rate": 0.0948,
+              "policy_decline_rate": 0.1983
+            },
+            "volatility_aware": {
+              "favorable_rate_at_050": 0.7931,
+              "tpr_recall_at_050": 0.8148,
+              "fpr_at_050": 0.0225,
+              "policy_approval_rate": 0.7371,
+              "policy_review_rate": 0.0474,
+              "policy_decline_rate": 0.2155
+            }
+          }
+        }
+      },
+      "income_tier": {
+        "dimension_name": "income_tier",
+        "subgroup_count": 3,
+        "baseline_demographic_parity_ratio": 0.6518,
+        "parakh_demographic_parity_ratio": 0.6503,
+        "baseline_equal_opportunity_diff": 0.7617,
+        "parakh_equal_opportunity_diff": 0.4853,
+        "subgroups": {
+          "Higher (> \u20b98k/wk)": {
+            "sample_count": 600,
+            "small_sample_flag": false,
+            "observed_default_rate": 0.01,
+            "baseline": {
+              "favorable_rate_at_050": 1.0,
+              "tpr_recall_at_050": null,
+              "fpr_at_050": null,
+              "policy_approval_rate": 0.9933,
+              "policy_review_rate": 0.0067,
+              "policy_decline_rate": 0.0
+            },
+            "volatility_aware": {
+              "favorable_rate_at_050": 0.9967,
+              "tpr_recall_at_050": 0.3333,
+              "fpr_at_050": null,
+              "policy_approval_rate": 0.995,
+              "policy_review_rate": 0.0017,
+              "policy_decline_rate": 0.0033
+            }
+          },
+          "Lower (< \u20b94k/wk)": {
+            "sample_count": 560,
+            "small_sample_flag": false,
+            "observed_default_rate": 0.3821,
+            "baseline": {
+              "favorable_rate_at_050": 0.6518,
+              "tpr_recall_at_050": 0.7617,
+              "fpr_at_050": 0.0925,
+              "policy_approval_rate": 0.4446,
+              "policy_review_rate": 0.1768,
+              "policy_decline_rate": 0.3786
+            },
+            "volatility_aware": {
+              "favorable_rate_at_050": 0.6482,
+              "tpr_recall_at_050": 0.771,
+              "fpr_at_050": 0.0925,
+              "policy_approval_rate": 0.5054,
+              "policy_review_rate": 0.1196,
+              "policy_decline_rate": 0.375
+            }
+          },
+          "Middle (\u20b94k-\u20b98k/wk)": {
+            "sample_count": 538,
+            "small_sample_flag": false,
+            "observed_default_rate": 0.052,
+            "baseline": {
+              "favorable_rate_at_050": 0.9907,
+              "tpr_recall_at_050": 0.1429,
+              "fpr_at_050": 0.002,
+              "policy_approval_rate": 0.9257,
+              "policy_review_rate": 0.0576,
+              "policy_decline_rate": 0.0167
+            },
+            "volatility_aware": {
+              "favorable_rate_at_050": 0.9814,
+              "tpr_recall_at_050": 0.2857,
+              "fpr_at_050": 0.0039,
+              "policy_approval_rate": 0.9535,
+              "policy_review_rate": 0.0242,
+              "policy_decline_rate": 0.0223
+            }
+          }
+        }
+      }
+    }
+  },
+  "reviewer_efficiency_protocol": {
+    "protocol_name": "PARAKH Reviewer Adjudication Human-Factors Trial Design",
+    "version": "1.0.0-BENCHMARK-READY",
+    "status": "Protocol Specified / Ready for Human Participant Cohort Execution",
+    "scientific_integrity_notice": "HUMAN-FACTORS INTEGRITY RULE: Simulated or fabricated review seconds are strictly prohibited. The schema and trial structure below specify the exact randomized controlled trial (RCT) protocol for measuring human adjudicator time-to-decision and risk attribution accuracy once real underwriters participate in the formal evaluation.",
+    "experimental_design": {
+      "design_type": "Within-subject crossover randomized trial",
+      "independent_variable": "Information condition (A: Presentation Score Only vs B: Score + TreeSHAP Explanations)",
+      "task_prompt": "Review applicant telemetry summary, identify top 3 drivers of credit risk, and render an underwriting determination.",
+      "primary_hypotheses": [
+        "H1: Score + Plain-Language SHAP explanations reduce median adjudication time by >= 25% compared to score-only review.",
+        "H2: Explanations improve adjudicator agreement on top risk factors by >= 20 percentage points."
+      ],
+      "target_sample_size": "N = 30 credit underwriters, 40 applications per participant (20 per condition)"
+    },
+    "trial_data_schema": {
+      "fields": [
+        "trial_id (UUID)",
+        "adjudicator_id (Anon ID)",
+        "condition ('SCORE_ONLY' | 'SCORE_PLUS_EXPLANATION')",
+        "start_timestamp (ISO 8601 UTC)",
+        "submission_timestamp (ISO 8601 UTC)",
+        "duration_seconds (Float)",
+        "final_determination ('APPROVE' | 'DECLINE' | 'FURTHER_VERIFICATION')",
+        "primary_risk_driver_selected (String)",
+        "correct_primary_driver (String)",
+        "confidence_score (Integer 1-5)"
+      ]
+    }
+  },
+  "privacy_and_consent_controls": {
+    "disclaimer": "SYSTEM-CONTROL AUDIT NOTICE: This evaluation verifies algorithmic and service-boundary privacy invariants under the platform's DPDP Act architecture. It does not constitute formal legal certification.",
+    "data_minimization_audit": {
+      "prohibited_fields_inspected_count": 17,
+      "prohibited_fields_in_baseline_matrix": [],
+      "prohibited_fields_in_parakh_matrix": [],
+      "data_minimization_passed": true
+    },
+    "consent_gate_enforcement": {
+      "valid_consented_requests": {
+        "simulated_count": 1698,
+        "system_behavior": "Assessment Permitted",
+        "enforcement_action": "Proceed to inference pipeline",
+        "success_rate": 1.0
+      },
+      "missing_consent_attempts": {
+        "simulated_count": 100,
+        "system_behavior": "Blocked (HTTP 403)",
+        "enforcement_action": "Statutory DPDP block: Active applicant consent is required",
+        "block_rate": 1.0
+      },
+      "revoked_consent_attempts": {
+        "simulated_count": 50,
+        "system_behavior": "Blocked (HTTP 403)",
+        "enforcement_action": "Statutory DPDP block: Consent revoked by applicant",
+        "block_rate": 1.0
+      }
+    }
+  }
+}

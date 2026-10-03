@@ -1,0 +1,113 @@
+{
+  "disclaimer": "MANDATORY SCIENTIFIC & REGULATORY DISCLAIMER: The evaluations, portfolio simulations, approval rates, expected-loss estimates, and financial inclusion coverage numbers reported herein are controlled synthetic benchmarks derived from synthetic gig-worker profiles and held-out test partitions. They do not constitute actual commercial banking outcomes, empirical bank-loss reductions, regulatory compliance approvals, or legal fair-lending certification.",
+  "financial_inclusion_coverage": {
+    "total_applications": 12000,
+    "unique_applicants": 10000,
+    "sufficient_evidence_applications": 11407,
+    "insufficient_evidence_applications": 593,
+    "evidence_based_assessment_coverage_rate": 0.9506,
+    "responsible_abstention_rate": 0.0494,
+    "cohort_breakdown": {
+      "Declining": {
+        "total_applications": 2385,
+        "sufficient_applications": 2385,
+        "insufficient_abstentions": 0,
+        "evidence_based_coverage_rate": 1.0,
+        "abstention_rate": 0.0
+      },
+      "Healthy Volatile": {
+        "total_applications": 2976,
+        "sufficient_applications": 2976,
+        "insufficient_abstentions": 0,
+        "evidence_based_coverage_rate": 1.0,
+        "abstention_rate": 0.0
+      },
+      "High Obligation": {
+        "total_applications": 1203,
+        "sufficient_applications": 1203,
+        "insufficient_abstentions": 0,
+        "evidence_based_coverage_rate": 1.0,
+        "abstention_rate": 0.0
+      },
+      "Insufficient Data": {
+        "total_applications": 593,
+        "sufficient_applications": 0,
+        "insufficient_abstentions": 593,
+        "evidence_based_coverage_rate": 0.0,
+        "abstention_rate": 1.0
+      },
+      "Irregular": {
+        "total_applications": 1803,
+        "sufficient_applications": 1803,
+        "insufficient_abstentions": 0,
+        "evidence_based_coverage_rate": 1.0,
+        "abstention_rate": 0.0
+      },
+      "Stable": {
+        "total_applications": 3040,
+        "sufficient_applications": 3040,
+        "insufficient_abstentions": 0,
+        "evidence_based_coverage_rate": 1.0,
+        "abstention_rate": 0.0
+      }
+    },
+    "statutory_interpretation": "Across the full synthetic gig worker applicant population (N = 12,000), PARAKH provides an evidence-based credit assessment for 95.06% of applications using non-traditional telemetry (daily earnings, active days, recovery velocity, cashflow buffers). The system responsibly abstains from scoring on 4.94% of applications where observation history is insufficient (<30 days or <4 payout cycles), protecting thin-file workers from arbitrary or uncalibrated algorithmic decisions."
+  },
+  "abstention_impact_audit": {
+    "sufficient_evidence_test_metrics": {
+      "sample_count": 1698,
+      "roc_auc": 0.9718,
+      "pr_auc": 0.8773,
+      "brier_score": 0.0457,
+      "expected_calibration_error": 0.0195,
+      "maximum_calibration_error": 0.1278
+    },
+    "coverage_performance_tradeoff_curve": [
+      {
+        "min_observed_days_gate": 0,
+        "eligible_sample_count": 1698,
+        "coverage_fraction": 1.0,
+        "roc_auc": 0.9718,
+        "pr_auc": 0.8773,
+        "brier_score": 0.0457,
+        "expected_calibration_error": 0.0142
+      },
+      {
+        "min_observed_days_gate": 15,
+        "eligible_sample_count": 1698,
+        "coverage_fraction": 1.0,
+        "roc_auc": 0.9718,
+        "pr_auc": 0.8773,
+        "brier_score": 0.0457,
+        "expected_calibration_error": 0.0142
+      },
+      {
+        "min_observed_days_gate": 30,
+        "eligible_sample_count": 1698,
+        "coverage_fraction": 1.0,
+        "roc_auc": 0.9718,
+        "pr_auc": 0.8773,
+        "brier_score": 0.0457,
+        "expected_calibration_error": 0.0142
+      },
+      {
+        "min_observed_days_gate": 45,
+        "eligible_sample_count": 1698,
+        "coverage_fraction": 1.0,
+        "roc_auc": 0.9718,
+        "pr_auc": 0.8773,
+        "brier_score": 0.0457,
+        "expected_calibration_error": 0.0142
+      },
+      {
+        "min_observed_days_gate": 60,
+        "eligible_sample_count": 1698,
+        "coverage_fraction": 1.0,
+        "roc_auc": 0.9718,
+        "pr_auc": 0.8773,
+        "brier_score": 0.0457,
+        "expected_calibration_error": 0.0142
+      }
+    ]
+  }
+}
