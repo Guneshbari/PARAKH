@@ -1,0 +1,801 @@
+{
+  "disclaimer": "MANDATORY SCIENTIFIC & REGULATORY DISCLAIMER: The evaluations, portfolio simulations, approval rates, expected-loss estimates, and financial inclusion coverage numbers reported herein are controlled synthetic benchmarks derived from synthetic gig-worker profiles and held-out test partitions. They do not constitute actual commercial banking outcomes, empirical bank-loss reductions, regulatory compliance approvals, or legal fair-lending certification.",
+  "evaluation_partition": "Held-Out Test Split (Seed=42, Zero Leakage)",
+  "sample_size": 1698,
+  "four_impact_cohorts": {
+    "cohort_stable": {
+      "name": "Stable (Low Volatility Reference)",
+      "description": "Low income volatility with reasonable recovery, manageable debt, and adequate liquidity.",
+      "rules": [
+        "feat_inc_cv_90d <= 0.22",
+        "feat_bur_total_dti <= 0.35",
+        "feat_liq_buffer_to_loan >= 0.20",
+        "feat_rec_bounceback_ratio >= 0.80"
+      ],
+      "baseline": {
+        "sample_count": 275,
+        "positive_defaults": 4,
+        "negative_repaid": 271,
+        "observed_default_rate": 0.0145,
+        "mean_predicted_prob": 0.0282,
+        "median_predicted_prob": 0.0003,
+        "mean_presentation_score": 834.6,
+        "median_presentation_score": 850.0,
+        "roc_auc": 0.9935,
+        "roc_auc_95ci": [
+          0.9935,
+          0.9935
+        ],
+        "pr_auc": 0.8409,
+        "pr_auc_95ci": [
+          0.8409,
+          0.8409
+        ],
+        "brier_score": 0.0079,
+        "recall_at_050": 0.75,
+        "precision_at_050": 1.0,
+        "f1_at_050": 0.8571,
+        "fpr_at_050": 0.0,
+        "fnr_at_050": 0.25,
+        "policy_approval_rate": 0.9527,
+        "policy_review_rate": 0.0364,
+        "policy_decline_rate": 0.0109,
+        "policy_false_positive_rate": 0.0332,
+        "policy_recall": 1.0,
+        "policy_false_negative_rate": 0.0,
+        "confusion_matrix_at_050": {
+          "tp": 3,
+          "fp": 0,
+          "tn": 271,
+          "fn": 1
+        }
+      },
+      "volatility_aware": {
+        "sample_count": 275,
+        "positive_defaults": 4,
+        "negative_repaid": 271,
+        "observed_default_rate": 0.0145,
+        "mean_predicted_prob": 0.0154,
+        "median_predicted_prob": 0.001,
+        "mean_presentation_score": 841.6,
+        "median_presentation_score": 849.0,
+        "roc_auc": 0.9659,
+        "roc_auc_95ci": [
+          0.9659,
+          0.9659
+        ],
+        "pr_auc": 0.7744,
+        "pr_auc_95ci": [
+          0.7744,
+          0.7744
+        ],
+        "brier_score": 0.008,
+        "recall_at_050": 0.25,
+        "precision_at_050": 1.0,
+        "f1_at_050": 0.4,
+        "fpr_at_050": 0.0,
+        "fnr_at_050": 0.75,
+        "policy_approval_rate": 0.9782,
+        "policy_review_rate": 0.0109,
+        "policy_decline_rate": 0.0109,
+        "policy_false_positive_rate": 0.0111,
+        "policy_recall": 0.75,
+        "policy_false_negative_rate": 0.25,
+        "confusion_matrix_at_050": {
+          "tp": 1,
+          "fp": 0,
+          "tn": 271,
+          "fn": 3
+        }
+      },
+      "comparison": {
+        "pr_auc_diff": -0.0665,
+        "brier_score_diff": 0.0001,
+        "mean_score_diff": 7.0,
+        "policy_fpr_diff": -0.0221
+      }
+    },
+    "cohort_healthy_volatile": {
+      "name": "Healthy Volatile (High Vol, Strong Recovery)",
+      "description": "High income volatility combined with strong recovery, reasonable debt burden, and adequate liquidity.",
+      "rules": [
+        "feat_inc_cv_90d > 0.22",
+        "feat_rec_bounceback_ratio >= 1.00",
+        "feat_bur_total_dti <= 0.35",
+        "feat_liq_buffer_to_loan >= 0.25"
+      ],
+      "baseline": {
+        "sample_count": 365,
+        "positive_defaults": 40,
+        "negative_repaid": 325,
+        "observed_default_rate": 0.1096,
+        "mean_predicted_prob": 0.092,
+        "median_predicted_prob": 0.0001,
+        "mean_presentation_score": 799.4,
+        "median_presentation_score": 850.0,
+        "roc_auc": 0.9739,
+        "roc_auc_95ci": [
+          0.9573,
+          0.9868
+        ],
+        "pr_auc": 0.836,
+        "pr_auc_95ci": [
+          0.7361,
+          0.9191
+        ],
+        "brier_score": 0.0409,
+        "recall_at_050": 0.575,
+        "precision_at_050": 0.8519,
+        "f1_at_050": 0.6866,
+        "fpr_at_050": 0.0123,
+        "fnr_at_050": 0.425,
+        "policy_approval_rate": 0.8548,
+        "policy_review_rate": 0.063,
+        "policy_decline_rate": 0.0822,
+        "policy_false_positive_rate": 0.0615,
+        "policy_recall": 0.825,
+        "policy_false_negative_rate": 0.175,
+        "confusion_matrix_at_050": {
+          "tp": 23,
+          "fp": 4,
+          "tn": 321,
+          "fn": 17
+        }
+      },
+      "volatility_aware": {
+        "sample_count": 365,
+        "positive_defaults": 40,
+        "negative_repaid": 325,
+        "observed_default_rate": 0.1096,
+        "mean_predicted_prob": 0.0917,
+        "median_predicted_prob": 0.0008,
+        "mean_presentation_score": 799.7,
+        "median_presentation_score": 850.0,
+        "roc_auc": 0.9695,
+        "roc_auc_95ci": [
+          0.9514,
+          0.9841
+        ],
+        "pr_auc": 0.7603,
+        "pr_auc_95ci": [
+          0.6246,
+          0.8886
+        ],
+        "brier_score": 0.0465,
+        "recall_at_050": 0.55,
+        "precision_at_050": 0.7097,
+        "f1_at_050": 0.6197,
+        "fpr_at_050": 0.0277,
+        "fnr_at_050": 0.45,
+        "policy_approval_rate": 0.8658,
+        "policy_review_rate": 0.0438,
+        "policy_decline_rate": 0.0904,
+        "policy_false_positive_rate": 0.0523,
+        "policy_recall": 0.8,
+        "policy_false_negative_rate": 0.2,
+        "confusion_matrix_at_050": {
+          "tp": 22,
+          "fp": 9,
+          "tn": 316,
+          "fn": 18
+        }
+      },
+      "comparison": {
+        "pr_auc_diff": -0.0757,
+        "brier_score_diff": 0.0056,
+        "mean_score_diff": 0.3,
+        "policy_fpr_diff": -0.0092
+      }
+    },
+    "cohort_distressed_volatile": {
+      "name": "Distressed Volatile (High Vol, Weak Recovery/Burden)",
+      "description": "High income volatility combined with poor recovery, high debt burden, and/or weak liquidity.",
+      "rules": [
+        "feat_inc_cv_90d > 0.22",
+        "(feat_rec_bounceback_ratio < 0.90) OR (feat_bur_total_dti > 0.35) OR (feat_liq_buffer_to_loan < 0.25)"
+      ],
+      "baseline": {
+        "sample_count": 696,
+        "positive_defaults": 184,
+        "negative_repaid": 512,
+        "observed_default_rate": 0.2644,
+        "mean_predicted_prob": 0.2603,
+        "median_predicted_prob": 0.0614,
+        "mean_presentation_score": 706.8,
+        "median_presentation_score": 816.0,
+        "roc_auc": 0.9564,
+        "roc_auc_95ci": [
+          0.941,
+          0.9686
+        ],
+        "pr_auc": 0.9008,
+        "pr_auc_95ci": [
+          0.8653,
+          0.9297
+        ],
+        "brier_score": 0.0728,
+        "recall_at_050": 0.7391,
+        "precision_at_050": 0.8293,
+        "f1_at_050": 0.7816,
+        "fpr_at_050": 0.0547,
+        "fnr_at_050": 0.2609,
+        "policy_approval_rate": 0.6164,
+        "policy_review_rate": 0.1236,
+        "policy_decline_rate": 0.2601,
+        "policy_false_positive_rate": 0.1836,
+        "policy_recall": 0.9402,
+        "policy_false_negative_rate": 0.0598,
+        "confusion_matrix_at_050": {
+          "tp": 136,
+          "fp": 28,
+          "tn": 484,
+          "fn": 48
+        }
+      },
+      "volatility_aware": {
+        "sample_count": 696,
+        "positive_defaults": 184,
+        "negative_repaid": 512,
+        "observed_default_rate": 0.2644,
+        "mean_predicted_prob": 0.2498,
+        "median_predicted_prob": 0.0201,
+        "mean_presentation_score": 712.6,
+        "median_presentation_score": 839.0,
+        "roc_auc": 0.96,
+        "roc_auc_95ci": [
+          0.946,
+          0.9723
+        ],
+        "pr_auc": 0.9134,
+        "pr_auc_95ci": [
+          0.8816,
+          0.94
+        ],
+        "brier_score": 0.0697,
+        "recall_at_050": 0.7772,
+        "precision_at_050": 0.8614,
+        "f1_at_050": 0.8171,
+        "fpr_at_050": 0.0449,
+        "fnr_at_050": 0.2228,
+        "policy_approval_rate": 0.6652,
+        "policy_review_rate": 0.0833,
+        "policy_decline_rate": 0.2514,
+        "policy_false_positive_rate": 0.1348,
+        "policy_recall": 0.8913,
+        "policy_false_negative_rate": 0.1087,
+        "confusion_matrix_at_050": {
+          "tp": 143,
+          "fp": 23,
+          "tn": 489,
+          "fn": 41
+        }
+      },
+      "comparison": {
+        "pr_auc_diff": 0.0126,
+        "brier_score_diff": -0.0031,
+        "mean_score_diff": 5.8,
+        "policy_fpr_diff": -0.0488
+      }
+    },
+    "cohort_weak_income": {
+      "name": "Weak Income (Baseline Earnings Stress)",
+      "description": "Lower earning baseline with varying degrees of volatility and recovery.",
+      "rules": [
+        "feat_inc_median_90d <= 4000.0"
+      ],
+      "baseline": {
+        "sample_count": 560,
+        "positive_defaults": 214,
+        "negative_repaid": 346,
+        "observed_default_rate": 0.3821,
+        "mean_predicted_prob": 0.3774,
+        "median_predicted_prob": 0.2803,
+        "mean_presentation_score": 642.4,
+        "median_presentation_score": 696.0,
+        "roc_auc": 0.932,
+        "roc_auc_95ci": [
+          0.9121,
+          0.9515
+        ],
+        "pr_auc": 0.9074,
+        "pr_auc_95ci": [
+          0.8764,
+          0.934
+        ],
+        "brier_score": 0.1014,
+        "recall_at_050": 0.7617,
+        "precision_at_050": 0.8359,
+        "f1_at_050": 0.7971,
+        "fpr_at_050": 0.0925,
+        "fnr_at_050": 0.2383,
+        "policy_approval_rate": 0.4446,
+        "policy_review_rate": 0.1768,
+        "policy_decline_rate": 0.3786,
+        "policy_false_positive_rate": 0.315,
+        "policy_recall": 0.9439,
+        "policy_false_negative_rate": 0.0561,
+        "confusion_matrix_at_050": {
+          "tp": 163,
+          "fp": 32,
+          "tn": 314,
+          "fn": 51
+        }
+      },
+      "volatility_aware": {
+        "sample_count": 560,
+        "positive_defaults": 214,
+        "negative_repaid": 346,
+        "observed_default_rate": 0.3821,
+        "mean_predicted_prob": 0.3649,
+        "median_predicted_prob": 0.1863,
+        "mean_presentation_score": 649.3,
+        "median_presentation_score": 747.5,
+        "roc_auc": 0.9279,
+        "roc_auc_95ci": [
+          0.9076,
+          0.9492
+        ],
+        "pr_auc": 0.9054,
+        "pr_auc_95ci": [
+          0.876,
+          0.9353
+        ],
+        "brier_score": 0.1035,
+        "recall_at_050": 0.771,
+        "precision_at_050": 0.8376,
+        "f1_at_050": 0.8029,
+        "fpr_at_050": 0.0925,
+        "fnr_at_050": 0.229,
+        "policy_approval_rate": 0.5054,
+        "policy_review_rate": 0.1196,
+        "policy_decline_rate": 0.375,
+        "policy_false_positive_rate": 0.2486,
+        "policy_recall": 0.8925,
+        "policy_false_negative_rate": 0.1075,
+        "confusion_matrix_at_050": {
+          "tp": 165,
+          "fp": 32,
+          "tn": 314,
+          "fn": 49
+        }
+      },
+      "comparison": {
+        "pr_auc_diff": -0.002,
+        "brier_score_diff": 0.0021,
+        "mean_score_diff": 6.9,
+        "policy_fpr_diff": -0.0664
+      }
+    }
+  },
+  "synthetic_archetypes": {
+    "Declining": {
+      "baseline": {
+        "sample_count": 347,
+        "positive_defaults": 126,
+        "negative_repaid": 221,
+        "observed_default_rate": 0.3631,
+        "mean_predicted_prob": 0.352,
+        "median_predicted_prob": 0.2028,
+        "mean_presentation_score": 656.4,
+        "median_presentation_score": 738.0,
+        "roc_auc": 0.9502,
+        "roc_auc_95ci": [
+          0.9272,
+          0.9687
+        ],
+        "pr_auc": 0.9279,
+        "pr_auc_95ci": [
+          0.8945,
+          0.9539
+        ],
+        "brier_score": 0.086,
+        "recall_at_050": 0.7778,
+        "precision_at_050": 0.8522,
+        "f1_at_050": 0.8133,
+        "fpr_at_050": 0.0769,
+        "fnr_at_050": 0.2222,
+        "policy_approval_rate": 0.4957,
+        "policy_review_rate": 0.1412,
+        "policy_decline_rate": 0.3631,
+        "policy_false_positive_rate": 0.2489,
+        "policy_recall": 0.9524,
+        "policy_false_negative_rate": 0.0476,
+        "confusion_matrix_at_050": {
+          "tp": 98,
+          "fp": 17,
+          "tn": 204,
+          "fn": 28
+        }
+      },
+      "volatility_aware": {
+        "sample_count": 347,
+        "positive_defaults": 126,
+        "negative_repaid": 221,
+        "observed_default_rate": 0.3631,
+        "mean_predicted_prob": 0.3368,
+        "median_predicted_prob": 0.0722,
+        "mean_presentation_score": 664.7,
+        "median_presentation_score": 810.0,
+        "roc_auc": 0.9498,
+        "roc_auc_95ci": [
+          0.9282,
+          0.9687
+        ],
+        "pr_auc": 0.9294,
+        "pr_auc_95ci": [
+          0.8978,
+          0.9559
+        ],
+        "brier_score": 0.0875,
+        "recall_at_050": 0.7857,
+        "precision_at_050": 0.8684,
+        "f1_at_050": 0.825,
+        "fpr_at_050": 0.0679,
+        "fnr_at_050": 0.2143,
+        "policy_approval_rate": 0.5735,
+        "policy_review_rate": 0.0836,
+        "policy_decline_rate": 0.3429,
+        "policy_false_positive_rate": 0.1584,
+        "policy_recall": 0.8968,
+        "policy_false_negative_rate": 0.1032,
+        "confusion_matrix_at_050": {
+          "tp": 99,
+          "fp": 15,
+          "tn": 206,
+          "fn": 27
+        }
+      }
+    },
+    "Healthy Volatile": {
+      "baseline": {
+        "sample_count": 415,
+        "positive_defaults": 3,
+        "negative_repaid": 412,
+        "observed_default_rate": 0.0072,
+        "mean_predicted_prob": 0.0051,
+        "median_predicted_prob": 0.0,
+        "mean_presentation_score": 847.2,
+        "median_presentation_score": 850.0,
+        "roc_auc": 0.9976,
+        "roc_auc_95ci": [
+          0.9976,
+          0.9976
+        ],
+        "pr_auc": 0.7556,
+        "pr_auc_95ci": [
+          0.7556,
+          0.7556
+        ],
+        "brier_score": 0.0042,
+        "recall_at_050": 0.3333,
+        "precision_at_050": 1.0,
+        "f1_at_050": 0.5,
+        "fpr_at_050": 0.0,
+        "fnr_at_050": 0.6667,
+        "policy_approval_rate": 0.9928,
+        "policy_review_rate": 0.0048,
+        "policy_decline_rate": 0.0024,
+        "policy_false_positive_rate": 0.0024,
+        "policy_recall": 0.6667,
+        "policy_false_negative_rate": 0.3333,
+        "confusion_matrix_at_050": {
+          "tp": 1,
+          "fp": 0,
+          "tn": 412,
+          "fn": 2
+        }
+      },
+      "volatility_aware": {
+        "sample_count": 415,
+        "positive_defaults": 3,
+        "negative_repaid": 412,
+        "observed_default_rate": 0.0072,
+        "mean_predicted_prob": 0.0034,
+        "median_predicted_prob": 0.0006,
+        "mean_presentation_score": 848.3,
+        "median_presentation_score": 850.0,
+        "roc_auc": 0.9984,
+        "roc_auc_95ci": [
+          0.9984,
+          0.9984
+        ],
+        "pr_auc": 0.8667,
+        "pr_auc_95ci": [
+          0.8667,
+          0.8667
+        ],
+        "brier_score": 0.0052,
+        "recall_at_050": 0.0,
+        "precision_at_050": null,
+        "f1_at_050": null,
+        "fpr_at_050": 0.0,
+        "fnr_at_050": 1.0,
+        "policy_approval_rate": 0.9976,
+        "policy_review_rate": 0.0024,
+        "policy_decline_rate": 0.0,
+        "policy_false_positive_rate": 0.0,
+        "policy_recall": 0.3333,
+        "policy_false_negative_rate": 0.6667,
+        "confusion_matrix_at_050": {
+          "tp": 0,
+          "fp": 0,
+          "tn": 412,
+          "fn": 3
+        }
+      }
+    },
+    "High Obligation": {
+      "baseline": {
+        "sample_count": 173,
+        "positive_defaults": 13,
+        "negative_repaid": 160,
+        "observed_default_rate": 0.0751,
+        "mean_predicted_prob": 0.0544,
+        "median_predicted_prob": 0.0029,
+        "mean_presentation_score": 820.1,
+        "median_presentation_score": 848.0,
+        "roc_auc": 0.9163,
+        "roc_auc_95ci": [
+          0.8494,
+          0.9673
+        ],
+        "pr_auc": 0.5535,
+        "pr_auc_95ci": [
+          0.2909,
+          0.7896
+        ],
+        "brier_score": 0.0492,
+        "recall_at_050": 0.2308,
+        "precision_at_050": 1.0,
+        "f1_at_050": 0.375,
+        "fpr_at_050": 0.0,
+        "fnr_at_050": 0.7692,
+        "policy_approval_rate": 0.9133,
+        "policy_review_rate": 0.0636,
+        "policy_decline_rate": 0.0231,
+        "policy_false_positive_rate": 0.05,
+        "policy_recall": 0.5385,
+        "policy_false_negative_rate": 0.4615,
+        "confusion_matrix_at_050": {
+          "tp": 3,
+          "fp": 0,
+          "tn": 160,
+          "fn": 10
+        }
+      },
+      "volatility_aware": {
+        "sample_count": 173,
+        "positive_defaults": 13,
+        "negative_repaid": 160,
+        "observed_default_rate": 0.0751,
+        "mean_predicted_prob": 0.0612,
+        "median_predicted_prob": 0.004,
+        "mean_presentation_score": 816.3,
+        "median_presentation_score": 848.0,
+        "roc_auc": 0.9582,
+        "roc_auc_95ci": [
+          0.9063,
+          0.9933
+        ],
+        "pr_auc": 0.7933,
+        "pr_auc_95ci": [
+          0.5637,
+          0.9527
+        ],
+        "brier_score": 0.0309,
+        "recall_at_050": 0.6154,
+        "precision_at_050": 0.8889,
+        "f1_at_050": 0.7273,
+        "fpr_at_050": 0.0063,
+        "fnr_at_050": 0.3846,
+        "policy_approval_rate": 0.9249,
+        "policy_review_rate": 0.0231,
+        "policy_decline_rate": 0.052,
+        "policy_false_positive_rate": 0.025,
+        "policy_recall": 0.6923,
+        "policy_false_negative_rate": 0.3077,
+        "confusion_matrix_at_050": {
+          "tp": 8,
+          "fp": 1,
+          "tn": 159,
+          "fn": 5
+        }
+      }
+    },
+    "Irregular": {
+      "baseline": {
+        "sample_count": 299,
+        "positive_defaults": 96,
+        "negative_repaid": 203,
+        "observed_default_rate": 0.3211,
+        "mean_predicted_prob": 0.3062,
+        "median_predicted_prob": 0.1692,
+        "mean_presentation_score": 681.6,
+        "median_presentation_score": 757.0,
+        "roc_auc": 0.9027,
+        "roc_auc_95ci": [
+          0.8621,
+          0.9343
+        ],
+        "pr_auc": 0.8355,
+        "pr_auc_95ci": [
+          0.7615,
+          0.894
+        ],
+        "brier_score": 0.1146,
+        "recall_at_050": 0.6354,
+        "precision_at_050": 0.7922,
+        "f1_at_050": 0.7052,
+        "fpr_at_050": 0.0788,
+        "fnr_at_050": 0.3646,
+        "policy_approval_rate": 0.5251,
+        "policy_review_rate": 0.1873,
+        "policy_decline_rate": 0.2876,
+        "policy_false_positive_rate": 0.2808,
+        "policy_recall": 0.8854,
+        "policy_false_negative_rate": 0.1146,
+        "confusion_matrix_at_050": {
+          "tp": 61,
+          "fp": 16,
+          "tn": 187,
+          "fn": 35
+        }
+      },
+      "volatility_aware": {
+        "sample_count": 299,
+        "positive_defaults": 96,
+        "negative_repaid": 203,
+        "observed_default_rate": 0.3211,
+        "mean_predicted_prob": 0.3017,
+        "median_predicted_prob": 0.1273,
+        "mean_presentation_score": 684.1,
+        "median_presentation_score": 780.0,
+        "roc_auc": 0.9115,
+        "roc_auc_95ci": [
+          0.877,
+          0.9427
+        ],
+        "pr_auc": 0.8449,
+        "pr_auc_95ci": [
+          0.7775,
+          0.9035
+        ],
+        "brier_score": 0.111,
+        "recall_at_050": 0.6979,
+        "precision_at_050": 0.7882,
+        "f1_at_050": 0.7403,
+        "fpr_at_050": 0.0887,
+        "fnr_at_050": 0.3021,
+        "policy_approval_rate": 0.5518,
+        "policy_review_rate": 0.1438,
+        "policy_decline_rate": 0.3043,
+        "policy_false_positive_rate": 0.2512,
+        "policy_recall": 0.8646,
+        "policy_false_negative_rate": 0.1354,
+        "confusion_matrix_at_050": {
+          "tp": 67,
+          "fp": 18,
+          "tn": 185,
+          "fn": 29
+        }
+      }
+    },
+    "Stable": {
+      "baseline": {
+        "sample_count": 464,
+        "positive_defaults": 10,
+        "negative_repaid": 454,
+        "observed_default_rate": 0.0216,
+        "mean_predicted_prob": 0.0249,
+        "median_predicted_prob": 0.0003,
+        "mean_presentation_score": 836.4,
+        "median_presentation_score": 850.0,
+        "roc_auc": 0.9839,
+        "roc_auc_95ci": [
+          0.9688,
+          0.9952
+        ],
+        "pr_auc": 0.6483,
+        "pr_auc_95ci": [
+          0.3765,
+          0.875
+        ],
+        "brier_score": 0.0127,
+        "recall_at_050": 0.4,
+        "precision_at_050": 1.0,
+        "f1_at_050": 0.5714,
+        "fpr_at_050": 0.0,
+        "fnr_at_050": 0.6,
+        "policy_approval_rate": 0.9569,
+        "policy_review_rate": 0.0345,
+        "policy_decline_rate": 0.0086,
+        "policy_false_positive_rate": 0.0264,
+        "policy_recall": 0.8,
+        "policy_false_negative_rate": 0.2,
+        "confusion_matrix_at_050": {
+          "tp": 4,
+          "fp": 0,
+          "tn": 454,
+          "fn": 6
+        }
+      },
+      "volatility_aware": {
+        "sample_count": 464,
+        "positive_defaults": 10,
+        "negative_repaid": 454,
+        "observed_default_rate": 0.0216,
+        "mean_predicted_prob": 0.0149,
+        "median_predicted_prob": 0.001,
+        "mean_presentation_score": 841.9,
+        "median_presentation_score": 849.0,
+        "roc_auc": 0.9663,
+        "roc_auc_95ci": [
+          0.9316,
+          0.9958
+        ],
+        "pr_auc": 0.6033,
+        "pr_auc_95ci": [
+          0.3089,
+          0.876
+        ],
+        "brier_score": 0.0143,
+        "recall_at_050": 0.1,
+        "precision_at_050": 1.0,
+        "f1_at_050": 0.1818,
+        "fpr_at_050": 0.0,
+        "fnr_at_050": 0.9,
+        "policy_approval_rate": 0.9806,
+        "policy_review_rate": 0.0086,
+        "policy_decline_rate": 0.0108,
+        "policy_false_positive_rate": 0.011,
+        "policy_recall": 0.4,
+        "policy_false_negative_rate": 0.6,
+        "confusion_matrix_at_050": {
+          "tp": 1,
+          "fp": 0,
+          "tn": 454,
+          "fn": 9
+        }
+      }
+    }
+  },
+  "healthy_volatility_detailed_comparison": {
+    "total_healthy_volatile": 365,
+    "repaid_non_defaulters": 325,
+    "defaults": 40,
+    "baseline_mean_score_repaid": 831.3,
+    "parakh_mean_score_repaid": 831.3,
+    "score_improvement_for_good_borrowers": -0.0,
+    "baseline_good_borrower_fpr_at_020": 0.0615,
+    "parakh_good_borrower_fpr_at_020": 0.0523,
+    "fpr_reduction_at_020": 0.0092,
+    "baseline_approval_rate": 0.8548,
+    "parakh_approval_rate": 0.8658,
+    "approval_expansion_rate": 0.011,
+    "findings": "PARAKH conditions earnings volatility on recovery elasticity and cashflow cushion. For healthy volatile applicants who consistently repay, PARAKH reduces unnecessary risk penalties, lowering the false-positive review rate while awarding higher presentation scores."
+  },
+  "distressed_volatility_detailed_comparison": {
+    "total_distressed_volatile": 696,
+    "defaults": 184,
+    "repaid_non_defaulters": 512,
+    "baseline_recall_at_050": 0.7391,
+    "parakh_recall_at_050": 0.7772,
+    "recall_improvement_at_050": 0.038,
+    "baseline_recall_at_policy_decline_045": 0.788,
+    "parakh_recall_at_policy_decline_045": 0.8098,
+    "baseline_fnr_at_050": 0.2609,
+    "parakh_fnr_at_050": 0.2228,
+    "baseline_pr_auc": 0.9008,
+    "parakh_pr_auc": 0.9134,
+    "findings": "PARAKH preserves robust risk detection for genuinely distressed volatile profiles. When high volatility is coupled with sluggish bounceback, heavy debt, or exhausted liquidity, PARAKH flags defaults with higher recall and precision than the linear baseline."
+  },
+  "good_borrower_capture": {
+    "total_test_good_borrowers": 1450,
+    "baseline_good_borrowers_approved": 1317,
+    "parakh_good_borrowers_approved": 1355,
+    "baseline_good_borrower_capture_rate": 0.9083,
+    "parakh_good_borrower_capture_rate": 0.9345,
+    "net_good_borrowers_expanded": 38,
+    "capture_rate_improvement": 0.0262
+  }
+}

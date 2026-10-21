@@ -1,0 +1,16 @@
+Metric Category,Specific Metric,Level / Unit,Baseline,Candidate (PARAKH),Absolute Delta,Percentage Points (pp),Relative Change (%),Audit Status
+Discrimination,PR-AUC (Average Precision),Applications,0.868,0.8773,0.0093,+0.93 pp,+1.07%,VERIFIED (Reporting Note)
+Discrimination,ROC-AUC,Applications,0.9696,0.9718,0.0022,+0.22 pp,+0.23%,VERIFIED
+Calibration,Brier Score Error,Applications,0.0472,0.0457,-0.0015,N/A,-3.18%,VERIFIED
+Calibration,Log-Loss,Applications,0.1506,0.1512,0.0006,N/A,+0.40%,VERIFIED
+Distressed Volatility,Default Recall (@ 0.50),Cohort Applications (N=696),73.91%,77.72%,N/A,+3.81 pp,+5.15%,VERIFIED
+Underwriting Policy,Approved Good Applications,Application Records,1317,1355,38,N/A,+2.89%,VERIFIED
+Underwriting Policy,Approved Default Applications,Application Records,26,38,12,N/A,+46.15%,VERIFIED
+Underwriting Policy,Total Approved Applications,Application Records,1343,1393,50,N/A,+3.72%,VERIFIED
+Underwriting Policy,Good Application Capture Rate,Application Records (N=1450),90.83%,93.45%,N/A,+2.62 pp,+2.89%,VERIFIED (Reporting Note)
+Underwriting Policy,Unique Borrowers Approved,Unique Borrowers,1133,1171,38,N/A,+3.35%,VERIFIED
+Underwriting Policy,Unique Good Borrowers Capture Rate,Unique Borrowers (N=1222),91.00%,93.62%,N/A,+2.62 pp,+2.88%,VERIFIED (Reporting Note)
+Financial Simulation,Normalized EL per ₹1L (@ 50% LGD),"INR / ₹100,000 Exp",₹524.55,₹439.75,-₹84.80,N/A,-16.17%,VERIFIED
+Financial Simulation,Aggregate Model Estimated EL,INR,"₹3,27,140.49","₹2,79,151.12","-₹47,989.37",N/A,-14.67%,VERIFIED
+Policy Backtest,Observed Default Loss per ₹1L (@ 50% LGD),"INR / ₹100,000 Exp",₹644.99,₹812.86,+₹167.87,N/A,+26.03%,VERIFIED BACKTEST
+Policy Backtest,Aggregate Observed Default Loss,INR,"₹4,02,250.00","₹5,16,000.00","+₹1,13,750.00",N/A,+28.28%,VERIFIED BACKTEST

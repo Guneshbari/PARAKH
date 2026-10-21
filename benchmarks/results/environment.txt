@@ -1,0 +1,12 @@
+PARAKH Benchmark Environment (Second-Pass Audit Edition)
+Date: 2026-10-21T17:55:01.999351+00:00
+Git Commit: ed89fbfb9db0a72f911b31a2f05b2428aafab077
+Platform: Linux-7.2.8-9-omarchy-x86_64-with-glibc2.44
+Python Version: 3.12.14
+Dataset Fingerprint: a3cd53d5d275e62ea7494e99ef9d7ea575340fbaaa7310e880797f7d8d7545c7
+Frozen Artifact Hashes:
+{
+  "models/artifacts/volatility_aware_risk_model.joblib": "88e8c4d6f75470a600b51e8f76fa442df7e43bb1766a7e759751a786e71c4060",
+  "models/artifacts/FINAL_MODEL.json": "e8f593bd1714bd93054fa897f343b900bf5c8c39b49d4c839a061b7cd1fb626f",
+  "models/artifacts/credit_risk_preprocessor.joblib": "bba8d91afebb8e88fe1e9e30567b60817c77a28afa055befe1cbf77ed4039eb2"
+}

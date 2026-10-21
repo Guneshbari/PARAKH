@@ -1,0 +1,62 @@
+benchmark_metadata:
+  name: "PARAKH Alternative Credit Risk Benchmark Suite"
+  version: "1.0.0"
+  purpose: "Auditable, reproducible benchmarking pipeline comparing Baseline Logistic Regression vs. Volatility-Aware LightGBM model"
+  seed: 42
+  disclaimer: "MANDATORY SCIENTIFIC & REGULATORY DISCLAIMER: All portfolio simulations, expected-loss models, and loan approval metrics are derived from controlled synthetic benchmarks on held-out test data (N = 1,698). They do not represent observed commercial banking outcomes or legal fair-lending certification."
+
+data:
+  dataset_path: "data/synthetic/synthetic_credit_applications.parquet"
+  split_type: "grouped"
+  group_column: "applicant_profile_id"
+  target_column: "target_default_flag"
+  split_ratios: [0.70, 0.15, 0.15]
+  insufficient_data_filter: true
+  expected_test_scored_samples: 1698
+  expected_test_defaults: 248
+
+models:
+  baseline:
+    name: "baseline-logistic-regression"
+    variant: "BASELINE"
+    feature_count: 35
+    artifact_path: "models/artifacts/logistic_regression_baseline.joblib"
+    metadata_path: "models/artifacts/logistic_regression_baseline_metadata.json"
+  candidate:
+    name: "volatility-aware-risk-model"
+    variant: "VOLATILITY_AWARE"
+    feature_count: 64
+    artifact_path: "models/artifacts/volatility_aware_risk_model.joblib"
+    metadata_path: "models/artifacts/volatility_aware_risk_model_metadata.json"
+  preprocessor:
+    artifact_path: "models/artifacts/credit_risk_preprocessor.joblib"
+  manifest:
+    path: "models/artifacts/FINAL_MODEL.json"
+
+expected_artifact_sha256:
+  "models/artifacts/volatility_aware_risk_model.joblib": "88e8c4d6f75470a600b51e8f76fa442df7e43bb1766a7e759751a786e71c4060"
+  "models/artifacts/FINAL_MODEL.json": "e8f593bd1714bd93054fa897f343b900bf5c8c39b49d4c839a061b7cd1fb626f"
+  "models/artifacts/credit_risk_preprocessor.joblib": "bba8d91afebb8e88fe1e9e30567b60817c77a28afa055befe1cbf77ed4039eb2"
+
+policy:
+  diagnostic_threshold: 0.50
+  provisional_threshold_lower: 0.20   # Streamlined Approve (< 0.20)
+  provisional_threshold_higher: 0.45  # Human Review (0.20 - 0.45), Decline (>= 0.45)
+  presentation_score_min: 300
+  presentation_score_max: 850
+  exposure_field: "requested_loan_amount"
+  lgd_scenarios: [0.25, 0.50, 0.75]
+  primary_lgd: 0.50
+
+cohorts:
+  distressed_volatile:
+    description: "High income volatility (CV > 0.22) coupled with weak bounceback (< 0.90), high debt burden (DTI > 0.35), or exhausted liquidity buffer (< 0.25)"
+    rules:
+      cv_threshold: 0.22
+      bounceback_threshold: 0.90
+      dti_threshold: 0.35
+      buffer_threshold: 0.25
+
+statistical_reliability:
+  bootstrap_iterations: 1000
+  confidence_level: 0.95

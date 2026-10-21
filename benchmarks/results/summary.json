@@ -1,0 +1,428 @@
+{
+  "benchmark_metadata": {
+    "name": "PARAKH Alternative Credit Risk Benchmark Suite",
+    "version": "1.0.0",
+    "purpose": "Auditable, reproducible benchmarking pipeline comparing Baseline Logistic Regression vs. Volatility-Aware LightGBM model",
+    "seed": 42,
+    "disclaimer": "MANDATORY SCIENTIFIC & REGULATORY DISCLAIMER: All portfolio simulations, expected-loss models, and loan approval metrics are derived from controlled synthetic benchmarks on held-out test data (N = 1,698). They do not represent observed commercial banking outcomes or legal fair-lending certification."
+  },
+  "dataset_provenance": {
+    "dataset_fingerprint": "a3cd53d5d275e62ea7494e99ef9d7ea575340fbaaa7310e880797f7d8d7545c7",
+    "test_total_applications": 1785,
+    "test_scored_applications": 1698,
+    "test_quarantined_applications": 87,
+    "test_unique_borrowers": 1500,
+    "test_scored_unique_borrowers": 1423,
+    "test_quarantined_unique_borrowers": 77,
+    "test_defaults_application_records": 248,
+    "test_good_application_records": 1450,
+    "test_unique_borrowers_with_default": 220,
+    "test_unique_pure_good_borrowers": 1203,
+    "test_unique_mixed_outcome_borrowers": 19,
+    "empirical_default_rate_records": 0.1461,
+    "seed": 42
+  },
+  "model_comparison": {
+    "pr_auc": {
+      "baseline_value": 0.868,
+      "candidate_value": 0.8773,
+      "absolute_delta": 0.0093,
+      "absolute_percentage_points": 0.93,
+      "relative_change_pct": 1.0714,
+      "metric_name": "PR-AUC (Average Precision)",
+      "unit": "score",
+      "notes": null
+    },
+    "roc_auc": {
+      "baseline_value": 0.9696,
+      "candidate_value": 0.9718,
+      "absolute_delta": 0.0022,
+      "absolute_percentage_points": 0.22,
+      "relative_change_pct": 0.2269,
+      "metric_name": "ROC-AUC",
+      "unit": "score",
+      "notes": null
+    },
+    "recall_threshold_0_5": {
+      "baseline_value": 0.6734,
+      "candidate_value": 0.7056,
+      "absolute_delta": 0.0322,
+      "absolute_percentage_points": 3.22,
+      "relative_change_pct": 4.7817,
+      "metric_name": "Recall (@ 0.50 cutoff)",
+      "unit": "rate",
+      "notes": null
+    },
+    "baseline_confusion_matrix": {
+      "true_positives": 167,
+      "false_positives": 33,
+      "true_negatives": 1417,
+      "false_negatives": 81
+    },
+    "candidate_confusion_matrix": {
+      "true_positives": 175,
+      "false_positives": 34,
+      "true_negatives": 1416,
+      "false_negatives": 73
+    },
+    "calibration": {
+      "baseline_brier_score": 0.0472,
+      "candidate_brier_score": 0.0457,
+      "baseline_log_loss": 0.1506,
+      "candidate_log_loss": 0.1512
+    },
+    "paired_borrower_cluster_uncertainty": {
+      "bootstrap_iterations": 1000,
+      "confidence_level": 0.95,
+      "resampling_unit": "borrower_cluster (applicant_profile_id)",
+      "unique_borrower_clusters": 1423,
+      "paired_pr_auc_delta": {
+        "mean_difference": 0.009151,
+        "ci_lower": -0.016599,
+        "ci_upper": 0.035722
+      },
+      "paired_roc_auc_delta": {
+        "mean_difference": 0.002235,
+        "ci_lower": -0.004371,
+        "ci_upper": 0.008649
+      },
+      "paired_brier_score_delta": {
+        "mean_difference": -0.00151,
+        "ci_lower": -0.006673,
+        "ci_upper": 0.003891
+      }
+    }
+  },
+  "distressed_volatility_cohort_audit": {
+    "threshold": 0.5,
+    "sample_size": 696,
+    "defaults": 184,
+    "repaid": 512,
+    "baseline": {
+      "true_positives": 136,
+      "false_negatives": 48,
+      "recall": 0.7391
+    },
+    "candidate": {
+      "true_positives": 143,
+      "false_negatives": 41,
+      "recall": 0.7772
+    },
+    "comparison": {
+      "additional_defaults_detected": 7,
+      "recall_gain_percentage_points": 3.8,
+      "recall_gain_relative_pct": 5.15
+    }
+  },
+  "good_borrower_capture_and_approval_audit": {
+    "approval_threshold": 0.2,
+    "population": {
+      "total_applications": 1698,
+      "total_good_borrowers": 1450,
+      "total_defaulters": 248
+    },
+    "baseline_policy": {
+      "total_approved": 1343,
+      "good_borrowers_approved": 1317,
+      "defaulters_approved": 26,
+      "good_borrower_capture_rate": 0.9083
+    },
+    "candidate_policy": {
+      "total_approved": 1393,
+      "good_borrowers_approved": 1355,
+      "defaulters_approved": 38,
+      "good_borrower_capture_rate": 0.9345
+    },
+    "reconciliation": {
+      "net_additional_total_approved": 50,
+      "net_additional_good_borrowers_approved": 38,
+      "net_additional_defaulters_approved": 12,
+      "good_borrower_capture_delta_pp": 2.6207,
+      "good_borrower_capture_relative_pct": 2.8853,
+      "transitions": {
+        "rejected_in_baseline_approved_in_candidate": 76,
+        "approved_in_baseline_rejected_in_candidate": 26,
+        "concordant_approved": 1317,
+        "concordant_rejected": 279
+      }
+    },
+    "record_level": {
+      "total_application_records": 1698,
+      "good_application_records": 1450,
+      "defaulting_application_records": 248,
+      "baseline": {
+        "total_approved_records": 1343,
+        "good_records_approved": 1317,
+        "defaulting_records_approved": 26,
+        "good_record_capture_rate": 0.9083
+      },
+      "candidate": {
+        "total_approved_records": 1393,
+        "good_records_approved": 1355,
+        "defaulting_records_approved": 38,
+        "good_record_capture_rate": 0.9345
+      },
+      "reconciliation": {
+        "net_total_approvals_delta": 50,
+        "net_good_records_approved_delta": 38,
+        "net_defaulting_records_approved_delta": 12,
+        "good_record_capture_delta_pp": 2.6207,
+        "good_record_capture_relative_pct": 2.8853
+      },
+      "transitions": {
+        "rejected_in_baseline_approved_in_candidate": 76,
+        "approved_in_baseline_rejected_in_candidate": 26,
+        "concordant_approved": 1317,
+        "concordant_rejected": 279
+      }
+    },
+    "borrower_level": {
+      "total_unique_borrowers": 1423,
+      "unique_borrowers_with_good_loan": 1222,
+      "baseline": {
+        "unique_borrowers_approved_overall": 1133,
+        "unique_good_borrowers_approved": 1112,
+        "unique_borrower_capture_rate": 0.91
+      },
+      "candidate": {
+        "unique_borrowers_approved_overall": 1171,
+        "unique_good_borrowers_approved": 1144,
+        "unique_borrower_capture_rate": 0.9362
+      },
+      "reconciliation": {
+        "net_unique_borrowers_approved_delta": 38,
+        "net_unique_good_borrowers_approved_delta": 32,
+        "unique_borrower_capture_delta_pp": 2.6187,
+        "unique_borrower_capture_relative_pct": 2.8777
+      }
+    }
+  },
+  "expected_loss_simulation_audit": {
+    "lgd_25pct": {
+      "lgd": 0.25,
+      "baseline": {
+        "total_exposure_inr": 62365500.0,
+        "total_expected_loss_inr": 163570.24,
+        "expected_loss_per_1_lakh_inr": 262.28,
+        "lgd_assumption": 0.25
+      },
+      "candidate": {
+        "total_exposure_inr": 63479500.0,
+        "total_expected_loss_inr": 139575.56,
+        "expected_loss_per_1_lakh_inr": 219.88,
+        "lgd_assumption": 0.25
+      },
+      "reductions": {
+        "absolute_difference_inr": -42.4,
+        "relative_reduction_pct": 16.17,
+        "normalized_loss_rate": {
+          "baseline_loss_per_100k_inr": 262.28,
+          "candidate_loss_per_100k_inr": 219.88,
+          "absolute_delta_inr": -42.4,
+          "relative_reduction_pct": 16.17
+        },
+        "aggregate_loss": {
+          "baseline_aggregate_loss_inr": 163570.24,
+          "candidate_aggregate_loss_inr": 139575.56,
+          "absolute_delta_inr": -23994.68,
+          "relative_reduction_pct": 14.67
+        }
+      }
+    },
+    "lgd_50pct": {
+      "lgd": 0.5,
+      "baseline": {
+        "total_exposure_inr": 62365500.0,
+        "total_expected_loss_inr": 327140.49,
+        "expected_loss_per_1_lakh_inr": 524.55,
+        "lgd_assumption": 0.5
+      },
+      "candidate": {
+        "total_exposure_inr": 63479500.0,
+        "total_expected_loss_inr": 279151.12,
+        "expected_loss_per_1_lakh_inr": 439.75,
+        "lgd_assumption": 0.5
+      },
+      "reductions": {
+        "absolute_difference_inr": -84.8,
+        "relative_reduction_pct": 16.17,
+        "normalized_loss_rate": {
+          "baseline_loss_per_100k_inr": 524.55,
+          "candidate_loss_per_100k_inr": 439.75,
+          "absolute_delta_inr": -84.8,
+          "relative_reduction_pct": 16.17
+        },
+        "aggregate_loss": {
+          "baseline_aggregate_loss_inr": 327140.49,
+          "candidate_aggregate_loss_inr": 279151.12,
+          "absolute_delta_inr": -47989.37,
+          "relative_reduction_pct": 14.67
+        }
+      }
+    },
+    "lgd_75pct": {
+      "lgd": 0.75,
+      "baseline": {
+        "total_exposure_inr": 62365500.0,
+        "total_expected_loss_inr": 490710.73,
+        "expected_loss_per_1_lakh_inr": 786.83,
+        "lgd_assumption": 0.75
+      },
+      "candidate": {
+        "total_exposure_inr": 63479500.0,
+        "total_expected_loss_inr": 418726.68,
+        "expected_loss_per_1_lakh_inr": 659.63,
+        "lgd_assumption": 0.75
+      },
+      "reductions": {
+        "absolute_difference_inr": -127.2,
+        "relative_reduction_pct": 16.17,
+        "normalized_loss_rate": {
+          "baseline_loss_per_100k_inr": 786.83,
+          "candidate_loss_per_100k_inr": 659.63,
+          "absolute_delta_inr": -127.2,
+          "relative_reduction_pct": 16.17
+        },
+        "aggregate_loss": {
+          "baseline_aggregate_loss_inr": 490710.73,
+          "candidate_aggregate_loss_inr": 418726.68,
+          "absolute_delta_inr": -71984.05,
+          "relative_reduction_pct": 14.67
+        }
+      }
+    }
+  },
+  "observed_label_policy_backtest": {
+    "lgd_assumption": 0.5,
+    "baseline": {
+      "approved_applications": 1343,
+      "approved_exposure_inr": 62365500.0,
+      "approved_defaulting_records": 26,
+      "aggregate_backtest_loss_inr": 402250.0,
+      "normalized_backtest_loss_per_100k_inr": 644.99
+    },
+    "candidate": {
+      "approved_applications": 1393,
+      "approved_exposure_inr": 63479500.0,
+      "approved_defaulting_records": 38,
+      "aggregate_backtest_loss_inr": 516000.0,
+      "normalized_backtest_loss_per_100k_inr": 812.86
+    },
+    "comparison": {
+      "additional_defaulting_records_admitted": 12,
+      "aggregate_backtest_loss_delta_inr": 113750.0,
+      "aggregate_backtest_loss_pct_change": 28.28,
+      "normalized_backtest_loss_delta_inr": 167.87,
+      "normalized_backtest_loss_pct_change": 26.03
+    },
+    "methodological_notice": "NOTICE: Observed-label backtest measures realized test-set defaults under the fixed policy, whereas model-estimated Expected Loss reflects probability-weighted risk forecasts. Because the candidate model expanded approvals by +50 loans, it admitted 12 additional defaults, resulting in higher observed backtest loss (+28.28%) despite lower model-estimated expected loss (-16.17%)."
+  },
+  "ablation_2x2_matrix": {
+    "1_logistic_regression_35_features_historic_baseline": {
+      "model_family": "Linear (Logistic Regression)",
+      "feature_count": 35,
+      "pr_auc": 0.868,
+      "roc_auc": 0.9696,
+      "brier_score": 0.0472,
+      "log_loss": 0.1506,
+      "role": "Historic Baseline"
+    },
+    "2_logistic_regression_64_features_feature_ablation": {
+      "model_family": "Linear (Logistic Regression)",
+      "feature_count": 64,
+      "pr_auc": 0.8981,
+      "roc_auc": 0.9795,
+      "brier_score": 0.0407,
+      "log_loss": 0.1285,
+      "role": "Feature-Engineering Effect on Linear Family"
+    },
+    "3_lightgbm_35_features_architecture_ablation": {
+      "model_family": "Tree Ensemble (LightGBM)",
+      "feature_count": 35,
+      "pr_auc": 0.8346,
+      "roc_auc": 0.962,
+      "brier_score": 0.0532,
+      "log_loss": 0.1752,
+      "role": "Architecture Effect on Baseline Features"
+    },
+    "4_lightgbm_64_features_historic_parakh_candidate": {
+      "model_family": "Tree Ensemble (LightGBM)",
+      "feature_count": 64,
+      "pr_auc": 0.8773,
+      "roc_auc": 0.9718,
+      "brier_score": 0.0457,
+      "log_loss": 0.1512,
+      "role": "Historic PARAKH Candidate"
+    }
+  },
+  "resume_claims_audit": {
+    "evaluation_set_size_1698": {
+      "claim": "1,698 applications",
+      "measured": 1698,
+      "unit": "application_records",
+      "status": "VERIFIED",
+      "notes": "Exact held-out test scored partition row count (87 unscored records quarantined). Total unique borrowers across all 1,785 test applications is 1,500 (1,423 in scored set)."
+    },
+    "random_seed_42": {
+      "claim": "Random seed 42",
+      "measured": 42,
+      "status": "VERIFIED",
+      "notes": "Deterministically reproduced grouped applicant split (zero leakage)."
+    },
+    "linear_baseline": {
+      "claim": "Linear baseline",
+      "measured": "LogisticRegressionBaseline (35 features, L2 penalty)",
+      "status": "VERIFIED",
+      "notes": "Confirmed from repository artifacts and model metadata."
+    },
+    "pr_auc_improvement_0_93": {
+      "claim": "+0.93% PR-AUC improvement",
+      "measured_baseline": 0.868,
+      "measured_candidate": 0.8773,
+      "measured_absolute_delta_pp": "+0.93 percentage points (+0.0093)",
+      "measured_relative_change_pct": "+1.07%",
+      "paired_cluster_95_ci_delta": [
+        -0.016599,
+        0.035722
+      ],
+      "status": "VERIFIED_WITH_REPORTING_CORRECTION",
+      "notes": "Claimed '+0.93%' conflated absolute delta (+0.0093 / +0.93 pp) with relative change (+1.07%). Paired cluster bootstrap CI spans zero (p > 0.05)."
+    },
+    "distressed_volatility_recall_3_81_pp": {
+      "claim": "+3.81 percentage points distressed-volatility recall gain",
+      "measured_baseline": 73.91,
+      "measured_candidate": 77.72,
+      "measured_delta_pp": 3.81,
+      "status": "VERIFIED",
+      "notes": "Evaluated on distressed volatile cohort (N = 696 records, defaults = 184) at 0.50 cutoff."
+    },
+    "additional_loans_approved_38": {
+      "claim": "38 additional loans approved",
+      "measured_good_borrowers_approved_delta": 38,
+      "measured_total_loans_approved_delta": 50,
+      "measured_unique_borrowers_approved_delta": 38,
+      "status": "VERIFIED_WITH_DENOMINATOR_CORRECTION",
+      "notes": "38 represents both net additional good application records approved (1,355 vs 1,317) and net additional unique borrowers approved overall (1,171 vs 1,133). Total approved application records increased by +50 (1,393 vs 1,343)."
+    },
+    "good_borrower_capture_improvement_2_62": {
+      "claim": "+2.62% good borrower capture improvement",
+      "measured_baseline_record_capture": 90.83,
+      "measured_candidate_record_capture": 93.45,
+      "measured_delta_pp_record_level": 2.62,
+      "measured_delta_pp_unique_borrower_level": 2.62,
+      "measured_relative_pct": 2.89,
+      "status": "VERIFIED_WITH_REPORTING_CORRECTION",
+      "notes": "Claimed '+2.62%' is an absolute percentage-point increase (93.45% - 90.83% for records; 93.62% - 91.00% for unique borrowers). Relative capture gain is +2.89%."
+    },
+    "simulated_expected_loss_reduction_16_17": {
+      "claim": "16.17% simulated expected loss reduction",
+      "measured_baseline_el_per_100k": 524.55,
+      "measured_candidate_el_per_100k": 439.75,
+      "measured_normalized_loss_rate_reduction_pct": 16.17,
+      "measured_aggregate_model_loss_reduction_pct": 14.67,
+      "measured_observed_backtest_loss_change_pct": 28.28,
+      "status": "VERIFIED_WITH_DISTINCTION",
+      "notes": "The 16.17% reduction applies strictly to model-estimated normalized loss rate per \u20b91L exposure under policy cutoffs. Aggregate model loss fell by 14.67%. In contrast, observed-label backtest losses increased by +28.28% due to admitting 12 additional defaults."
+    }
+  }
+}
